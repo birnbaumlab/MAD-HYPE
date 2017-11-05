@@ -2,15 +2,10 @@
 from scipy.stats import binom
 import numpy as np
 
+def _calculate_well_freqs(freqs,cpw):
+    return 1. - ((1. - freqs)**cpw)
 
-a = [0.2,0.4,0.4]
-b = [0.2,0.8]
+f = np.array([0.2,0.4,0.6])
 
 
-print a
-print b
-print np.convolve(a,b,mode='full')
-
-probs = binom.pmf(xrange(10),10,[0.1,0.2])
-print probs
 
