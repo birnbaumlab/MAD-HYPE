@@ -29,7 +29,7 @@ sg.set_cells_per_well(distro_type = 'explicit',
 sg.generate_cells(100)
 data = sg.generate_data()
 
-results = solve_madhype(data,pair_threshold = 0.99,verbose=0,real_data=False)
+results = solve_madhype(data)
 
 
 #test_settings(cpw_distro=cpw_distro)

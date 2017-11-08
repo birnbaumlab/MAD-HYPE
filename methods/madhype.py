@@ -65,7 +65,8 @@ def madhype_thread(args):
         > args: list or tuple, consisting of (w_tot, threshold, process #)
     '''
     startTime = datetime.now() # start a timeer for processing
-    os.system(os.getcwd() + '/solver/test ' + ' '.join(args))
+    print 'Args:',args
+    os.system(os.getcwd() + '/methods/a.out ' + ' '.join(args))
     print 'Process-{} took {} seconds.\n'.format(args[-1],datetime.now()-startTime) # update on processing time
 
 
@@ -137,6 +138,8 @@ def multithread_madhype(cores,data,args_dict):
     startTime = datetime.now()
 
     a_uniques,b_uniques,a_wells,b_wells = data # unpackage data 
+
+    if not os.path.isdir('./solver'): os.mkdir('./solver')
 
     # Output general data used by all processes
     with open('./solver/chain_data_a.txt','w') as f:
@@ -510,7 +513,6 @@ class Parameters:
     # use a dictionary to update class attributes
     def update(self,params={}):
         # makes params dictionary onto class attributes
-        print params
         for key, value in params.items():
             setattr(self, key, value)
         # can apply checks afterward
