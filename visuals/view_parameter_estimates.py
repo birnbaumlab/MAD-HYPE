@@ -64,12 +64,14 @@ def view_parameter_estimates(*args,**kwargs):
 
 ### Factory Methods
 
+'''
 def binomial_probability(w_t,f_well,partitions = [96]):
     """ Returns a <c/w subset> by <w_t + 1> binomial matrix """
     result = [1. for i in
     for i,partition in enumerate(partitions):
         distro = [binom.pmf(xrange(partition + 1),partition,f) for f in f_well]
         if i != 0:
+'''
             
 
 def generate_success_rate_list(freqs,error_dict,settings):
@@ -113,8 +115,8 @@ def generate_error_rate_dict(freqs,settings):
 
     return {'avg':error_dict_avg,'std':error_dict_std}
 
-def calculate_well_freqs(freqs,settings['cells_per_well']):
-    return [1. - ((1. - freqs)**s for s in settings['cells_per_well'])]
+def calculate_well_freqs(freqs,cpw):
+    return [1. - ((1. - freqs)**s for s in cpw)]
 
 def generate_well_count(freqs,settings):
     well_freqs = calculate_well_freqs(freqs,settings['cells_per_well'])

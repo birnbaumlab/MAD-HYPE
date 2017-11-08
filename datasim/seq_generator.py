@@ -117,6 +117,7 @@ class SequencingGenerator(object):
       self.chain_deletion_prob = kwargs['chain_deletion_prob']
 
 
+
   @staticmethod
   def generate_cells(num_cells, alpha_sharing_probs = None, beta_sharing_probs = None, alpha_dual_prob = 0.0, beta_dual_prob = 0.0, alpha_start_idx=0, beta_start_idx=0):
     if alpha_sharing_probs is None:

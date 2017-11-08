@@ -145,7 +145,9 @@ def visualize_results(freqs,results_dict,*args,**kwargs):
     
     # making things pretty
     plt.xscale('log')
+    plt.yscale('log')
     plt.title(options['title'])
+
     plt.xlabel('Clonal frequency')
     plt.ylabel('% Successful Identification')
     plt.ylim([-0.1,1.1])
