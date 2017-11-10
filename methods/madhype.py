@@ -380,7 +380,7 @@ The Meat-and-Potatoes Function
 # Adjustment: refers to the prior distribution adjustment account for repertoire density error
 # Input parameters:
 #   > skip_run: if False, everything will run as normal; if set to string, will dig for a folder in testing for data
-def solve(data,custom_params={}):
+def solve(data,*args,**kwargs):
 
     # TODO: I would eventually like to remove this declaration, and have the parameter dictionary passed always contain the defaults instead
     # In the interim, this will do
@@ -396,11 +396,12 @@ def solve(data,custom_params={}):
             'skip_run':False
             }
 
+    # update dictionary
+    for arg in args: default_params.update(arg)
+    default_params.update(kwargs)
+
     params = Parameters(default_params)
 
-    # included default parameters (TODO: again, I would like to eventually stay away from local namespace pollution, but until we switch all code this will do)
-    params.update(custom_params)
-    
     if params.verbose >= 5: silent = False
     else: silent = True
 
@@ -489,7 +490,7 @@ def solve(data,custom_params={}):
     # non-so-real data post-processing
     elif not params.real_data:
         # recalls real matches
-        real_matches = data.metadata['cells']
+        # real_matches = data.metadata['cells']
 
         scores = [scores_dict[c] for c in cells]
         freqs = [freqs_dict[c] for c in cells]
@@ -497,6 +498,7 @@ def solve(data,custom_params={}):
         # deposit results in the collect results function 
         compiler = CollectResults()
         compiler.add_results(cells, freqs, scores)
+        
         #compiler.add_results(ab_edges,ab_freqs,ab_scores,'AB')
         #compiler.add_results(aa_edges,aa_freqs,aa_scores,'AA')
         #compiler.add_results(bb_edges,bb_freqs,bb_scores,'BB')

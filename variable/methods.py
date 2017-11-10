@@ -35,7 +35,7 @@ plt.rcParams["font.family"] = "serif"
 # Main Functions
 #----------------------------------------------------------------#
 
-def generate_power_law_clones(a,n):
+def generate_power_law_clones(a,n,shift):
     """ Generates n clones under a frequency distribution w/ alpha = a """ 
     freqs = 10.**(-a*np.log10(np.arange(1,n+1)))
     freqs = freqs/sum(freqs)
