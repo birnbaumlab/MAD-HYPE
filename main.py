@@ -17,7 +17,7 @@ from variable import * # functions: test_settings
 from analysis import * # functions: process_results
 
 
-cpw_distro = [(10,20),(100,20),(1000,20),(10000,20),(100000,20)]
+cpw_distro = [(10,20),(100,20),(1000,20),(10000,20),(10000,20)]
 #cpw_distro = [(2777,96)]
 
 cpw_by_well = [wt[0] for wt in cpw_distro for i in xrange(wt[1])]

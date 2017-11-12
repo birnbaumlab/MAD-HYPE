@@ -197,8 +197,7 @@ class SequencingGenerator(object):
     elif distro == 'power-law-old':
       freqs = np.random.pareto(-params['alpha'], len(self.cells)) ## TODO: there's something screwy abt this distro, talk to holec abt it
     elif distro == 'power-law':
-        freqs = 10.**(-params['alpha']*np.log10(np.arange(1,len(self.cells)+1)))
-        freqs = freqs/sum(freqs)
+        freqs = 10.**(params['alpha']*np.log10(np.arange(1,len(self.cells)+1)))
     elif distro == 'Lee':
       p_s = params.get('p_s', 0.5)
       n_s = params.get('n_s', 10)
