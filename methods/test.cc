@@ -610,6 +610,7 @@ void try_chain_additions_nondual(chainset_t &chainset, vector<chain_t> &addition
         match_score(w_ab, w_a, w_b, w_tot, score, freq);
     
         // Store result if it's good enough
+        //cout << "score: " << score << " | " << w_ab << " " << w_a << " " << w_b << endl;
         if (score > threshold) {
             chainset_t new_chainset = add_chain_to_chainset(chainset, *chain_it);
             results.push_back(make_result_string(new_chainset, freq, score, uniques_a, uniques_b)); 
@@ -680,8 +681,8 @@ void try_chain_additions(chainset_t &chainset, vector<chain_t> &additions, float
 int main(int argc, char *argv[])
 
 {
-    cout << "starting... \n";
-    cout << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << endl;
+    //cout << "starting... \n";
+    //cout << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << endl;
     int w_tot = stoi(argv[1]);
     float threshold = stof(argv[2]);
     bool try_alphas = stoi(argv[3]);
@@ -689,11 +690,11 @@ int main(int argc, char *argv[])
     int index = stoi(argv[5]);
     
     // Input parameters
-    cout << "Starting Process-" << index << " with parameters:\n";
-    cout << "  W_tot: " << w_tot << endl;
-    cout << "  Threshold: " << threshold << endl;
-    cout << "  try_alphas: " << try_alphas << endl;
-    cout << "  try_betas:  " << try_betas << endl;
+    //cout << "Starting Process-" << index << " with parameters:\n";
+    //cout << "  W_tot: " << w_tot << endl;
+    //cout << "  Threshold: " << threshold << endl;
+    //cout << "  try_alphas: " << try_alphas << endl;
+    //cout << "  try_betas:  " << try_betas << endl;
     
     //const int w_tot = 96;
     //const float threshold = 4.0;
@@ -721,8 +722,6 @@ int main(int argc, char *argv[])
     }
     cout << endl;
  */   
-    //const int w_tot = 96;
-    //const float threshold = 4.0;
     
     // Declare data variables
     string fname_init_chainsets = "./solver/initial_" + to_string(index) + ".txt";
@@ -732,28 +731,28 @@ int main(int argc, char *argv[])
     string fname_uniques_b = "./solver/uniques_b.txt";
 
     // Load unique chains for a/b
-    cout << "Loading unique chains..." << endl;
+    //cout << "Loading unique chains..." << endl;
     vector<int> uniques_a = LoadUniques(fname_uniques_a);
     vector<int> uniques_b = LoadUniques(fname_uniques_b);
-    cout << uniques_a.size() << "/" << uniques_b.size() << " unique a/b chains loaded!" << endl;
+    //cout << uniques_a.size() << "/" << uniques_b.size() << " unique a/b chains loaded!" << endl;
     
     // Load well data for a/b 
-    cout << "Loading well data..." << endl;
+    //cout << "Loading well data..." << endl;
     char** chain_data_a = LoadChainData(fname_data_a,uniques_a.size(),w_tot);
-    cout << "Finished loading chain data A!" << endl;
+    //cout << "Finished loading chain data A!" << endl;
     char** chain_data_b = LoadChainData(fname_data_b,uniques_b.size(),w_tot);
-    cout << "Finished loading chain data B!" << endl;
+    //cout << "Finished loading chain data B!" << endl;
 
     // Load well data for a/b 
-    cout << "Loading well data..." << endl;
+    //cout << "Loading well data..." << endl;
     int *chain_count_a = LoadChainCount(fname_data_a,uniques_a.size());
     int *chain_count_b = LoadChainCount(fname_data_b,uniques_b.size());
-    cout << "Finished loading chain counts!" << endl;
+    //cout << "Finished loading chain counts!" << endl;
 
-    cout << "Loading starting chainsets from " << fname_init_chainsets << ": ";
+    //cout << "Loading starting chainsets from " << fname_init_chainsets << ": ";
     vector<chainset_t> init_chainsets; // stores indices into uniques_a/uniques_b (or -1 if no chain)
     LoadInitChainsets(fname_init_chainsets, init_chainsets);
-    cout << init_chainsets.size() << " initial chain sets loaded!";
+    //cout << init_chainsets.size() << " initial chain sets loaded!";
 
     vector<string> results;
 
@@ -770,15 +769,15 @@ int main(int argc, char *argv[])
             additions.push_back((chain_t){.is_alpha=false, .id=i});
         }
     }
-    cout << "trying " << additions.size() << " additions";
-    cout << additions.back().is_alpha << " " << additions.back().id << endl;
+    //cout << "trying " << additions.size() << " additions";
+    //cout << additions.back().is_alpha << " " << additions.back().id << endl;
     
     for (int i = 0; i < init_chainsets.size(); i++) {
         try_chain_additions(init_chainsets[i], additions, threshold, uniques_a, chain_data_a, chain_count_a, uniques_b, chain_data_b, chain_count_b, w_tot, results);
-        cout << "Finished " << i+1 << "/" << init_chainsets.size() << "      \r";
+        //cout << "Finished " << i+1 << "/" << init_chainsets.size() << "      \r";
         //cout.flush();
     }
-    cout << endl;
+    //cout << endl;
     // Iterate through pairs 
     /*for (int i = 0; i < uniques_a.size(); i ++)
     {

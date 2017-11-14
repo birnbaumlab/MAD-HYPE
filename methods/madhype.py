@@ -58,19 +58,19 @@ def nCk(n, r):
 Important Functions
 '''
 
-def madhype_thread(args):
+def madhype_thread(args,silent=True):
     """ This function is what is executed each process """ 
     '''
     Arguments:
         > args: list or tuple, consisting of (w_tot, threshold, process #)
     '''
     startTime = datetime.now() # start a timeer for processing
-    print 'Args:',args
+    if not silent: print 'Args:',args
     os.system(os.getcwd() + '/methods/a.out ' + ' '.join(args))
-    print 'Process-{} took {} seconds.\n'.format(args[-1],datetime.now()-startTime) # update on processing time
+    if not silent: print 'Process-{} took {} seconds.\n'.format(args[-1],datetime.now()-startTime) # update on processing time
 
 
-def determine_core_usage(cores): 
+def determine_core_usage(cores,silent=True): 
     """ This function checks that declared core usage is approriate """
     '''
     Arguments:
@@ -79,8 +79,8 @@ def determine_core_usage(cores):
     '''
     if type(cores) == str:
         if cores.lower() == 'max': # check lower case name
-            print 'Declared max CPU core usage ({})...'.format(multiprocessing.cpu_count())
-            return multiprocessing.cpu_count()
+            if not silent: print 'Declared max CPU core usage ({})...'.format(multiprocessing.cpu_count())
+            return multiprocessing.cpu_count() - 4
         else:
             raise KeyError('cores string is not recognized ({})'.format(cores))
     elif not type(cores) == int: 
@@ -99,7 +99,6 @@ def try_chain_additions_multithread(init_chainsets, a_uniques, b_uniques, cores,
 
     # Output process-specific info to data files
     chunk_size = int(math.ceil(len(init_chainsets) / float(cores)))
-    print len(init_chainsets), chunk_size
     for i in range(cores):
         f = open('./solver/initial_{}.txt'.format(i+1), 'w')
         for w in init_chainsets[i*chunk_size:(i+1)*chunk_size]:
@@ -116,6 +115,7 @@ def try_chain_additions_multithread(init_chainsets, a_uniques, b_uniques, cores,
     # Start processes
     pool = multiprocessing.Pool(processes = cores)
     pool.map(madhype_thread, args_list)
+    pool.close()
 
     # Collect and parse results
     lines = collect_results(cores)
@@ -133,7 +133,7 @@ def try_chain_additions_multithread(init_chainsets, a_uniques, b_uniques, cores,
 
            
 
-def multithread_madhype(cores,data,args_dict):
+def multithread_madhype(cores,data,args_dict,silent=True):
    # start a timer
     startTime = datetime.now()
 
@@ -161,7 +161,7 @@ def multithread_madhype(cores,data,args_dict):
     pass1_args = [str(w_tot), str(pass1_thresh), '0', '1']
     pass1_init = [((a,),()) for a in a_uniques]
     cells, scores_dict, freqs_dict = try_chain_additions_multithread(pass1_init, a_uniques, b_uniques, cores, pass1_args)
-    print "PASS 1: Found {} cells".format(len(cells))
+    if not silent: print "PASS 1: Found {} cells".format(len(cells))
 
     # Run second pass (add alpha/beta chains to each chain pair to make duals)
 #    pass2_prior = .3/(len(a_uniques)*len(b_uniques))
@@ -178,13 +178,8 @@ def multithread_madhype(cores,data,args_dict):
 #    freqs_dict.update(p2_freqs)
 
     
-     
-
-
-    
-
     # let us know how long everything took
-    print 'Multithreaded C++ full implementation took {} seconds.\n'.format(datetime.now()-startTime)
+    if not silent: print 'Multithreaded C++ full implementation took {} seconds.\n'.format(datetime.now()-startTime)
 
     return list(cells), scores_dict, freqs_dict
 
@@ -251,15 +246,14 @@ Returns:
 '''
 # TODO: add stochasicity to well dismissal
 
-def directional_matches(a_wells,b_wells,a_uniqs,b_uniqs,w_tot,threshold=0.99,silent=False,distinct=False):
+def directional_matches(a_wells,b_wells,a_uniqs,b_uniqs,w_tot,threshold=0.99,silent=True,distinct=False):
 
     # important storage variables
     predicted_ab = []
     predicted_frequency = []
     predicted_score = []
 
-    print 'Making C++ data files...'
-    print a_wells
+    if not silent: print 'Making C++ data files...'
     
     with open('chain_data_a.txt','w') as f:
         for w in a_uniqs: f.write('{}'.format(str(a_wells[w]))[1:-1]+'\n')
@@ -295,7 +289,7 @@ def directional_matches(a_wells,b_wells,a_uniqs,b_uniqs,w_tot,threshold=0.99,sil
     # start iterating through well sets
     tested_pairs = set()
     for w in xrange(w_tot):
-        print len(wells_a[w]),len(wells_b[w])
+        #print len(wells_a[w]),len(wells_b[w])
         p_tot = len(wells_a[w])*len(wells_b[w])
         pairs = itertools.product(wells_a[w],wells_b[w])
         for ind,p in enumerate(pairs):
@@ -356,7 +350,6 @@ class CollectResults:
         #    self.cells += [((e[0],e[1]),((),)) for e in all_edges]
         #elif id == 'aa' or id == 'AA':
         #    self.cells += [(((),),(e[0],e[1])) for e in all_edges]
-        print all_edges[0]
         self.cells += all_edges
 
         self.cell_frequencies += [f for f in all_freqs]
@@ -421,8 +414,8 @@ def solve(data,*args,**kwargs):
     for w,well in enumerate(data.well_data):
         for a in well[0]: a_wells[a].append(w) # drop well indices in each unique chains entry
         for b in well[1]: b_wells[b].append(w) # drop well indices in each unique chains entry
-        print 'Reverse dictionary progress... {}%\r'.format(100*(w+1)/w_tot),
-    print ''
+        if params.verbose >= 5: print 'Reverse dictionary progress... {}%\r'.format(100*(w+1)/w_tot),
+    if params.verbose >= 5: print ''
 
     # detect the appropriate amount of core usage
     core_count = determine_core_usage(params.cores) # calls simple function to figure out core counts
@@ -507,6 +500,7 @@ def solve(data,*args,**kwargs):
         
         return compiler.export() 
     
+
     
 
 
