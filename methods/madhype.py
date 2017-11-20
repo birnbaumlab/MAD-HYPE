@@ -131,7 +131,6 @@ def try_chain_additions_multithread(init_chainsets, a_uniques, b_uniques, cores,
         freqs_dict[c] = float(line[1])
     return cells, scores_dict, freqs_dict
 
-           
 
 def multithread_madhype(cores,data,args_dict):
    # start a timer
@@ -449,8 +448,6 @@ def solve(data,*args,**kwargs):
         # make histogram dictionaries for multiplicity adjustments
         counter_a = collections.Counter([len(wc) for wc in a_wells.values()])
         counter_b = collections.Counter([len(wc) for wc in b_wells.values()])
-        #counter_a = dict([(k,v*math.log10((nCk(w_tot,k)-1)/nCk(w_tot,k))) for k,v in counter_a.items()])
-        #counter_b = dict([(k,v*math.log10((nCk(w_tot,k)-1)/nCk(w_tot,k))) for k,v in counter_b.items()])
         # Old set, for later investigation
         counter_a_old = dict([(k,math.log10(v)) for k,v in counter_a.items()]) 
         counter_b_old = dict([(k,math.log10(v)) for k,v in counter_b.items()]) 
@@ -474,7 +471,7 @@ def solve(data,*args,**kwargs):
         multithread_madhype(core_count,passed_data,args)
         lines_aa = collect_results(core_count)
 
-        passed_data = [a_uniques,b_uniques,a_wells,b_wells]
+        passed_data = [b_uniques,b_uniques,b_wells,b_wells]
         multithread_madhype(core_count,passed_data,args)
         lines_bb = collect_results(core_count)
     else:

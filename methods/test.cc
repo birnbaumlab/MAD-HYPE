@@ -738,22 +738,22 @@ int main(int argc, char *argv[])
     cout << uniques_a.size() << "/" << uniques_b.size() << " unique a/b chains loaded!" << endl;
     
     // Load well data for a/b 
-    cout << "Loading well data..." << endl;
+    //cout << "Loading well data..." << endl;
     char** chain_data_a = LoadChainData(fname_data_a,uniques_a.size(),w_tot);
-    cout << "Finished loading chain data A!" << endl;
+    //cout << "Finished loading chain data A!" << endl;
     char** chain_data_b = LoadChainData(fname_data_b,uniques_b.size(),w_tot);
-    cout << "Finished loading chain data B!" << endl;
+    //cout << "Finished loading chain data B!" << endl;
 
     // Load well data for a/b 
-    cout << "Loading well data..." << endl;
+    //cout << "Loading well data..." << endl;
     int *chain_count_a = LoadChainCount(fname_data_a,uniques_a.size());
     int *chain_count_b = LoadChainCount(fname_data_b,uniques_b.size());
-    cout << "Finished loading chain counts!" << endl;
+    //cout << "Finished loading chain counts!" << endl;
 
-    cout << "Loading starting chainsets from " << fname_init_chainsets << ": ";
+    //cout << "Loading starting chainsets from " << fname_init_chainsets << ": ";
     vector<chainset_t> init_chainsets; // stores indices into uniques_a/uniques_b (or -1 if no chain)
     LoadInitChainsets(fname_init_chainsets, init_chainsets);
-    cout << init_chainsets.size() << " initial chain sets loaded!";
+    //cout << init_chainsets.size() << " initial chain sets loaded!";
 
     vector<string> results;
 
