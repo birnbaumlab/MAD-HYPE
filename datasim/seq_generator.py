@@ -29,8 +29,11 @@ class SequencingGenerator(object):
     ## Set default parameter values
     self.num_wells = 96
     self.set_cells_per_well(distro_type = 'constant', cells_per_well = 35)
-    self.cells = SequencingGenerator.generate_cells(1000)
+    self.num_cells = 1000
+    self.cells = []
     self.set_cell_frequency_distribution(distro_type = 'power-law', alpha = -1)
+    self.alpha_sharing_probs = None
+    self.beta_sharing_probs = None
     self.chain_misplacement_prob = 0
     self.chain_deletion_prob = 0
 
@@ -107,14 +110,18 @@ class SequencingGenerator(object):
       self.num_wells = kwargs['num_wells']
     if 'cells_per_well_distribution' in kwargs and 'cells_per_well_distribution_params' in kwargs:
       self.set_cells_per_well(kwargs['cells_per_well_distribution'], **kwargs['cells_per_well_distribution_params'])
-    if 'cells' in kwargs:
-      self.cells = kwargs['cells']
+    if 'num_cells' in kwargs:
+      self.num_cells = kwargs['num_cells']
     if 'cell_frequency_distribution' in kwargs and 'cell_frequency_distribution_params' in kwargs:
       self.set_cell_frequency_distribution(kwargs['cell_frequency_distribution'], **kwargs['cell_frequency_distribution_params'])
     if 'chain_misplacement_prob' in kwargs:
       self.chain_misplacement_prob = kwargs['chain_misplacement_prob']
     if 'chain_deletion_prob' in kwargs:
       self.chain_deletion_prob = kwargs['chain_deletion_prob']
+    if 'alpha_sharing_probs' in kwargs:
+      self.alpha_sharing_probs = kwargs['alpha_sharing_probs'] 
+    if 'beta_sharing_probs' in kwargs:
+      self.beta_sharing_probs = kwargs['beta_sharing_probs'] 
 
 
 
@@ -124,6 +131,11 @@ class SequencingGenerator(object):
       alpha_sharing_probs = [0.816,0.085,0.021,0.007,0.033,0.005,0.033]
     if beta_sharing_probs is None:
       beta_sharing_probs = [0.859,0.076,0.037,0.019,0.009]
+    if isinstance(alpha_sharing_probs,float):
+      alpha_sharing_probs = [alpha_sharing_probs,(1-alpha_sharing_probs)]
+    if isinstance(beta_sharing_probs,float):
+      beta_sharing_probs = [beta_sharing_probs,(1-beta_sharing_probs)]
+         
 
     # Generate the degree for each alpha- and beta-chain from the given distribution
     adegs = np.random.choice(range(1,len(alpha_sharing_probs)+1), num_cells, replace=True, p=alpha_sharing_probs)
@@ -140,11 +152,17 @@ class SequencingGenerator(object):
     # Randomly assign alpha- and beta-chains to each other
     np.random.shuffle(alphas)
     np.random.shuffle(betas)
+
     for i in range(num_cells):
       if adual[i]==2:  alphas[i:i+2] = [tuple(sorted(alphas[i]+alphas[i+1]))]
       if bdual[i]==2:  betas[i:i+2] = [tuple(sorted(betas[i]+betas[i+1]))]
     cells = list(set(zip(alphas, betas))) # Due to random duplicates, there may be slightly less than num_cells cells
     # (A slightly more complex method could be used to ensure exactly num_cells cells)
+    # NOTE: working on this now (PVH)
+
+    for i in xrange(len(cells),num_cells):
+        #print 'Making adjustment for duplicate at index {}...'.format(i)
+        cells.append(((i,),(i,)))
 
     return cells
 
@@ -193,18 +211,18 @@ class SequencingGenerator(object):
     distro = self.cell_frequency_distribution
     params = self.cell_frequency_distribution_params
     if distro == 'constant':
-      freqs = np.array([1]*len(self.cells))
+      freqs = np.array([1]*self.num_cells)
     elif distro == 'power-law-old':
-      freqs = np.random.pareto(-params['alpha'], len(self.cells)) ## TODO: there's something screwy abt this distro, talk to holec abt it
+      freqs = np.random.pareto(-params['alpha'],self.num_cells) ## TODO: there's something screwy abt this distro, talk to holec abt it
     elif distro == 'power-law':
-        freqs = 10.**(params['alpha']*np.log10(np.arange(1,len(self.cells)+1)))
+        freqs = 10.**(params['alpha']*np.log10(np.arange(1,self.num_cells+1)))
     elif distro == 'Lee':
       p_s = params.get('p_s', 0.5)
       n_s = params.get('n_s', 10)
-      freq_min = p_s/(len(self.cells) - n_s) # freq of clones in distro tail
+      freq_min = p_s/(self.num_cells - n_s) # freq of clones in distro tail
       freq_n_s = 1.1*freq_min # lowest clone frequency within top p_s
       r = 2.*(p_s-freq_n_s*n_s)/((n_s-1)*n_s) # freq step size within top p_s
-      freqs = [freq_n_s+r*i for i in range(n_s)] + [freq_min]*(len(self.cells)-n_s)
+      freqs = [freq_n_s+r*i for i in range(n_s)] + [freq_min]*(self.num_cells-n_s)
       random.shuffle(freqs)
     elif distro == 'explicit':
       freqs = np.array(params['frequencies'])
@@ -217,6 +235,11 @@ class SequencingGenerator(object):
   def generate_data(self):
     # Generates sequencing data based on this SequencingGenerator object's parameter values.
     # Results are returned in a SequencingData object, which can be saved to a file with seq_data.save()
+
+    if self.cells == []:
+        self.cells = SequencingGenerator.generate_cells(self.num_cells,
+                alpha_sharing_probs = self.alpha_sharing_probs,
+                beta_sharing_probs = self.beta_sharing_probs)
 
     cells_per_well = self._sample_cells_per_well()
     cell_freqs = self._sample_cell_freqs()
@@ -267,6 +290,7 @@ class SequencingGenerator(object):
       'num_wells': self.num_wells,
       'cells_per_well_distribution': self.cells_per_well_distribution,
       'cells_per_well_distribution_params': self.cells_per_well_distribution_params,
+      'num_cells': self.num_cells,
       'cells': self.cells,
       'cell_frequency_distribution': self.cell_frequency_distribution,
       'cell_frequency_distribution_params': self.cell_frequency_distribution_params,
