@@ -89,6 +89,29 @@ def generate_simulated_patterns(freqs,well_distro,repeats=1):
 
 #----------------------------------------------------------------#
 
+def generate_simulated_patterns_with_noise(freqs,well_distro,repeats=1,attrition=0.1):
+    """ Simulates well distro patterns for frequencies, given well_distro and repeats"""
+    """
+    Outputs:
+        patterns - np.array, of size (repeats,len(freqs),len(distros))
+    """
+
+    # assertion check
+    assert isinstance(repeats,int),"repeats needs to be <type int>"
+
+    # initialize pattern array
+    patterns = np.zeros((repeats,len(freqs),len(well_distro)))
+
+    # iterate across well distribution partitions
+    for r in xrange(repeats):
+        for i,distro in enumerate(well_distro):
+            patterns[r,:,i] = np.random.binomial(distro['well_count'],_calculate_well_freqs(freqs,distro['cpw']))
+
+    # return pattern array
+    return patterns.astype(int)
+
+#----------------------------------------------------------------#
+
 def get_probability_pattern_match(pattern,well_distro,freqs):
 
     """
