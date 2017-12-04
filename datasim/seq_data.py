@@ -35,9 +35,8 @@ class SequencingData(object):
 
     f = open(beta_path, 'w')
     f.write('\n'.join([','.join([str(v) for v in brow]) for brow in beta_data]))
-    f.close() 
-      
-    
+    f.close()
+
 
   def get_well_data(self, well_id = None):
     if well_id == None:
