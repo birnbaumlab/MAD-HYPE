@@ -43,7 +43,7 @@ class DataGenerator(object):
         self.settings = {
                         'num_wells':96,
                         'cpw_distro':'constant',
-                        'cells_per_well':35,
+                        'cpw':35,
                         'num_cells':1000,
                         'cell_freq_distro':'power-law',
                         'cell_freq_constant':-1,
@@ -88,18 +88,25 @@ class DataGenerator(object):
         """ Generate data from user settings """
 
         # transfer settings to local namespace
-        
-                        'num_wells':96,
-                        'cpw_distro':'constant',
-                        'cells_per_well':35,
-                        'num_cells':1000,
-                        'cell_freq_distro':'power-law',
+        num_wells = settings['num_wells']
+        cpw = settings['cpw']
+        num_wells = settings['num_wells']
+        cpw_distro = settings['cpw_distro']
 
         # check if cells have already been generated
         if self.cells == None:
             self.generate_cells()
 
+        # interpret user input for cpw distribution
+        if cpw_distro == 'constant':
+            assert isinstance(cpw,(int,float)),"cpw must be <int> or <float>"
+            self.cpw = [cpw for _ in xrange(num_wells)]
+        elif cpw_distro == 'explicit':
+            assert isinstance(cpw,dict),"cpw must be <list> or <tuple>"
+            assert all([k in cpw.keys() for k in ['partitions','cpw']]),"correct keys not present"
+            
 
+        
 
 #------------------------------------------------------------------------------# 
 
