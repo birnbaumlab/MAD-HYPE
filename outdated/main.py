@@ -61,6 +61,17 @@ data = sg.generate_data()
 # generate results from solver, from data
 results = solve_madhype(data,pair_threshold=2.0)
 
+# assertion check
+
+#
+<<<<<<< HEAD
+#results_processed = process_results(results,data)
+
+=======
+repertoire_coverage(results,data)
+#results_processed = visualize_results(results,data)
+>>>>>>> a18e16b57e8d76afed664be80425424d0e5f9075
+
 
 #test_settings(cpw_distro=cpw_distro)
 
