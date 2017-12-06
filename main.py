@@ -19,7 +19,7 @@ def main(*args,**kwargs):
     options = {
               'num_wells':[96],
               'cpw':[100],
-              'num_cells':100,
+              'num_cells':25,
               'cell_freq_distro':'power-law',
               'cell_freq_constant':-1,
               'chain_misplacement_prob':0,
@@ -103,7 +103,8 @@ def _data_intersect(d1,d2,num_wells):
     w_ij = tuple(len(s1.intersection(s2)) for s1,s2 in zip(d1,d2))
     w_i  = tuple(len(s1) - w for s1,w in zip(d1,w_ij))
     w_j  = tuple(len(s2) - w for s2,w in zip(d2,w_ij))
-    w_o  = tuple(w4 - w2 - w3 + w4 for w1,w2,w3,w4 in zip(w_ij,w_i,w_j,num_wells))
+    w_o  = tuple(w4 - w2 - w3 + w1 for w1,w2,w3,w4 in zip(w_ij,w_i,w_j,num_wells))
+    print d1,d2,num_wells
     return {
             'w_i':w_i,
             'w_j':w_j,

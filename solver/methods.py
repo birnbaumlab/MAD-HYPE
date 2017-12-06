@@ -43,6 +43,7 @@ from scipy.misc import comb
 """ Main Callable Methods """
 #------------------------------------------------------------------------------# 
 
+@profile
 def match_probability(well_data,prior = 1.0):
 
     """ Calculates match probability given well_data and a prior ratio """
@@ -53,6 +54,13 @@ def match_probability(well_data,prior = 1.0):
     p_match = estimate_match_probability(well_data,freqs_match)
     p_nonmatch = estimate_nonmatch_probability(well_data,freqs_nonmatch)
 
+    if p_match == 0.:
+        print well_data
+        print p_nonmatch
+        print p_match
+        raw_input()
+        return None
+        
     return prior*p_nonmatch/p_match
 
 
