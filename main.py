@@ -4,6 +4,7 @@ Tests out the new and improved variable solver
 """
 
 # standard libraries
+import time
 
 # nonstandard libraries
 
