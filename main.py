@@ -17,13 +17,13 @@ from sequence_generator import *
 def main(*args,**kwargs):
 
     options = {
-              'num_wells':[96],
-              'cpw':[100],
-              'num_cells':25,
+              'num_wells':(96,),
+              'cpw':(10,),
+              'num_cells':100,
               'cell_freq_distro':'power-law',
               'cell_freq_constant':-1,
               'chain_misplacement_prob':0,
-              'chain_deletion_prob':0.1
+              'chain_deletion_prob':0.0
               }
 
     # Update settings
@@ -34,7 +34,7 @@ def main(*args,**kwargs):
     num_wells = options['num_wells']
     cpw = options['cpw']
     threshold = 0.01
-    prior_alpha = 1
+    prior_alpha = 0
 
     # Generate datasets
     sg = DataGenerator(options)
@@ -46,12 +46,12 @@ def main(*args,**kwargs):
                'A':frozenset().union(*data['well_data']['A']),
                'B':frozenset().union(*data['well_data']['B'])
               }
-   
+
     # Initialize well distribution
     well_distribution = {'A':{},'B':{}}
 
     # Create range markers for number of wells 
-    pts = [0]+[sum(num_wells[:i]) for i in xrange(len(num_wells))]
+    pts = [0]+[sum(num_wells[:i+1]) for i in xrange(len(num_wells))]
     
     # Identifying well placements for each unique chain
     for label in ('A','B'):
@@ -61,7 +61,7 @@ def main(*args,**kwargs):
                     [set([w for w in xrange(pts[i],pts[i+1]) if index in data['well_data'][label][w]])
                         for i in xrange(len(num_wells))]
         print 'Finished {} chain identification.'.format(label)
-
+        
     # TODO: include frequency filter 
     # TODO: standardize threshold
 
@@ -73,10 +73,9 @@ def main(*args,**kwargs):
         for j,b in enumerate(uniques['B']):
             # set up input
             pair_data = _data_intersect(
-                    well_distribution['A'][a],well_distribution['B'][b],cpw)
+                    well_distribution['A'][a],well_distribution['B'][b],num_wells)
             pair_data['alpha'] = prior_alpha
             pair_data['cpw'] = cpw
-            
             # calculate match probability
             p = match_probability(pair_data)
             
@@ -103,8 +102,7 @@ def _data_intersect(d1,d2,num_wells):
     w_ij = tuple(len(s1.intersection(s2)) for s1,s2 in zip(d1,d2))
     w_i  = tuple(len(s1) - w for s1,w in zip(d1,w_ij))
     w_j  = tuple(len(s2) - w for s2,w in zip(d2,w_ij))
-    w_o  = tuple(w4 - w2 - w3 + w1 for w1,w2,w3,w4 in zip(w_ij,w_i,w_j,num_wells))
-    print d1,d2,num_wells
+    w_o  = tuple(w4 - w2 - w3 - w1 for w1,w2,w3,w4 in zip(w_ij,w_i,w_j,num_wells))
     return {
             'w_i':w_i,
             'w_j':w_j,

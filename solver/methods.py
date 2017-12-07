@@ -43,7 +43,6 @@ from scipy.misc import comb
 """ Main Callable Methods """
 #------------------------------------------------------------------------------# 
 
-@profile
 def match_probability(well_data,prior = 1.0):
 
     """ Calculates match probability given well_data and a prior ratio """
@@ -54,14 +53,24 @@ def match_probability(well_data,prior = 1.0):
     p_match = estimate_match_probability(well_data,freqs_match)
     p_nonmatch = estimate_nonmatch_probability(well_data,freqs_nonmatch)
 
-    if p_match == 0.:
-        print well_data
-        print p_nonmatch
-        print p_match
+    #"""#
+    #TESTING
+    if p_nonmatch == 0.:
+        print 'W_i:',well_data['w_i']
+        print 'W_j:',well_data['w_j']
+        print 'W_ij:',well_data['w_ij']
+        print 'W_o:',well_data['w_o']
+        print 'Match freqs:'
+        for k,v in freqs_match.items(): print '{}:{}'.format(k,v)
+        print 'Nonmatch freqs:'
+        for k,v in freqs_nonmatch.items(): print '{}:{}'.format(k,v)
+        print 'Nonmatch:',p_nonmatch
+        print 'Match:',p_match
         raw_input()
         return None
-        
-    return prior*p_nonmatch/p_match
+    #"""#
+
+    return prior*p_match/p_nonmatch
 
 
 def estimate_match_frequencies(data):
@@ -86,7 +95,7 @@ def estimate_match_frequencies(data):
 
     # find w_ij resulting from noise, estimate clonal f_ij after
     w_ij_clonal = _w_ij_adjustment(data['w_ij'],data['w_tot'],data['cpw'],freqs)
-    freqs['ij'] = _find_freq({'w':_subtract(data['w_ij'],w_ij_clonal),
+    freqs['ij'] = _find_freq({'w':w_ij_clonal,
                               'w_tot':_subtract(data['w_tot'],w_ij_clonal),
                               'cpw':data['cpw'],
                               'alpha':data['alpha']})
@@ -129,7 +138,7 @@ def estimate_match_probability(data,freqs):
     p_total = 0. 
     keys = ['w_i','w_j','w_ij','w_o','w_tot']
     for w_i,w_j,w_ij,w_o,w_tot in zip(*[data[k] for k in keys]):
-        for w_ij_clonal in xrange(0,w_ij):
+        for w_ij_clonal in xrange(0,w_ij+1):
             # calculate match probability
             p_total += _binomial_pdf(w_tot,w_ij_clonal,freqs['ij'])* \
                        _prob_distribution(w_i,w_j,w_ij-w_ij_clonal,w_o,freqs)
@@ -159,7 +168,8 @@ def _w_ij_adjustment(w_ij,w_tot,cpw,freqs):
     """ Remove the contribution of noise to w_ij counts """
     w_ij_est = [w_t*(1 - (1 - freqs['i'])**c)*(1 - (1 - freqs['j'])**c) 
                 for w_t,c in zip(w_tot,cpw)]
-    w_ij_est = _subtract(w_ij,w_ij_est) # remove explained wells
+    w_ij_est = tuple(float(w) for w in _subtract(w_ij,w_ij_est)) # remove explained wells
+
     return tuple(max(0,w) for w in w_ij_est) 
 
 
@@ -168,6 +178,17 @@ def _w_ij_adjustment(w_ij,w_tot,cpw,freqs):
 
 def _prob_distribution(w_i,w_j,w_ij,w_o,freqs):
     """ Estimates probability based on given data/freqs """
+
+    """
+    #TESTING
+    print 'bin1:',_binomial_pdf(w_i+w_j+w_ij+w_o,w_i+w_ij,freqs['i']) # place clone i on i,ij wells
+    print 'v1:',w_i+w_j+w_ij+w_o,w_i+w_ij,freqs['i']
+    print 'bin2:',_binomial_pdf(w_i+w_ij,w_ij,freqs['j']) # place clone j on ij wells
+    print 'v2:',w_i+w_ij,w_ij,freqs['j']
+    print 'bin3:',_binomial_pdf(w_j+w_o,w_j,freqs['j'])   # place clone j on j,o wells
+    print 'v3:',w_j+w_o,w_j,freqs['j']
+    """
+
     p = _binomial_pdf(w_i+w_j+w_ij+w_o,w_i+w_ij,freqs['i']) # place clone i on i,ij wells
     p *= _binomial_pdf(w_i+w_ij,w_ij,freqs['j']) # place clone j on ij wells
     p *= _binomial_pdf(w_j+w_o,w_j,freqs['j'])   # place clone j on j,o wells
@@ -175,12 +196,38 @@ def _prob_distribution(w_i,w_j,w_ij,w_o,freqs):
 
 #------------------------------------------------------------------------------# 
 
-def _find_freq(well_data):
+def _find_freq(well_data,memory={}):
     """ Estimates single frequency given well data """
-    return (fmin(_prob_func,0.01,(well_data,),disp=False)) # maximize PDF
+    key = (well_data['w']) + \
+           (well_data['w_tot']) + \
+           (well_data['cpw']) + \
+           (well_data['alpha'],)
+
+    print 'Well_data:',well_data
+    print 'Val:',fmin(_prob_func,1.0,(well_data,),disp=False)
+
+    try:
+        return memory[key]
+    except KeyError:
+        memory[key] = \
+                 max(0,(fmin(_prob_func,0.01,(well_data,),disp=False))) # maximize PDF
+        return memory[key]
+
+"""
+def _find_freq_ez(well_data):
+    x,val = 0.,1
+    cw = _product(well_data['cpw'],well_data['w'])
+    sum_cW = sum(_product(well_data['cpw'],well_data['w_tot']))
+    while abs(val) > 1e-6:
+        val = well_data['alpha']*(x/(1.-x)) + sum_cW - \
+            sum((c*(1./(1.-x**ci)) for c,ci in cw,well_data['cpw']))
+
+    return 1-x
+"""
 
 #------------------------------------------------------------------------------# 
 
+#@profile
 def _prob_func(f,well_dict):
     ''' Outputs a probability for a given frequency estimate '''
     val = f**-well_dict['alpha']
