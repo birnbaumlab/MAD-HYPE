@@ -17,13 +17,15 @@ from sequence_generator import *
 def main(*args,**kwargs):
 
     options = {
-              'num_wells':(96,),
-              'cpw':(10,),
+              'num_wells':(48,48),
+              'cpw':(1,10),
+              #'num_wells':(96,),
+              #'cpw':(10,),
               'num_cells':100,
               'cell_freq_distro':'power-law',
               'cell_freq_constant':-1,
               'chain_misplacement_prob':0,
-              'chain_deletion_prob':0.0
+              'chain_deletion_prob':0.1
               }
 
     # Update settings
@@ -34,7 +36,7 @@ def main(*args,**kwargs):
     num_wells = options['num_wells']
     cpw = options['cpw']
     threshold = 0.01
-    prior_alpha = 0
+    prior_alpha = 1
 
     # Generate datasets
     sg = DataGenerator(options)
@@ -65,26 +67,51 @@ def main(*args,**kwargs):
     # TODO: include frequency filter 
     # TODO: standardize threshold
 
+    # initialize list
     results = [] # initialize list
+    freqs = [] # initialize list
+
+    print uniques['A']
+    print uniques['B']
 
     # Iterate through combinations!
     for i,a in enumerate(uniques['A']):
-        if i % 1 == 0: print 'Starting A-chain {}...'.format(i)
+        if i % 10 == 0: print 'Starting A-chain {}...'.format(i)
         for j,b in enumerate(uniques['B']):
             # set up input
             pair_data = _data_intersect(
                     well_distribution['A'][a],well_distribution['B'][b],num_wells)
+            if a != b:
+                #print 'WRONG:',pair_data
+                #print well_distribution['A'][a],well_distribution['B'][b],num_wells
+                pass#raw_input()
+            else:
+                pass#print 'Correct:',pair_data
             pair_data['alpha'] = prior_alpha
             pair_data['cpw'] = cpw
+            pair_data['label'] = ((a,),(b,))
             # calculate match probability
-            p = match_probability(pair_data)
+            #print 'Pair data:',pair_data
+            p,f_ij = match_probability(pair_data)
+            #print 'Distro:',well_distribution['A'][a],well_distribution['B'][b]
             
-            if p > 5:
+            if p > 1.1:
                 results.append((((a,),(b,)),p))
+                freqs.append((pair_data.copy(),p))
 
-    results.sort(key=lambda x: x[1])
+    results.sort(key=lambda x: -x[1])
+    freqs.sort(key=lambda x: -x[1])
 
-    print results
+    for i,r,f in zip(xrange(len(results)),results,freqs):
+        if r[0][0] == r[0][1]: print 'CORRECT:',r,
+        else: print 'WRONG:',(r[0][0][0],r[0][1][0]),r,
+        print [len(a) for a in (well_distribution['A'][r[0][0][0]])],
+        print [len(b) for b in (well_distribution['B'][r[0][1][0]])],f[0]
+        print '> ',[(a) for a in (well_distribution['A'][r[0][0][0]])]
+        print '> ',[(b) for b in (well_distribution['B'][r[0][1][0]])]
+
+    results.sort(key=lambda x: -x[1])
+    freqs.sort(key=lambda x: -x[1])
 
     '''
     print well_distribution['A'][0]

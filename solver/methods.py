@@ -34,7 +34,9 @@ from math import log10
 
 # nonstandard libraries
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.optimize import fmin
+from scipy.optimize import brentq
 from scipy.misc import comb
 
 # homegrown libraries
@@ -43,9 +45,11 @@ from scipy.misc import comb
 """ Main Callable Methods """
 #------------------------------------------------------------------------------# 
 
-def match_probability(well_data,prior = 1.0):
+def match_probability(well_data,prior = 1.0,memory={}):
 
     """ Calculates match probability given well_data and a prior ratio """
+
+    #print well_data
 
     freqs_match = estimate_match_frequencies(well_data)
     freqs_nonmatch = estimate_nonmatch_frequencies(well_data)
@@ -55,7 +59,7 @@ def match_probability(well_data,prior = 1.0):
 
     #"""#
     #TESTING
-    if p_nonmatch == 0.:
+    if prior*p_match/p_nonmatch >= 10000:
         print 'W_i:',well_data['w_i']
         print 'W_j:',well_data['w_j']
         print 'W_ij:',well_data['w_ij']
@@ -67,10 +71,9 @@ def match_probability(well_data,prior = 1.0):
         print 'Nonmatch:',p_nonmatch
         print 'Match:',p_match
         raw_input()
-        return None
     #"""#
 
-    return prior*p_match/p_nonmatch
+    return prior*p_match/p_nonmatch,freqs_match['ij']
 
 
 def estimate_match_frequencies(data):
@@ -96,7 +99,7 @@ def estimate_match_frequencies(data):
     # find w_ij resulting from noise, estimate clonal f_ij after
     w_ij_clonal = _w_ij_adjustment(data['w_ij'],data['w_tot'],data['cpw'],freqs)
     freqs['ij'] = _find_freq({'w':w_ij_clonal,
-                              'w_tot':_subtract(data['w_tot'],w_ij_clonal),
+                              'w_tot':_add(_subtract(data['w_tot'],data['w_ij']),w_ij_clonal),
                               'cpw':data['cpw'],
                               'alpha':data['alpha']})
 
@@ -166,11 +169,11 @@ def estimate_nonmatch_probability(data,freqs):
 
 def _w_ij_adjustment(w_ij,w_tot,cpw,freqs):
     """ Remove the contribution of noise to w_ij counts """
-    w_ij_est = [w_t*(1 - (1 - freqs['i'])**c)*(1 - (1 - freqs['j'])**c) 
+    w_ij_est = [w_t*(1 - (1 - freqs['i'])**c)*(1 - (1 - freqs['j'])**c)
                 for w_t,c in zip(w_tot,cpw)]
     w_ij_est = tuple(float(w) for w in _subtract(w_ij,w_ij_est)) # remove explained wells
 
-    return tuple(max(0,w) for w in w_ij_est) 
+    return tuple(max(0,w) for w in w_ij_est)
 
 
 
@@ -202,15 +205,12 @@ def _find_freq(well_data,memory={}):
            (well_data['w_tot']) + \
            (well_data['cpw']) + \
            (well_data['alpha'],)
-
-    print 'Well_data:',well_data
-    print 'Val:',fmin(_prob_func,0.01,(well_data,),disp=False)
-
+    
     try:
         return memory[key]
     except KeyError:
         memory[key] = \
-                 max(0,(fmin(_prob_func,0.01,(well_data,),disp=False))) # maximize PDF
+                brentq(_derivative_prob_func,0,1,(well_data,),disp=False)
         return memory[key]
 
 """
@@ -227,7 +227,20 @@ def _find_freq_ez(well_data):
 
 #------------------------------------------------------------------------------# 
 
-#@profile
+def _derivative_prob_func(f,d):
+    if f == 0.:
+        return -(d['alpha']*(1.-f)) + \
+            sum([f*c*(W-w) - w
+                for c,W,w in zip(d['cpw'],d['w_tot'],d['w'])])
+    elif f == 1.:
+        return sum([f*c*(W-w)
+                for c,W,w in zip(d['cpw'],d['w_tot'],d['w'])])
+    else:
+        return -(d['alpha']*(1.-f)) + \
+            f*sum([c*((W-w) + w*((1.-f)**c)/(((1.-f)**c) - 1))
+                for c,W,w in zip(d['cpw'],d['w_tot'],d['w'])])
+
+
 def _prob_func(f,well_dict):
     ''' Outputs a probability for a given frequency estimate '''
     val = f**-well_dict['alpha']
@@ -263,30 +276,55 @@ def _binomial_pdf(n,k,f):
 if __name__ == '__main__':
     # unit tests
 
-    # TESTING: estimate_match_frequencies
-    well_data = {'w_i':(20,20),
-                 'w_j':(30,50),
-                 'w_ij':(30,25),
-                 'w_o':(20,5),
-                 'w_tot':(100,100),
-                 'cpw':(10,30),
-                 'alpha':1}
+    mode = 'normal'
 
-    well_data = {'w_i':(16,),
-                 'w_j':(16,),
-                 'w_ij':(4,),
-                 'w_o':(64,),
-                 'w_tot':(100,),
-                 'cpw':(1,),
-                 'alpha':1}
+    if mode == 'find_freq':
 
-    freqs_match = estimate_match_frequencies(well_data)
-    freqs_nonmatch = estimate_nonmatch_frequencies(well_data)
-    
-    print freqs_match
-    print freqs_nonmatch
-    print estimate_match_probability(well_data,freqs_match)
-    print estimate_nonmatch_probability(well_data,freqs_nonmatch)
+        y = []
+        x_span = np.logspace(-20,0,101)
 
-    print 'Match probability:',match_probability(well_data)
+        inputs = {'w':(1,),
+                  'w_tot':(99,),
+                  'cpw':(1,),
+                  'alpha':1}
+
+        for i in x_span:
+            y.append(_derivative_prob_func(i,inputs))
+
+        plt.plot(x_span,y)
+        plt.xscale('log')
+        plt.show(block=False)
+        raw_input('Press enter to close...')
+        plt.close()
+
+    if mode == 'normal':
+        # TESTING: estimate_match_frequencies
+        well_data = {'w_i':(20,20),
+                     'w_j':(30,50),
+                     'w_ij':(30,25),
+                     'w_o':(20,5),
+                     'w_tot':(100,100),
+                     'cpw':(10,30),
+                     'alpha':1}
+
+        """
+        well_data = {'w_i':(16,),
+                     'w_j':(16,),
+                     'w_ij':(4,),
+                     'w_o':(64,),
+                     'w_tot':(100,),
+                     'cpw':(1,),
+                     'alpha':1}
+        """
+
+        freqs_match = estimate_match_frequencies(well_data)
+        freqs_nonmatch = estimate_nonmatch_frequencies(well_data)
+        
+
+        print freqs_match
+        print freqs_nonmatch
+        print estimate_match_probability(well_data,freqs_match)
+        print estimate_nonmatch_probability(well_data,freqs_nonmatch)
+
+        print 'Match probability:',match_probability(well_data)
 
