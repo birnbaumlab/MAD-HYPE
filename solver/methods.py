@@ -204,7 +204,7 @@ def _find_freq(well_data,memory={}):
            (well_data['alpha'],)
 
     print 'Well_data:',well_data
-    print 'Val:',fmin(_prob_func,1.0,(well_data,),disp=False)
+    print 'Val:',fmin(_prob_func,0.01,(well_data,),disp=False)
 
     try:
         return memory[key]
