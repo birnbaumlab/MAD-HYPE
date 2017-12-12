@@ -51,15 +51,28 @@ def match_probability(well_data,prior = 1.0,memory={}):
 
     #print well_data
 
+    """ MLE ESTIMATES """
+    # generate MLE for clonal match
     freqs_match = estimate_match_frequencies(well_data)
+
+    # generate MLE for clonal nonmatch
     freqs_nonmatch = estimate_nonmatch_frequencies(well_data)
+
+    #
+    if freqs_match['ij'] == 0.:
+        return None,(freqs_match,freqs_nonmatch)
    
+    """ PROBABILITY CALCULATIONS """
+    # calculate probability for clonal match
     p_match = estimate_match_probability(well_data,freqs_match)
+
+    # calculate probability for clonal nonmatch
     p_nonmatch = estimate_nonmatch_probability(well_data,freqs_nonmatch)
 
     #"""#
     #TESTING
-    if prior*p_match/p_nonmatch >= 10000:
+    if prior*p_match/p_nonmatch > 1e35:
+        #if p_match > 1.0 or p_nonmatch > 1.0:
         print 'W_i:',well_data['w_i']
         print 'W_j:',well_data['w_j']
         print 'W_ij:',well_data['w_ij']
@@ -73,7 +86,7 @@ def match_probability(well_data,prior = 1.0,memory={}):
         raw_input()
     #"""#
 
-    return prior*p_match/p_nonmatch,freqs_match['ij']
+    return prior*p_match/p_nonmatch,(freqs_match,freqs_nonmatch)
 
 
 def estimate_match_frequencies(data):
@@ -138,13 +151,19 @@ def estimate_match_probability(data,freqs):
 
     """ Estimate match probability given data,freqs """
 
-    p_total = 0. 
+    p_total = 1. 
     keys = ['w_i','w_j','w_ij','w_o','w_tot']
     for w_i,w_j,w_ij,w_o,w_tot in zip(*[data[k] for k in keys]):
+        p = 0.
+        #print 'Start new:'
         for w_ij_clonal in xrange(0,w_ij+1):
             # calculate match probability
-            p_total += _binomial_pdf(w_tot,w_ij_clonal,freqs['ij'])* \
+            #print 'Val:',_binomial_pdf(w_tot,w_ij_clonal,freqs['ij'])* \
+            #           _prob_distribution(w_i,w_j,w_ij-w_ij_clonal,w_o,freqs)
+            p += _binomial_pdf(w_tot,w_ij_clonal,freqs['ij'])* \
                        _prob_distribution(w_i,w_j,w_ij-w_ij_clonal,w_o,freqs)
+            #print 'Match p:',p
+        p_total *= p
 
     return p_total
 
@@ -155,11 +174,14 @@ def estimate_nonmatch_probability(data,freqs):
 
     """ Estimate nonmatch probability given data,freqs """
     
-    p_total = 0. 
+    p_total = 1. 
     keys = ['w_i','w_j','w_ij','w_o']
     for w_i,w_j,w_ij,w_o in zip(*[data[k] for k in keys]):
         # calculate nonmatch probability
-        p_total += _prob_distribution(w_i,w_j,w_ij,w_o,freqs)
+        #p = _prob_distribution(w_i,w_j,w_ij,w_o,freqs)
+        p = _prob_distribution(w_i,w_j,w_ij,w_o,freqs)
+        p_total *= p
+        #print 'NonMatch p:',p
 
     return p_total
 
@@ -299,13 +321,13 @@ if __name__ == '__main__':
 
     if mode == 'normal':
         # TESTING: estimate_match_frequencies
-        well_data = {'w_i':(20,20),
-                     'w_j':(30,50),
-                     'w_ij':(30,25),
-                     'w_o':(20,5),
-                     'w_tot':(100,100),
-                     'cpw':(10,30),
-                     'alpha':1}
+        well_data = {'w_i':(3,0),
+                     'w_j':(13,11),
+                     'w_ij':(3,36),
+                     'w_o':(29,1),
+                     'w_tot':(48,48),
+                     'cpw':(10,100),
+                     'alpha':0}
 
         """
         well_data = {'w_i':(16,),
@@ -323,7 +345,8 @@ if __name__ == '__main__':
 
         print freqs_match
         print freqs_nonmatch
-        print estimate_match_probability(well_data,freqs_match)
+        val = estimate_match_probability(well_data,freqs_match)
+        print val
         print estimate_nonmatch_probability(well_data,freqs_nonmatch)
 
         print 'Match probability:',match_probability(well_data)

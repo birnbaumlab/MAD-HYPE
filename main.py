@@ -11,21 +11,22 @@ import time
 # homegrown libraries
 from solver.methods import match_probability
 from sequence_generator import *
+from post_processing import visualize_results
 
 #------------------------------------------------------------------------------# 
 
 def main(*args,**kwargs):
 
     options = {
-              'num_wells':(48,48),
-              'cpw':(1,10),
-              #'num_wells':(96,),
-              #'cpw':(10,),
-              'num_cells':100,
+              #'num_wells':(48,48),
+              #'cpw':(10,100),
+              'num_wells':(96,),
+              'cpw':(10,),
+              'num_cells':1000,
               'cell_freq_distro':'power-law',
-              'cell_freq_constant':-1,
+              'cell_freq_constant':1,
               'chain_misplacement_prob':0,
-              'chain_deletion_prob':0.1
+              'chain_deletion_prob':0.0
               }
 
     # Update settings
@@ -35,8 +36,8 @@ def main(*args,**kwargs):
     # Pull out values into local namespace
     num_wells = options['num_wells']
     cpw = options['cpw']
-    threshold = 0.01
-    prior_alpha = 1
+    threshold = 1.0
+    prior_alpha = 0
 
     # Generate datasets
     sg = DataGenerator(options)
@@ -70,6 +71,7 @@ def main(*args,**kwargs):
     # initialize list
     results = [] # initialize list
     freqs = [] # initialize list
+    pair_datas = [] # initialize list
 
     print uniques['A']
     print uniques['B']
@@ -92,26 +94,35 @@ def main(*args,**kwargs):
             pair_data['label'] = ((a,),(b,))
             # calculate match probability
             #print 'Pair data:',pair_data
-            p,f_ij = match_probability(pair_data)
+            #print (a,b)
+            p,f = match_probability(pair_data)
             #print 'Distro:',well_distribution['A'][a],well_distribution['B'][b]
             
-            if p > 1.1:
+            if p > threshold:
                 results.append((((a,),(b,)),p))
-                freqs.append((pair_data.copy(),p))
+                pair_datas.append((pair_data,p))
+                freqs.append((f,p))
 
     results.sort(key=lambda x: -x[1])
     freqs.sort(key=lambda x: -x[1])
+    pair_datas.sort(key=lambda x: -x[1])
 
-    for i,r,f in zip(xrange(len(results)),results,freqs):
+    for i,r,f,p in zip(xrange(len(results[:100])),results,freqs,pair_datas):
         if r[0][0] == r[0][1]: print 'CORRECT:',r,
         else: print 'WRONG:',(r[0][0][0],r[0][1][0]),r,
         print [len(a) for a in (well_distribution['A'][r[0][0][0]])],
-        print [len(b) for b in (well_distribution['B'][r[0][1][0]])],f[0]
+        print [len(b) for b in (well_distribution['B'][r[0][1][0]])],p[0]
+        #'''#
         print '> ',[(a) for a in (well_distribution['A'][r[0][0][0]])]
         print '> ',[(b) for b in (well_distribution['B'][r[0][1][0]])]
+        print '> ',f[0][0]
+        print '> ',f[0][1]
+        #'''#
 
     results.sort(key=lambda x: -x[1])
     freqs.sort(key=lambda x: -x[1])
+
+    visualize_results(results,data)
 
     '''
     print well_distribution['A'][0]

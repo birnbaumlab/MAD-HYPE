@@ -20,6 +20,7 @@ import numpy as np
 from numpy.random import binomial
 
 # homegrown libraries
+np.random.seed(42)
 
 #------------------------------------------------------------------------------# 
 
