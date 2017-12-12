@@ -36,7 +36,7 @@ def main(*args,**kwargs):
     # Pull out values into local namespace
     num_wells = options['num_wells']
     cpw = options['cpw']
-    threshold = 1.0
+    threshold = 0.1
     prior_alpha = 0
 
     # Generate datasets

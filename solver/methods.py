@@ -61,7 +61,7 @@ def match_probability(well_data,prior = 1.0,memory={}):
     #
     if freqs_match['ij'] == 0.:
         return None,(freqs_match,freqs_nonmatch)
-   
+
     """ PROBABILITY CALCULATIONS """
     # calculate probability for clonal match
     p_match = estimate_match_probability(well_data,freqs_match)
@@ -71,7 +71,7 @@ def match_probability(well_data,prior = 1.0,memory={}):
 
     #"""#
     #TESTING
-    if prior*p_match/p_nonmatch > 1e35:
+    if well_data['w_ij'] == (19,) and well_data['w_o'] == (36,):
         #if p_match > 1.0 or p_nonmatch > 1.0:
         print 'W_i:',well_data['w_i']
         print 'W_j:',well_data['w_j']
