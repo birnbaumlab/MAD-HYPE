@@ -17,50 +17,6 @@ import matplotlib.pyplot as plt
 MAIN FUNCTIONS
 '''
 
-def repertoire_coverage(results,data,*args,**kwargs):
-
-    """ Inputs data,results; outputs percentage repertoire coverage """
-
-    # default settings parameters
-    settings = {
-            'fdr':0.01
-               }
-
-    # update settings
-    for arg in args: settings.update(arg)
-    settings.update(kwargs)
-
-    # put results in easy to access place
-    cells_with_scores = zip(results['cells'],results['threshold'])
-    cells_with_scores = sorted(cells_with_scores,key=lambda x: -x[1])
-    cells_without_scores = [i[0] for i in cells_with_scores]
-
-    cells_record = set(data.metadata['cells'])
-    cells_label = data.metadata['cells']
-    cells_freqs = data.metadata['generated_data']['cell_frequencies']
-    total_cells = len(cells_record) 
-
-    # look at error rate (stratified by confidence) [FIGURE 1]
-    pos,neg = 0,0
-    for c in cells_with_scores:
-        if c[0] in cells_record: pos += 1
-        else: neg += 1
-        if neg > settings['fdr']*pos: break
-
-    total_matches_at_fdr = pos + neg
-
-    # look at error rate (stratified by confidence) [FIGURE 1]
-    frac_repertoire = 0.
-
-    for i,c in enumerate(cells_record):
-        if c in cells_without_scores[:total_matches_at_fdr]:
-            frac_repertoire += cells_freqs[i]
-
-    # return fractional repertoire coverage
-    return frac_repertoire
-
-
-
 def visualize_results(results,data,*args,**kwargs):
 
     """
@@ -82,7 +38,8 @@ def visualize_results(results,data,*args,**kwargs):
     cells_with_scores = sorted(results,key=lambda x: -x[1])
     cells_without_scores = [i[0] for i in cells_with_scores]
 
-    cells_temp = sorted([(a,b) for a,b in data['cells'].items()])
+    # these are actuall cells
+    cells_temp = sorted([(a,b) for a,b in data['cells'].items()],key=lambda x: -x[1])
     cells_record = set([c[0] for c in cells_temp])
     cells_label = [c[0] for c in cells_temp]
     cells_freqs = [c[1] for c in cells_temp]
@@ -107,7 +64,7 @@ def visualize_results(results,data,*args,**kwargs):
     freqs_colors,frac_repertoire = [],0.
     x2 = []
 
-    for i,c in enumerate(cells_record):
+    for i,c in enumerate(cells_label):
         if c in cells_without_scores[:total_matches_at_fdr]:
             freqs_colors.append((cells_freqs[i],'green'))
             frac_repertoire += cells_freqs[i]
@@ -130,8 +87,19 @@ def visualize_results(results,data,*args,**kwargs):
     plt.plot(x1,y1)
 
     plt.figure(2)
-    plt.bar(x2,y2,color=colors,width=1,log=True)
 
+    for l,color in zip(('Correct','Incorrect'),('green','red')):
+        xs = [i for i,c in zip(x2,colors) if c == color]
+        ys = [i for i,c in zip(y2,colors) if c == color]
+        print 'xs:',xs
+        print 'ys:',ys
+        print colors
+        if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l)
+
+    plt.annotate('{}/{} identified'.format(colors.count('green'),len(cells_record)),
+            xy=(0.7,0.6),xycoords='axes fraction')
+    plt.annotate('{}% repertoire'.format(round(100*frac_repertoire,2)),
+            xy=(0.7,0.55),xycoords='axes fraction')
     plt.legend()
 
     # show plots

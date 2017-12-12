@@ -5,8 +5,11 @@ Tests out the new and improved variable solver
 
 # standard libraries
 import time
+from collections import Counter
+from operator import mul
 
 # nonstandard libraries
+from scipy.misc import comb
 
 # homegrown libraries
 from solver.methods import match_probability
@@ -18,15 +21,15 @@ from post_processing import visualize_results
 def main(*args,**kwargs):
 
     options = {
-              #'num_wells':(48,48),
-              #'cpw':(10,100),
-              'num_wells':(96,),
-              'cpw':(10,),
+              #'num_wells':(24,24,24,24),
+              #'cpw':(1,10,100,1000),
+              'num_wells':(24,),
+              'cpw':(500,),
               'num_cells':1000,
               'cell_freq_distro':'power-law',
               'cell_freq_constant':1,
               'chain_misplacement_prob':0,
-              'chain_deletion_prob':0.0
+              'chain_deletion_prob':0.1
               }
 
     # Update settings
@@ -37,6 +40,7 @@ def main(*args,**kwargs):
     num_wells = options['num_wells']
     cpw = options['cpw']
     threshold = 0.1
+    fdr = 0.01
     prior_alpha = 0
 
     # Generate datasets
@@ -68,13 +72,31 @@ def main(*args,**kwargs):
     # TODO: include frequency filter 
     # TODO: standardize threshold
 
+    # generate filter dictionary
+    w_tot = sum(options['num_wells'])
+    w_dict = Counter([tuple(len(i) for i in w) for w in well_distribution['A'].values()] +
+                     [tuple(len(i) for i in w) for w in well_distribution['B'].values()])
+    w_filter = dict([(k,1./
+                     ((v-1)/reduce(mul,[comb(W,w) for W,w in zip(options['num_wells'],k)]) + 1))
+                     for k,v in w_dict.items()])
+
+    '''#
+    print 'Filter:'
+    for k,v in w_filter.items():
+        print '{}: p = {}'.format(k,v)
+    #'''
+
+    #'''#
+    print 'Cells:'
+    for i in xrange(options['num_cells']):
+        c = ((i,),(i,))
+        print '{}: p = {}'.format(c,data['cells'][c])
+    #'''
+
     # initialize list
     results = [] # initialize list
     freqs = [] # initialize list
     pair_datas = [] # initialize list
-
-    print uniques['A']
-    print uniques['B']
 
     # Iterate through combinations!
     for i,a in enumerate(uniques['A']):
@@ -83,20 +105,19 @@ def main(*args,**kwargs):
             # set up input
             pair_data = _data_intersect(
                     well_distribution['A'][a],well_distribution['B'][b],num_wells)
-            if a != b:
-                #print 'WRONG:',pair_data
-                #print well_distribution['A'][a],well_distribution['B'][b],num_wells
-                pass#raw_input()
-            else:
-                pass#print 'Correct:',pair_data
+
+            # apply filter
+            try:
+                if w_filter[pair_data['w_ij']] < 1. - fdr:
+                    continue
+            except KeyError:
+                pass
+
             pair_data['alpha'] = prior_alpha
             pair_data['cpw'] = cpw
             pair_data['label'] = ((a,),(b,))
             # calculate match probability
-            #print 'Pair data:',pair_data
-            #print (a,b)
             p,f = match_probability(pair_data)
-            #print 'Distro:',well_distribution['A'][a],well_distribution['B'][b]
             
             if p > threshold:
                 results.append((((a,),(b,)),p))
@@ -107,8 +128,8 @@ def main(*args,**kwargs):
     freqs.sort(key=lambda x: -x[1])
     pair_datas.sort(key=lambda x: -x[1])
 
-    for i,r,f,p in zip(xrange(len(results[:100])),results,freqs,pair_datas):
-        if r[0][0] == r[0][1]: print 'CORRECT:',r,
+    for i,r,f,p in zip(xrange(len(results[:1000])),results,freqs,pair_datas):
+        if r[0][0] == r[0][1]: continue
         else: print 'WRONG:',(r[0][0][0],r[0][1][0]),r,
         print [len(a) for a in (well_distribution['A'][r[0][0][0]])],
         print [len(b) for b in (well_distribution['B'][r[0][1][0]])],p[0]
