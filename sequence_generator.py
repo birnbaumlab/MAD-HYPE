@@ -18,6 +18,7 @@ import itertools
 # nonstandard libraries
 import numpy as np
 from numpy.random import binomial
+from scipy.optimize import root
 
 # homegrown libraries
 
@@ -52,6 +53,7 @@ class DataGenerator(object):
                         'num_cells':1000,
                         'cell_freq_distro':'power-law',
                         'cell_freq_constant':-1,
+                        'cell_freq_max':0.01,
                         'chain_misplacement_prob':0,
                         'chain_deletion_prob':0.1,
                         'seed':42
@@ -81,6 +83,7 @@ class DataGenerator(object):
         num_cells = self.settings['num_cells']
         cell_freq_distro = self.settings['cell_freq_distro']
         cell_freq_constant = self.settings['cell_freq_constant']
+        cell_freq_max = self.settings['cell_freq_max']
 
         # create local cell IDs
         self.cells = [((i,),(i,)) for i in xrange(num_cells)]
@@ -90,8 +93,7 @@ class DataGenerator(object):
         if cell_freq_distro == 'constant':
             self.freqs = [1./num_cells for _ in xrange(num_cells)]
         elif cell_freq_distro == 'power-law':
-            self.freqs = 10.**(-cell_freq_constant*np.log10(np.arange(1,num_cells+1)))
-            self.freqs = self.freqs/sum(self.freqs)
+            self.freqs =_power_law_distribution(num_cells,cell_freq_max,cell_freq_constant)
 
     def generate_data(self):
 
@@ -105,6 +107,9 @@ class DataGenerator(object):
         num_wells = self.settings['num_wells']
         cpw = self.settings['cpw']
         chain_deletion_prob = self.settings['chain_deletion_prob']
+
+        # assertion check
+        assert type(num_wells) == type(cpw), "num_wells and cpw differ in type"
 
         # check if cells have already been generated
         if self.cells == None:
@@ -145,8 +150,40 @@ class DataGenerator(object):
         return data # return results
 
 #------------------------------------------------------------------------------# 
-""" Factory Methods """
+""" Internal Methods """
 #------------------------------------------------------------------------------# 
+
+def _power_law_distribution(num_cells,max_freq,alpha):
+    """ Returns power law distribution using given parameters """ 
+    # Lower bound
+    if max_freq <= 1./num_cells:
+        print 'Max. freq too low! Returning uniform distribution...'
+        return [1./num_cells for _ in xrange(num_cells)]
+    
+    # Upper bound
+    if max_freq >= 1.:
+        print 'Max. freq too high! Returning delta distribution...'
+        return [1] + [0 for _ in xrange(num_cells-1)]
+ 
+    # Find a shift
+    shift = root(_get_max_freq_diff, 1.0, args=(num_cells,max_freq,alpha)).x
+    
+    # Find best
+    return _get_freq_distribution(shift,num_cells,max_freq,alpha)
+
+#------------------------------------------------------------------------------# 
+
+def _get_max_freq_diff(shift,num_cells,max_freq,alpha):
+    """ Function for finding diff. b/w max_freq and current distribution """
+    freqs = _get_freq_distribution(shift,num_cells,max_freq,alpha)
+    return max_freq - freqs[0]
+
+#------------------------------------------------------------------------------# 
+
+def _get_freq_distribution(shift,num_cells,max_freq,alpha):
+    """ Generate a normalized power-law distribution """
+    freqs = np.arange(shift,num_cells+shift) ** -alpha
+    return freqs/sum(freqs)
 
 #------------------------------------------------------------------------------# 
 """ Namespace Catch """

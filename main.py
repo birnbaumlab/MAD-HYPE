@@ -230,7 +230,7 @@ if __name__ == "__main__":
         
         options = {
                 'num_cells':1000,
-                'num_wells':(24,),
+                'num_wells':(24,72),
                 'cpw':(10,200),
                 'seed':1,
                 # visual cues
