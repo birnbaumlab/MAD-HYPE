@@ -82,7 +82,6 @@ def match_probability(well_data,prior = 1.0,memory={}):
         #"""#
         #TESTING
         if False:#well_data['w_ij'] == (19,) and well_data['w_o'] == (36,):
-            #if p_match > 1.0 or p_nonmatch > 1.0:
             print 'W_i:',well_data['w_i']
             print 'W_j:',well_data['w_j']
             print 'W_ij:',well_data['w_ij']

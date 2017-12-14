@@ -17,6 +17,69 @@ import matplotlib.pyplot as plt
 MAIN FUNCTIONS
 '''
 
+def analyze_results(results,data,*args,**kwargs):
+
+    """
+    Processes results dictionary using data object as reference
+    """
+
+    # default settings parameters
+    options = {
+              'fdr':0.01
+              }
+
+    # update settings
+    for arg in args: options.update(arg)
+    options.update(kwargs)
+
+    # assertion check
+    #assert len(results['cells']) == len(results['threshold']), "differing # cells/thresholds"
+    
+    # these are guessed cells
+    cells_with_scores = sorted(results,key=lambda x: -x[1])
+    cells_without_scores = [i[0] for i in cells_with_scores]
+
+    # these are actual cells
+    cells_temp = sorted([(a,b) for a,b in data['cells'].items()],key=lambda x: -x[1])
+    cells_record = set([c[0] for c in cells_temp])
+    cells_label = [c[0] for c in cells_temp]
+    cells_freqs = [c[1] for c in cells_temp]
+    total_cells = len(cells_temp)
+
+    # look at error rate (stratified by confidence)
+    x1,y1,fdr = [0],[0],0.01
+    for c in cells_with_scores:
+        try:
+            data['cells'][c[0]]
+            x1.append(x1[-1])
+            y1.append(y1[-1]+1)
+        except KeyError:
+            x1.append(x1[-1]+1)
+            y1.append(y1[-1])
+        if x1[-1] > options['fdr']*y1[-1]:
+            break
+
+    total_matches_at_fdr = x1[-1] + y1[-1]
+
+    freqs = [cells_freqs[i] for i,c in enumerate(cells_label) \
+             if c in cells_without_scores[:total_matches_at_fdr]]
+    frac_repertoire = sum(freqs)
+    pattern = [1 if c in cells_without_scores[:total_matches_at_fdr] else 0 \
+               for i,c in enumerate(cells_label)]
+
+    results = {
+              'pattern':pattern,
+              'frac_repertoire':frac_repertoire,
+              'positives':sum(pattern),
+              'negatives':len(pattern) - sum(pattern),
+              'total':len(pattern),
+              'freqs':cells_freqs
+              }
+
+    return results
+
+#------------------------------------------------------------------------------# 
+
 def visualize_results(results,data,*args,**kwargs):
 
     """
@@ -91,9 +154,6 @@ def visualize_results(results,data,*args,**kwargs):
     for l,color in zip(('Correct','Incorrect'),('green','red')):
         xs = [i for i,c in zip(x2,colors) if c == color]
         ys = [i for i,c in zip(y2,colors) if c == color]
-        print 'xs:',xs
-        print 'ys:',ys
-        print colors
         if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l)
 
     plt.annotate('{}/{} identified'.format(colors.count('green'),len(cells_record)),

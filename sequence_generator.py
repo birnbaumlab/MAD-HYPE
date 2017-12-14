@@ -20,7 +20,6 @@ import numpy as np
 from numpy.random import binomial
 
 # homegrown libraries
-np.random.seed(42)
 
 #------------------------------------------------------------------------------# 
 
@@ -54,8 +53,10 @@ class DataGenerator(object):
                         'cell_freq_distro':'power-law',
                         'cell_freq_constant':-1,
                         'chain_misplacement_prob':0,
-                        'chain_deletion_prob':0.1
+                        'chain_deletion_prob':0.1,
+                        'seed':42
                         }
+
 
         self.cells = None
 
@@ -73,6 +74,9 @@ class DataGenerator(object):
 
         """ Generate cells from user settings"""
 
+        # set random seed
+        np.random.seed(self.settings['seed'])
+
         # transfer settings to local namespace
         num_cells = self.settings['num_cells']
         cell_freq_distro = self.settings['cell_freq_distro']
@@ -88,11 +92,13 @@ class DataGenerator(object):
         elif cell_freq_distro == 'power-law':
             self.freqs = 10.**(-cell_freq_constant*np.log10(np.arange(1,num_cells+1)))
             self.freqs = self.freqs/sum(self.freqs)
-        print self.cells
 
     def generate_data(self):
 
         """ Generate data from user settings """
+
+        # set random seed
+        np.random.seed(self.settings['seed'])
 
         # transfer settings to local namespace
         num_cells = self.settings['num_cells']
