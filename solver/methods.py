@@ -271,7 +271,7 @@ def _derivative_prob_func(f,d):
                 for c,W,w in zip(d['cpw'],d['w_tot'],d['w'])])
     else:
         return -(d['alpha']*(1.-f)) + \
-            f*sum([c*((W-w) + w*((1.-f)**c)/(((1.-f)**c) - 1))
+                f*sum([c*((W-w) + w*((1.-f)**c)/(((1.-f)**max(c,0.001)) - 1)) # FIXME: need rigorous solution to max function
                 for c,W,w in zip(d['cpw'],d['w_tot'],d['w'])])
 
 
