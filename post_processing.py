@@ -4,6 +4,7 @@ Attempt to test variable cells per well
 """
 
 # standard libraries
+from math import log10,ceil,floor
 
 # nonstandard libraries
 import numpy as np
@@ -11,7 +12,7 @@ import matplotlib.pyplot as plt
 
 # homegrown libraries
 #from methods import *
-
+plt.rcParams["font.family"] = "serif"
 
 '''
 MAIN FUNCTIONS
@@ -141,26 +142,41 @@ def visualize_results(results,data,*args,**kwargs):
 
     print 'Total cells:',len(cells_record)
     print 'Matches at FDR = 0.01:',total_matches_at_fdr
-    print 'Positives:',colors.count('green')
-    print 'Negatives:',colors.count('red')
+    print 'Positives:',colors.count('black')
+    print 'Negatives:',colors.count('white')
     print 'Fraction of repertoire:',frac_repertoire
 
     # 
-    plt.figure(1)
     plt.plot(x1,y1)
 
-    plt.figure(2)
+    fig,ax = plt.subplots(figsize=(10,5))
 
-    for l,color in zip(('Correct','Incorrect'),('green','red')):
+
+    plt.yscale('log')
+
+    for l,color in zip(('Correct','Incorrect'),('black','white')):
         xs = [i for i,c in zip(x2,colors) if c == color]
         ys = [i for i,c in zip(y2,colors) if c == color]
         if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l)
 
-    plt.annotate('{}/{} identified'.format(colors.count('green'),len(cells_record)),
-            xy=(0.7,0.6),xycoords='axes fraction')
-    plt.annotate('{}% repertoire'.format(round(100*frac_repertoire,2)),
-            xy=(0.7,0.55),xycoords='axes fraction')
-    plt.legend()
+    #plt.annotate('{}/{} identified'.format(colors.count('green'),len(cells_record)),
+    #        xy=(0.7,0.6),xycoords='axes fraction')
+    #plt.annotate('{}% repertoire'.format(round(100*frac_repertoire,2)),
+    #        xy=(0.7,0.55),xycoords='axes fraction')
+    leg = plt.legend()
+    leg.get_frame().set_edgecolor('k')
+
+
+    plt.xlim((0,len(x2)))
+    plt.ylim((min(y2),10**ceil(log10(max(y2)-1e-9))))
+    ax.set_xticks([0,len(x2)/2,len(x2)])
+    ax.spines['top'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.xlabel('Clone #',fontweight='bold')
+    plt.ylabel('',fontweight='bold',size=12)
+    ax.axes.get_xaxis().set_visible(False)
+    plt.tick_params(labelsize=20)
 
     # show plots
     plt.show(block=False)

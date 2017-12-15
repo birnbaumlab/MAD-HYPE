@@ -7,6 +7,7 @@ Tests out the new and improved variable solver
 import time
 from collections import Counter
 from operator import mul
+from sys import argv
 
 # nonstandard libraries
 from scipy.misc import comb
@@ -221,17 +222,29 @@ class BuildFilter(object):
         return False
 
 #------------------------------------------------------------------------------# 
+""" Main Callable Method """
+#------------------------------------------------------------------------------# 
 
 if __name__ == "__main__":
 
-    mode = 1
+    """ Use command line arguments """
+    
+    if len(argv) > 1:
+        mode = int(argv[1])
+        print 'User set mode to {}...'.format(mode)
+        time.sleep(1.0)
+    else:
+        mode = 1
+        print 'Default mode set to {}...'.format(mode)
+        time.sleep(1.0)
 
     if mode == 1:
         
         options = {
                 'num_cells':1000,
                 'num_wells':(48,48),
-                'cpw':(50,150),
+                'cell_freq_max':0.01,
+                'cpw':(250,1750),
                 'seed':1,
                 # visual cues
                 'silent':False,
@@ -302,12 +315,15 @@ if __name__ == "__main__":
                 'silent':True,
                 'visual':False
                 }
-        T = 9600
+        T = 96000
         W = 48
         #w_range = [24,48,72]
         w_range = [0,6,12,18,24,30,36,42,48]
-        c_range = np.logspace(0,2,11,dtype=int)
-        repeats = 20 
+        c_range = np.logspace(0,3,16,dtype=int)
+        repeats = 3
+
+        print c_range
+        raw_input()
         
         id_map = np.zeros((len(c_range),len(w_range)))
 
