@@ -295,8 +295,8 @@ if __name__ == "__main__":
     if mode == 3:
         ''' Generates conserved cell count experiment '''
         options = {
-                'num_cells':50,
-                'cell_freq_max':0.05,
+                'num_cells':1000,
+                'cell_freq_max':0.01,
                 'cell_freq_constant':1,
                 # visual cues
                 'silent':True,
