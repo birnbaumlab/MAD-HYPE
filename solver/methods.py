@@ -1,6 +1,5 @@
 
-"""
-
+""" 
 Author: Patrick V. Holec
 Created: 4 December 2017
 
@@ -30,6 +29,7 @@ Included:
 
 # standard libraries
 import operator
+from operator import mul
 from math import log10
 
 # nonstandard libraries
@@ -37,7 +37,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import fmin
 from scipy.optimize import brentq
-from scipy.misc import comb
+from scipy.misc import comb,factorial
 
 # homegrown libraries
 
@@ -74,10 +74,10 @@ def match_probability(well_data,prior = 1.0,memory={}):
 
         """ PROBABILITY CALCULATIONS """
         # calculate probability for clonal match
-        p_match = estimate_match_probability(well_data,freqs_match)
+        p_match = estimate_probability(well_data,freqs_match)
 
         # calculate probability for clonal nonmatch
-        p_nonmatch = estimate_nonmatch_probability(well_data,freqs_nonmatch)
+        p_nonmatch = estimate_probability(well_data,freqs_nonmatch)
 
         #"""#
         #TESTING
@@ -150,28 +150,26 @@ def estimate_nonmatch_frequencies(data):
              'j':_find_freq({'w':_add(data['w_j'],data['w_ij']),
                              'w_tot':data['w_tot'],
                              'cpw':data['cpw'],
-                             'alpha':data['alpha']})}
+                             'alpha':data['alpha']}),
+             'ij':0.0}
 
     # return result
     return freqs
 
 #------------------------------------------------------------------------------# 
 
-def estimate_match_probability(data,freqs):
+def estimate_probability(data,freqs):
 
     """ Estimate match probability given data,freqs """
 
-    p_total = 1. 
+    p_total = 1.
     keys = ['w_i','w_j','w_ij','w_o','w_tot','cpw']
     for w_i,w_j,w_ij,w_o,w_tot,cpw in zip(*[data[k] for k in keys]):
-        p = 0.
-        #print 'Start new:'
-        for w_ij_clonal in xrange(0,w_ij+1):
-            # calculate match probability
-            p += _binomial_pdf(w_tot,w_ij_clonal,_adjust_freq(freqs['ij'],cpw))* \
-                       _prob_distribution(w_i,w_j,w_ij-w_ij_clonal,w_o,freqs,cpw)
-        p_total *= p
-
+        f_i,f_j,f_ij = _well_freq(freqs['i'],cpw),_well_freq(freqs['j'],cpw),_well_freq(freqs['ij'],cpw)
+        p_total *= _multinomial(w_i,w_j,w_ij,w_o)* \
+                    (f_i**w_i)*(1.-f_i)**(w_o + w_j)* \
+                    (f_j**w_j)*(1.-f_j)**(w_o + w_i)* \
+                    ((1 - (1-f_i*f_j)*(1-f_ij))**w_ij)*(1.-f_ij)**(w_i + w_j + w_o)
     return p_total
 
 
@@ -180,8 +178,8 @@ def estimate_match_probability(data,freqs):
 def estimate_nonmatch_probability(data,freqs):
 
     """ Estimate nonmatch probability given data,freqs """
-    
-    p_total = 1. 
+
+    p_total = 1.
     keys = ['w_i','w_j','w_ij','w_o','cpw']
     for w_i,w_j,w_ij,w_o,cpw in zip(*[data[k] for k in keys]):
         # calculate nonmatch probability
@@ -286,6 +284,9 @@ def _prob_func(f,well_dict):
 """ Factory Methods """
 #------------------------------------------------------------------------------# 
 
+def _well_freq(f,c):
+    return (1.-(1.-f)**c)
+
 def _add(a,b):
     """ add iterables a,b """
     return tuple(map(operator.add, a, b))
@@ -301,6 +302,10 @@ def _product(a,scalar):
 def _binomial_pdf(n,k,f):
     """ binomial pdf calculator, n choose k at f """
     return comb(n,k,exact=False)*(f**k)*((1.-f)**(n-k))
+
+def _multinomial(*args):
+    """ binomial pdf calculator, n choose k at f """
+    return factorial(sum(args))/reduce(mul,[factorial(arg) for arg in args],1)
 
 #------------------------------------------------------------------------------# 
 """ Testing Methods """
@@ -333,20 +338,10 @@ if __name__ == '__main__':
 
     if mode == 'normal':
         # TESTING: estimate_match_frequencies
-        """
-        well_data = {'w_i':(3,0),
-                     'w_j':(13,11),
-                     'w_ij':(3,36),
-                     'w_o':(29,1),
-                     'w_tot':(48,48),
-                     'cpw':(10,100),
-                     'alpha':0}
-
-        """
-        well_data = {'w_i':(23,),
-                     'w_j':(18,),
-                     'w_ij':(19,),
-                     'w_o':(36,),
+        well_data = {'w_i':(15,),
+                     'w_j':(16,),
+                     'w_ij':(23,),
+                     'w_o':(42,),
                      'w_tot':(96,),
                      'cpw':(10,),
                      'alpha':1}
@@ -357,7 +352,8 @@ if __name__ == '__main__':
         
         print 'Nonmatch frequency:',freqs_nonmatch
         print 'Match frequency:',freqs_match
+        print 'Nonmatch probability:',estimate_probability(well_data,freqs_nonmatch)
         print 'Nonmatch probability:',estimate_nonmatch_probability(well_data,freqs_nonmatch)
-        print 'Match probability:',estimate_match_probability(well_data,freqs_match)
+        print 'Match probability:',estimate_probability(well_data,freqs_match)
 
 

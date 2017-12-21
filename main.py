@@ -29,7 +29,7 @@ def test(*args,**kwargs):
               'num_wells':(24,),
               'cpw':(10,),
               # simulated repertoire
-              'num_cells':1000,
+              'num_cells':100,
               'cell_freq_distro':'power-law',
               'cell_freq_constant':1.0,
               'chain_misplacement_prob':0, # TODO: add functionality
@@ -251,6 +251,16 @@ if __name__ == "__main__":
                 'visual':True
                 }
 
+        options = {
+                'num_cells':1000,
+                'num_wells':(42,54),
+                'cell_freq_max':0.01,
+                'cpw':(25,1760),
+                'seed':1,
+                # visual cues
+                'silent':False,
+                'visual':True
+                }
 
         results = test(options)
 

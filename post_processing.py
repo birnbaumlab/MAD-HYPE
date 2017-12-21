@@ -89,6 +89,9 @@ def visualize_results(results,data,*args,**kwargs):
 
     # default settings parameters
     settings = {
+            'pos_color':'black',
+            'neg_color':'white',
+            'legend':True
                }
 
     # update settings
@@ -130,10 +133,10 @@ def visualize_results(results,data,*args,**kwargs):
 
     for i,c in enumerate(cells_label):
         if c in cells_without_scores[:total_matches_at_fdr]:
-            freqs_colors.append((cells_freqs[i],'green'))
+            freqs_colors.append((cells_freqs[i],settings['pos_color']))
             frac_repertoire += cells_freqs[i]
         else:
-            freqs_colors.append((cells_freqs[i],'red'))
+            freqs_colors.append((cells_freqs[i],settings['neg_color']))
         x2.append(i)
 
     freqs_colors = sorted(freqs_colors,key=lambda x: -x[0])
@@ -142,8 +145,8 @@ def visualize_results(results,data,*args,**kwargs):
 
     print 'Total cells:',len(cells_record)
     print 'Matches at FDR = 0.01:',total_matches_at_fdr
-    print 'Positives:',colors.count('black')
-    print 'Negatives:',colors.count('white')
+    print 'Positives:',colors.count(settings['pos_color'])
+    print 'Negatives:',colors.count(settings['neg_color'])
     print 'Fraction of repertoire:',frac_repertoire
 
     # 
@@ -151,20 +154,22 @@ def visualize_results(results,data,*args,**kwargs):
 
     fig,ax = plt.subplots(figsize=(10,5))
 
-
     plt.yscale('log')
 
-    for l,color in zip(('Correct','Incorrect'),('black','white')):
+    for l,color in zip(('Correct','Incorrect'),(settings['pos_color'],settings['neg_color'])):
         xs = [i for i,c in zip(x2,colors) if c == color]
         ys = [i for i,c in zip(y2,colors) if c == color]
-        if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l)
+        if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l,edgecolor='none')
+
+    plt.plot(xrange(len(cells_freqs)),cells_freqs,color='k')
 
     #plt.annotate('{}/{} identified'.format(colors.count('green'),len(cells_record)),
     #        xy=(0.7,0.6),xycoords='axes fraction')
     #plt.annotate('{}% repertoire'.format(round(100*frac_repertoire,2)),
     #        xy=(0.7,0.55),xycoords='axes fraction')
-    leg = plt.legend()
-    leg.get_frame().set_edgecolor('k')
+    if settings['legend'] == True:
+        leg = plt.legend()
+        leg.get_frame().set_edgecolor('k')
 
 
     plt.xlim((0,len(x2)))
