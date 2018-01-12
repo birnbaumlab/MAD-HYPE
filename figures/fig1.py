@@ -41,7 +41,7 @@ def main(*args,**kwargs):
 
                     plt.scatter(x_well,y_well,color=well_colors,s=cell_size,zorder=10)
         elif mode == 'dna':
-            w_i = [(x,y) for x,y in zip([4,7,3,5,7,3,1,5,6,8,1,2],[2,2,5,9,12,11,5,1,4,9,9,6])]
+            w_i = [(x,y) for x,y in zip([4,7,3,5,7,3,3,5,6,8,1,2],[2,2,5,9,12,9,8,1,4,9,9,6])]
             w_j = w_i[:6] + [(x,y) for x,y in zip([3,7,5,5,7,7],[7,7,4,4,9,2])]
 
             sets = [(w_i,'r',-0.1),(w_j,'b',0.1)]
@@ -60,7 +60,8 @@ def main(*args,**kwargs):
         plt.xlim([0.5,rows+0.5])
         plt.ylim([0.5,columns+0.5])
         plt.axis('off')
-        fig.patch.set_facecolor([0.9,0.9,0.9])
+        fig.patch.set_facecolor([1.0,1.0,1.0])
+        #fig.patch.set_facecolor([0.9,0.9,0.9])
         plt.subplots_adjust(left=0.02, right=0.98, top=0.98, bottom=0.02)
 
         #plt.savefig('myfig.png',facecolor=fig.get_facecolor(), edgecolor='none',bbox_inches='tight')

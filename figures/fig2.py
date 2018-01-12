@@ -13,6 +13,7 @@ import matplotlib.colors as colors
 
 # homegrown libraries
 from solver.methods import match_probability
+from main import simulate_system 
 
 # library modifications
 plt.rcParams["font.family"] = "FreeSerif"
@@ -87,7 +88,8 @@ def main(*args,**kwargs):
 
     if 2 in settings['subplots']:
         #TODO: add functionality
-        """ Subplot 2 """
+        """  """
+        simulate_system(settings)
 
     if 3 in settings['subplots']:
         #TODO: add functionality

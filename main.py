@@ -22,7 +22,7 @@ from post_processing import analyze_results
 
 #------------------------------------------------------------------------------# 
 
-def test(*args,**kwargs):
+def simulate_system(*args,**kwargs):
 
     options = {
               # experimental design
@@ -155,9 +155,12 @@ def test(*args,**kwargs):
     # gather results
     compiled_results = analyze_results(results,data,options)
 
-    # visualize results if requested
     if options['visual']:
+        # visualize results if requested
         visualize_results(results,data,options)
+    else:
+        # gather results
+        compiled_results = analyze_results(results,data,options)
 
     # return compiled results
     return compiled_results
@@ -240,6 +243,7 @@ if __name__ == "__main__":
 
     if mode == 1:
         
+        '''
         options = {
                 'num_cells':1000,
                 'num_wells':(48,48),
@@ -250,11 +254,12 @@ if __name__ == "__main__":
                 'silent':False,
                 'visual':True
                 }
+        '''
 
         options = {
-                'num_cells':1000,
+                'num_cells':100,
                 'num_wells':(42,54),
-                'cell_freq_max':0.01,
+                'cell_freq_max':0.05,
                 'cpw':(25,1760),
                 'seed':1,
                 # visual cues
@@ -262,7 +267,7 @@ if __name__ == "__main__":
                 'visual':True
                 }
 
-        results = test(options)
+        results = simulate_system(options)
 
     if mode == 2:
     

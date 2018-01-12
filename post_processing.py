@@ -11,7 +11,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # homegrown libraries
-#from methods import *
 plt.rcParams["font.family"] = "serif"
 
 '''
@@ -26,7 +25,8 @@ def analyze_results(results,data,*args,**kwargs):
 
     # default settings parameters
     options = {
-              'fdr':0.01
+              'fdr':0.01,
+              'silent':False
               }
 
     # update settings
@@ -34,7 +34,6 @@ def analyze_results(results,data,*args,**kwargs):
     options.update(kwargs)
 
     # assertion check
-    #assert len(results['cells']) == len(results['threshold']), "differing # cells/thresholds"
     
     # these are guessed cells
     cells_with_scores = sorted(results,key=lambda x: -x[1])
@@ -74,8 +73,14 @@ def analyze_results(results,data,*args,**kwargs):
               'positives':sum(pattern),
               'negatives':len(pattern) - sum(pattern),
               'total':len(pattern),
-              'freqs':cells_freqs
+              'freqs':cells_freqs,
+              'xy':[x1,y1]
               }
+
+    if not options['silent']:
+        # display characteristics of the data
+        for k,v in results.items():
+            print '{}:{}'.format(k,v)
 
     return results
 
@@ -89,92 +94,69 @@ def visualize_results(results,data,*args,**kwargs):
 
     # default settings parameters
     settings = {
+            'fdr':0.01,
+            'fdr_plot':0.01,
             'pos_color':'black',
             'neg_color':'white',
-            'legend':True
+            'legend':True,
+            'silent':False
                }
 
     # update settings
     for arg in args: settings.update(arg)
     settings.update(kwargs)
 
-    # assertion check
-    #assert len(results['cells']) == len(results['threshold']), "differing # cells/thresholds"
-    
-    #
-    cells_with_scores = sorted(results,key=lambda x: -x[1])
-    cells_without_scores = [i[0] for i in cells_with_scores]
-
-    # these are actuall cells
-    cells_temp = sorted([(a,b) for a,b in data['cells'].items()],key=lambda x: -x[1])
-    cells_record = set([c[0] for c in cells_temp])
-    cells_label = [c[0] for c in cells_temp]
-    cells_freqs = [c[1] for c in cells_temp]
-    total_cells = len(cells_temp) 
-
-    # look at error rate (stratified by confidence) [FIGURE 1]
-    x1,y1,fdr = [0],[0],0.01
-    for c in cells_with_scores:
-        try:
-            data['cells'][c[0]]
-            x1.append(x1[-1])
-            y1.append(y1[-1]+1)
-        except KeyError:
-            x1.append(x1[-1]+1)
-            y1.append(y1[-1])
-        if x1[-1] > fdr*y1[-1]:
-            break
-
-    total_matches_at_fdr = x1[-1] + y1[-1]
-
-    # look at error rate (stratified by confidence) [FIGURE 1]
-    freqs_colors,frac_repertoire = [],0.
-    x2 = []
-
-    for i,c in enumerate(cells_label):
-        if c in cells_without_scores[:total_matches_at_fdr]:
-            freqs_colors.append((cells_freqs[i],settings['pos_color']))
-            frac_repertoire += cells_freqs[i]
-        else:
-            freqs_colors.append((cells_freqs[i],settings['neg_color']))
-        x2.append(i)
-
-    freqs_colors = sorted(freqs_colors,key=lambda x: -x[0])
-    y2 = [i[0] for i in freqs_colors]
-    colors = [i[1] for i in freqs_colors]
-
-    print 'Total cells:',len(cells_record)
-    print 'Matches at FDR = 0.01:',total_matches_at_fdr
-    print 'Positives:',colors.count(settings['pos_color'])
-    print 'Negatives:',colors.count(settings['neg_color'])
-    print 'Fraction of repertoire:',frac_repertoire
+    # heavy lifting on the data
+    cresults = analyze_results(results,data,settings)
 
     # 
-    plt.plot(x1,y1)
+
+    # 
+    ax = plt.figure().gca() # initialize figure
+
+    linewidth = 5
+
+    # get data attributes
+    false_limit = cresults['xy'][0][-1]
+    true_limit = cresults['xy'][1][-1]
+    fdr_limit = min(false_limit,settings['fdr_plot']*true_limit)
+
+    # plot FDR line
+    plt.plot((0,fdr_limit),(0,fdr_limit/settings['fdr_plot']),
+            linestyle='--',color='k',linewidth=linewidth)
+
+    # plot main data auroc
+    plt.plot(*cresults['xy'],linewidth=linewidth) 
+
+    # add labels
+    plt.xlabel('False positives (#)')
+    plt.ylabel('True positives (#)')
+
+    # change axes
+    #plt.xticks(np.arange(0,false_limit+1,1))
+    #plt.xlim(-0.1,1.1*false_limit)
+    #plt.ylim(-0.1,1.1*true_limit)
 
     fig,ax = plt.subplots(figsize=(10,5))
 
     plt.yscale('log')
 
-    for l,color in zip(('Correct','Incorrect'),(settings['pos_color'],settings['neg_color'])):
-        xs = [i for i,c in zip(x2,colors) if c == color]
-        ys = [i for i,c in zip(y2,colors) if c == color]
+    for val,color,l in zip(
+            (0,1),(settings['neg_color'],settings['pos_color']),('Correct','Incorrect')):
+        xs = [i for i,p in enumerate(cresults['pattern']) if p == val]
+        ys = [f for f,p in zip(cresults['freqs'],cresults['pattern']) if p == val]
         if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l,edgecolor='none')
 
-    plt.plot(xrange(len(cells_freqs)),cells_freqs,color='k')
+    plt.plot(xrange(len(cresults['freqs'])),cresults['freqs'],color='k')
 
-    #plt.annotate('{}/{} identified'.format(colors.count('green'),len(cells_record)),
-    #        xy=(0.7,0.6),xycoords='axes fraction')
-    #plt.annotate('{}% repertoire'.format(round(100*frac_repertoire,2)),
-    #        xy=(0.7,0.55),xycoords='axes fraction')
     if settings['legend'] == True:
         leg = plt.legend()
         leg.get_frame().set_edgecolor('k')
 
 
-    plt.xlim((0,len(x2)))
-    plt.ylim((min(y2),10**ceil(log10(max(y2)-1e-9))))
-    ax.set_xticks([0,len(x2)/2,len(x2)])
+    plt.xlim((0,len(cresults['freqs'])))
+    plt.ylim((min(cresults['freqs']),10**ceil(log10(max(cresults['freqs'])-1e-9))))
+    ax.set_xticks([0,len(cresults['freqs'])/2,len(cresults['freqs'])])
     ax.spines['top'].set_visible(False)
     ax.spines['left'].set_visible(False)
     ax.spines['right'].set_visible(False)
