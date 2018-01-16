@@ -106,6 +106,9 @@ def simulate_system(*args,**kwargs):
     freqs = [] # initialize list
     pair_datas = [] # initialize list
 
+    # REMOVE THIS
+    bypass_filter = True 
+
     # Iterate through combinations!
     for i,a in enumerate(uniques['A']):
 
@@ -114,19 +117,19 @@ def simulate_system(*args,**kwargs):
             if not silent: print 'Starting A-chain {}...'.format(i)
 
         # apply filter (before itersection,A)
-        if filt.check_dist(well_distribution['A'][a]): continue
+        if filt.check_dist(well_distribution['A'][a]) and not bypass_filter: continue
 
         for j,b in enumerate(uniques['B']):
 
             # apply filter (before itersection,B)
-            if filt.check_dist(well_distribution['B'][b]): continue
+            if filt.check_dist(well_distribution['B'][b]) and not bypass_filter: continue
 
             # set up input
             pair_data = _data_intersect(
                     well_distribution['A'][a],well_distribution['B'][b],num_wells)
 
             # apply filter (on intersection)
-            if filt.check_tuple(pair_data['w_ij']): continue
+            if filt.check_tuple(pair_data['w_ij']) and not bypass_filter: continue
 
             # add keys to dictionary where needed
             pair_data['alpha'] = options['prior_alpha']
@@ -135,9 +138,20 @@ def simulate_system(*args,**kwargs):
 
             # calculate match probability
             p,f = match_probability(pair_data,options['prior_match'])
+
+            #print pair_data
+            #print f
+            #print p
+            #print (a,b)
+            #raw_input()
             
-            if p > options['threshold']:
-                results.append((((a,),(b,)),p))
+            # CHANGE THIS BACK, THIS IS IMPORTANT (REMOVE SECOND STATEMENT #
+            # THIS IS A TEMPORARY CHANGE TO GAIN ACCESS TO CERTAIN VALUES #
+            if a == b:
+                results.append((((a,),(b,)),p,f[0]))
+            elif p > options['threshold']:
+                if filt.check_tuple(pair_data['w_ij']): continue
+                results.append((((a,),(b,)),p,f[0]))
 
     '''#
     for i,r,f,p in zip(xrange(len(results[:1000])),results,freqs,pair_datas):
@@ -153,11 +167,9 @@ def simulate_system(*args,**kwargs):
 
 
     # gather results
-    compiled_results = analyze_results(results,data,options)
-
     if options['visual']:
         # visualize results if requested
-        visualize_results(results,data,options)
+        compiled_results = visualize_results(results,data,options)
     else:
         # gather results
         compiled_results = analyze_results(results,data,options)
@@ -255,12 +267,23 @@ if __name__ == "__main__":
                 'visual':True
                 }
         '''
-
+        '''
         options = {
-                'num_cells':100,
-                'num_wells':(42,54),
-                'cell_freq_max':0.05,
-                'cpw':(25,1760),
+                'num_cells':10000,
+                'num_wells':(48,48),
+                'cell_freq_max':0.01,
+                'cpw':(250,1750),
+                'seed':1,
+                # visual cues
+                'silent':False,
+                'visual':True
+                }
+        '''
+        options = {
+                'num_cells':100000,
+                'num_wells':(96,),
+                'cell_freq_max':0.01,
+                'cpw':(1000,),
                 'seed':1,
                 # visual cues
                 'silent':False,

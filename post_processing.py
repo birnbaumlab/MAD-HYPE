@@ -34,6 +34,8 @@ def analyze_results(results,data,*args,**kwargs):
     options.update(kwargs)
 
     # assertion check
+
+    # check whats inside results
     
     # these are guessed cells
     cells_with_scores = sorted(results,key=lambda x: -x[1])
@@ -67,7 +69,36 @@ def analyze_results(results,data,*args,**kwargs):
     pattern = [1 if c in cells_without_scores[:total_matches_at_fdr] else 0 \
                for i,c in enumerate(cells_label)]
 
+    # compare actual frequencies to those that are predicted
+    positive_matched_freqs = []
+    negative_matched_freqs = []
+    positive_confidence = []
+
+    pos_freq_dict = dict([(c[0],(c[1],c[2]))
+        for c in cells_with_scores[:total_matches_at_fdr]])
+    neg_freq_dict = dict([(c[0],(c[1],c[2]))
+        for c in cells_with_scores[total_matches_at_fdr:]])
+    
+    # assign positive and negative matches
+    for cell,true_freq in zip(cells_label,cells_freqs):
+        print cell
+        try:
+            positive_matched_freqs.append((true_freq,pos_freq_dict[cell][1]['ij']))
+            positive_confidence.append(np.log10(pos_freq_dict[cell][0]))
+        except KeyError:
+            try:
+                negative_matched_freqs.append((true_freq,neg_freq_dict[cell][1]['ij']))
+            except KeyError:
+                print '{} did not show up!'.format(cell)
+
+    positive_confidence = [(p - min(positive_confidence))/
+            (max(positive_confidence) - min(positive_confidence)) 
+            for p in positive_confidence]
+
     results = {
+              'positive_matched_freqs':positive_matched_freqs,
+              'negative_matched_freqs':negative_matched_freqs,
+              'positive_confidence':positive_confidence,
               'pattern':pattern,
               'frac_repertoire':frac_repertoire,
               'positives':sum(pattern),
@@ -80,7 +111,7 @@ def analyze_results(results,data,*args,**kwargs):
     if not options['silent']:
         # display characteristics of the data
         for k,v in results.items():
-            print '{}:{}'.format(k,v)
+            pass#print '{}:{}'.format(k,v)
 
     return results
 
@@ -111,7 +142,8 @@ def visualize_results(results,data,*args,**kwargs):
 
     # 
 
-    # 
+    ### AUROC FIGURE ###
+
     ax = plt.figure().gca() # initialize figure
 
     linewidth = 5
@@ -132,10 +164,22 @@ def visualize_results(results,data,*args,**kwargs):
     plt.xlabel('False positives (#)')
     plt.ylabel('True positives (#)')
 
-    # change axes
-    #plt.xticks(np.arange(0,false_limit+1,1))
-    #plt.xlim(-0.1,1.1*false_limit)
-    #plt.ylim(-0.1,1.1*true_limit)
+    ### FREQUENCY ESTIMATION FIGURE ###
+
+    ax = plt.figure().gca()
+
+    ax.set_xscale('log')
+    ax.set_yscale('log')
+
+    plt.scatter(*zip(*cresults['positive_matched_freqs']),c=cresults['positive_confidence']) 
+    plt.scatter(*zip(*cresults['negative_matched_freqs']),c='r', marker='x')
+
+
+    plt.xlabel('Clonal Frequency')
+    plt.ylabel('Predicted Frequency')
+
+
+    ### REPERTOIRE DISPLAY FIGURE ###
 
     fig,ax = plt.subplots(figsize=(10,5))
 
@@ -170,6 +214,7 @@ def visualize_results(results,data,*args,**kwargs):
     raw_input('Press enter to close...')
     plt.close()
 
+    return cresults
 
 if __name__ == '__main__':
     test_settings()
