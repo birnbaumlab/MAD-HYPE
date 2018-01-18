@@ -19,6 +19,11 @@ def main(*args,**kwargs):
     well_edge_size = 5
     margin = (0.7,2)
 
+    w_i = 15
+    w_j = 16
+    w_ij = 23
+    w_o = 42
+
     x = np.linspace(1,rows,rows)
     y = np.linspace(1,columns,columns)
 
@@ -41,10 +46,14 @@ def main(*args,**kwargs):
 
                     plt.scatter(x_well,y_well,color=well_colors,s=cell_size,zorder=10)
         elif mode == 'dna':
-            w_i = [(x,y) for x,y in zip([4,7,3,5,7,3,3,5,6,8,1,2],[2,2,5,9,12,9,8,1,4,9,9,6])]
-            w_j = w_i[:6] + [(x,y) for x,y in zip([3,7,5,5,7,7],[7,7,4,4,9,2])]
+            combos = [(i,j) for i in xrange(1,rows+1) for j in xrange(1,columns+1)]
+            np.random.shuffle(combos)
+            print combos
 
-            sets = [(w_i,'r',-0.1),(w_j,'b',0.1)]
+            w_i_indices = combos[:w_i+w_ij]
+            w_j_indices = combos[w_ij:w_i+w_j+w_ij]
+
+            sets = [(w_i_indices,'r',-0.1),(w_j_indices,'b',0.1)]
 
             for w,c,shift in sets: 
                 for x,y in w:
@@ -60,8 +69,8 @@ def main(*args,**kwargs):
         plt.xlim([0.5,rows+0.5])
         plt.ylim([0.5,columns+0.5])
         plt.axis('off')
-        fig.patch.set_facecolor([1.0,1.0,1.0])
-        #fig.patch.set_facecolor([0.9,0.9,0.9])
+        #fig.patch.set_facecolor([1.0,1.0,1.0])
+        fig.patch.set_facecolor([0.9,0.9,0.9])
         plt.subplots_adjust(left=0.02, right=0.98, top=0.98, bottom=0.02)
 
         #plt.savefig('myfig.png',facecolor=fig.get_facecolor(), edgecolor='none',bbox_inches='tight')

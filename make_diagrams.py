@@ -22,7 +22,7 @@ settings = {
         'visual':True
         }
 
-#fig1.main()
+fig1.main()
 #fig2.main(settings)
 
 
