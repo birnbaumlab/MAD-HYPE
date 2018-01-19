@@ -280,7 +280,7 @@ if __name__ == "__main__":
                 }
         '''
         options = {
-                'num_cells':100000,
+                'num_cells':1000,
                 'num_wells':(96,),
                 'cell_freq_max':0.01,
                 'cpw':(1000,),
