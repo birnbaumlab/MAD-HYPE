@@ -58,6 +58,10 @@ def simulate_system(*args,**kwargs):
     sg = DataGenerator(options)
     sg.generate_cells()
     data = sg.generate_data()
+    print 'Keys:',data.keys()
+    print len(data['well_data'])
+    print type((data['well_data']['A']))
+    raw_input()
 
     # Identify unique a,b sequences
     uniques = {

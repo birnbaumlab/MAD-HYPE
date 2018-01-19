@@ -7,7 +7,7 @@ import numpy as np
 import scipy.optimize, scipy.misc, scipy.cluster
 
 def extract_chains(seq_data):
-  alphas_per_well, betas_per_well = zip(*seq_data.well_data)
+  alphas_per_well, betas_per_well = seq_data['well_data']['A'],seq_data['well_data']['B']
   return sorted(set(sum(alphas_per_well, []))), sorted(set(sum(betas_per_well, [])))
 
 def solve(seq_data, iters=100, pair_threshold = 0.9):
