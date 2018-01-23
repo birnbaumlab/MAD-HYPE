@@ -36,10 +36,10 @@ class SequencingGenerator(object):
     self.beta_sharing_probs = None
     self.chain_misplacement_prob = 0
     self.chain_deletion_prob = 0
+    self.seed = np.random.randint(999999)
 
     ## If any parameters are specified in kwargs, modify them from the defaults
     self.set_options(**kwargs)
-
 
   ## Well parameters
   
@@ -122,11 +122,17 @@ class SequencingGenerator(object):
       self.alpha_sharing_probs = kwargs['alpha_sharing_probs'] 
     if 'beta_sharing_probs' in kwargs:
       self.beta_sharing_probs = kwargs['beta_sharing_probs'] 
+    if 'seed' in kwargs:
+      self.seed = kwargs['seed'] 
 
 
 
   @staticmethod
   def generate_cells(num_cells, alpha_sharing_probs = None, beta_sharing_probs = None, alpha_dual_prob = 0.0, beta_dual_prob = 0.0, alpha_start_idx=0, beta_start_idx=0):
+
+    # set random seed
+    np.random.seed(self.seed)
+
     if alpha_sharing_probs is None:
       alpha_sharing_probs = [0.816,0.085,0.021,0.007,0.033,0.005,0.033]
     if beta_sharing_probs is None:
@@ -235,6 +241,9 @@ class SequencingGenerator(object):
   def generate_data(self):
     # Generates sequencing data based on this SequencingGenerator object's parameter values.
     # Results are returned in a SequencingData object, which can be saved to a file with seq_data.save()
+
+    # set random seed
+    np.random.seed(self.seed)
 
     if self.cells == []:
         self.cells = SequencingGenerator.generate_cells(self.num_cells,
