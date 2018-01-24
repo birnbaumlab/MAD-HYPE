@@ -20,6 +20,7 @@ from solver.alphabetr import solve as alphabetr
 from sequence_generator import *
 from post_processing import visualize_results
 from post_processing import analyze_results
+from post_processing import compare_results
 
 # create a dictionary called to map strings to function handles
 global solve 
@@ -55,7 +56,8 @@ def simulate_system(*args,**kwargs):
               'pair_threshold':0.9,
               # visual cues
               'silent':False,
-              'visual':False
+              'visual':False,
+              'compare':False
               }
 
     # Update settings
@@ -68,17 +70,25 @@ def simulate_system(*args,**kwargs):
     sg.generate_cells()
     data = sg.generate_data()
 
+    # prepare for storage
+    compiled_results = []
+
     # Solve using MAD-HYPE method
     for mode in options['analysis']:
         results = solve[mode](data,options)
 
-    # gather results
-    if options['visual']:
-        # visualize results if requested
-        compiled_results = visualize_results(results,data,options)
-    else:
+
         # gather results
-        compiled_results = analyze_results(results,data,options)
+        if options['visual']:
+            # visualize results if requested
+            compiled_results.append(visualize_results(results,data,options))
+        else:
+            # gather results
+            compiled_results.append(analyze_results(results,data,options))
+
+    # comparison if two methods are selected
+    if options['compare']:
+        compare_results(compiled_results,data,options)
 
     # return compiled results
     return compiled_results
@@ -107,18 +117,6 @@ if __name__ == "__main__":
         
         '''
         options = {
-                'num_cells':1000,
-                'num_wells':(48,48),
-                'cell_freq_max':0.01,
-                'cpw':(250,1750),
-                'seed':1,
-                # visual cues
-                'silent':False,
-                'visual':True
-                }
-        '''
-        '''
-        options = {
                 'num_cells':10000,
                 'num_wells':(48,48),
                 'cell_freq_max':0.01,
@@ -130,17 +128,29 @@ if __name__ == "__main__":
                 }
         '''
         options = {
+                # experimental design
                 'num_cells':1000,
                 'num_wells':(96,),
+                'analysis':('madhype','alphabetr',),
+                # madhype parameters
+                'threshold':0.5, # minimum ratio accepted by match_probability
+                # alphabetr parameters
+                'pair_threshold':0.0001,
+                'iters':10,
+                # simulation parameters
                 'cell_freq_max':0.01,
                 'cpw':(1000,),
                 'seed':1,
                 # visual cues
                 'silent':False,
-                'visual':True
+                'visual':False,
+                'compare':False
                 }
 
-        results = simulate_system(options)
+        for i in xrange(10):
+            if i == 9:
+                options['compare'] = True
+            results = simulate_system(options,seed=i)
 
     if mode == 2:
     
@@ -210,9 +220,6 @@ if __name__ == "__main__":
         c_range = np.logspace(0,3,16,dtype=int)
         repeats = 3
 
-        print c_range
-        raw_input()
-        
         id_map = np.zeros((len(c_range),len(w_range)))
 
         for i,c in enumerate(c_range):

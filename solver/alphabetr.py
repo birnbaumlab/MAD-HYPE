@@ -22,16 +22,19 @@ import scipy.optimize, scipy.misc, scipy.cluster
 
 def extract_chains(seq_data):
   alphas_per_well, betas_per_well = seq_data['well_data']['A'],seq_data['well_data']['B']
-  print alphas_per_well
-  return sorted(set(sum(alphas_per_well, []))), sorted(set(sum(betas_per_well, [])))
+  return list(set.union(*alphas_per_well)),list(set.union(*betas_per_well))
 
 def solve(seq_data,*args,**kwargs):
-  ## Computes a solution to the alpha-beta pairing problem, using the methods in Lee et al. (2017)
+
+  """ Solver using ALPHABETR method """
+
+  print 'ALPHABETR solver...'
 
   # create settings dictionary 
   settings = {
           'iters':100,
-          'pair_threshold':0.9
+          'pair_threshold':0.9,
+          'silent':False
           }
 
   # update settings
@@ -41,7 +44,9 @@ def solve(seq_data,*args,**kwargs):
   # transfer dictionary to local namespace
   iters = settings['iters']
   pair_threshold = settings['pair_threshold']
+  silent = settings['silent']
 
+  ## Computes a solution to the alpha-beta pairing problem, using the methods in Lee et al. (2017)
   def compute_well_pairings(alpha_idx, beta_idx, scores):
 
     if len(alpha_idx)==0 or len(beta_idx)==0:  return [] # scipy hungarian implementation doesn't handle this edge case
@@ -59,11 +64,12 @@ def solve(seq_data,*args,**kwargs):
   all_alphas, all_betas = extract_chains(seq_data)
   
   # Create dictionary to look up alpha/beta index in constant time
-  alpha_to_idx = {a: i for i,a in enumerate(all_alphas)}
-  beta_to_idx = {b: i for i,b in enumerate(all_betas)}
-  # Transform all well data to reference alpha- and beta-chains by index
-  well_data = [[[alpha_to_idx[a] for a in data[0]], [beta_to_idx[b] for b in data[1]]] for data in seq_data.well_data]
+  label_to_idx = {'A':{a: i for i,a in enumerate(all_alphas)},'B':{b: i for i,b in enumerate(all_betas)}}
 
+  # Transform all well data to reference alpha- and beta-chains by index
+  #well_data = [[[alpha_to_idx[a] for a in data[0]], [beta_to_idx[b] for b in data[1]]] for data in seq_data['well_data']]
+  well_data = zip(*[[[label_to_idx[chain][l] for l in well_labels] 
+      for well_labels in seq_data['well_data'][chain]] for chain in ('A','B')])
 
   overall_pairing_counts = {}
   for iter in range(iters):
@@ -114,12 +120,18 @@ def solve(seq_data,*args,**kwargs):
 
   thresholds = [overall_pairing_counts[p]/float(iters) for p in overall_good_pairs]
 
+  # NOTE: not using confidence intervals atm
+  results = [(c,t,{'i':0.,'j':0.,'ij':f}) for c,t,f in zip(cells,thresholds,cell_freqs)]
+
+  '''
+  # OUTDATED
   results = {
     'cells': cells,
     'cell_frequencies': cell_freqs,
     'cell_frequencies_CI': cell_freqs_CI,
     'cell_thresholds': thresholds
   }
+  '''
 
   return results
 
@@ -158,6 +170,7 @@ def estimate_cell_frequencies(seq_data, cells):
 
   cell_freqs = []
   cell_freq_CIs = []
+
   for (alist, blist), k in zip(cells, K):
     L_func = lambda f: log_likelihood_func(f, N, W, k, is_dual=len(alist)>1)
 
@@ -365,11 +378,13 @@ def pairs_to_cells(seq_data, pairs):
 
   return cells, cell_freqs, cell_freqs_CI
   
-
 ## Auxiliary functions to help out pairs_to_cells() and estimate_cell_frequencies()
 def extract_cells_per_well(seq_data):
-  cpw_distro = seq_data.metadata['cells_per_well_distribution']
-  cpw_params = seq_data.metadata['cells_per_well_distribution_params']
+  cpw = seq_data['settings']['cpw']
+  num_wells = seq_data['settings']['num_wells']
+  cells_per_well = [c for c,w in zip(cpw,num_wells) for _ in xrange(w)]
+  '''
+  # OUTDATED
   if cpw_distro == 'constant':
     cells_per_well = [cpw_params['cells_per_well']]*len(seq_data.well_data)
   elif cpw_distro == 'poisson':
@@ -379,6 +394,7 @@ def extract_cells_per_well(seq_data):
   else:
     print "Unknown cell/well distribution: {0} with parameters {1}".format(cpw_distro, cpw_params)
     return None, None, None
+  '''
 
   # Gather distinct #s of cells per well (N) and count number of wells w/ each cell count
   N_dict = {}
@@ -390,9 +406,9 @@ def extract_cells_per_well(seq_data):
 def extract_cell_counts(seq_data, cells, cells_per_well, N, W):
   K = [[0]*len(N) for i in range(len(cells))]
 
-  for well_size, well_data in zip(cells_per_well, seq_data.well_data):
-    well_alphas = set(well_data[0])
-    well_betas = set(well_data[1])
+  for well_size,well_data_a,well_data_b in zip(cells_per_well,seq_data['well_data']['A'],seq_data['well_data']['B']):
+    well_alphas = set(well_data_a)
+    well_betas = set(well_data_b)
     N_idx = N.index(well_size)
     for i,(alist,blist) in enumerate(cells):
       if all([a in well_alphas for a in alist]) and all([b in well_betas for b in blist]):

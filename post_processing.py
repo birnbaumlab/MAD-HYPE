@@ -17,6 +17,8 @@ plt.rcParams["font.family"] = "serif"
 MAIN FUNCTIONS
 '''
 
+#------------------------------------------------------------------------------# 
+
 def analyze_results(results,data,*args,**kwargs):
 
     """
@@ -72,6 +74,7 @@ def analyze_results(results,data,*args,**kwargs):
     # compare actual frequencies to those that are predicted
     positive_matched_freqs = []
     negative_matched_freqs = []
+    non_matched_freqs = []
     positive_confidence = []
 
     pos_freq_dict = dict([(c[0],(c[1],c[2]))
@@ -81,7 +84,6 @@ def analyze_results(results,data,*args,**kwargs):
     
     # assign positive and negative matches
     for cell,true_freq in zip(cells_label,cells_freqs):
-        print cell
         try:
             positive_matched_freqs.append((true_freq,pos_freq_dict[cell][1]['ij']))
             positive_confidence.append(np.log10(pos_freq_dict[cell][0]))
@@ -89,7 +91,8 @@ def analyze_results(results,data,*args,**kwargs):
             try:
                 negative_matched_freqs.append((true_freq,neg_freq_dict[cell][1]['ij']))
             except KeyError:
-                print '{} did not show up!'.format(cell)
+                non_matched_freqs.append((true_freq,true_freq))
+                #print '{} did not show up!'.format(cell)
 
     positive_confidence = [(p - min(positive_confidence))/
             (max(positive_confidence) - min(positive_confidence)) 
@@ -98,6 +101,7 @@ def analyze_results(results,data,*args,**kwargs):
     results = {
               'positive_matched_freqs':positive_matched_freqs,
               'negative_matched_freqs':negative_matched_freqs,
+              'non_matched_freqs':non_matched_freqs,
               'positive_confidence':positive_confidence,
               'pattern':pattern,
               'frac_repertoire':frac_repertoire,
@@ -108,10 +112,12 @@ def analyze_results(results,data,*args,**kwargs):
               'xy':[x1,y1]
               }
 
-    if not options['silent']:
+    if True:#not options['silent']:
         # display characteristics of the data
-        for k,v in results.items():
-            pass#print '{}:{}'.format(k,v)
+        print 'Positives:',results['positives']
+        print 'Negatives:',results['negatives']
+        print 'Fraction of repertoire:',results['frac_repertoire']
+        print 'Total clones:',results['total']
 
     return results
 
@@ -171,10 +177,12 @@ def visualize_results(results,data,*args,**kwargs):
     ax.set_xscale('log')
     ax.set_yscale('log')
 
+    # plot available species
     plt.scatter(*zip(*cresults['positive_matched_freqs']),c=cresults['positive_confidence']) 
-    plt.scatter(*zip(*cresults['negative_matched_freqs']),c='r', marker='x')
+    if cresults['negative_matched_freqs']: plt.scatter(*zip(*cresults['negative_matched_freqs']),c='r', marker='x')
+    if cresults['non_matched_freqs']: plt.scatter(*zip(*cresults['non_matched_freqs']),c='k', marker='x')
 
-
+    # label axes
     plt.xlabel('Clonal Frequency')
     plt.ylabel('Predicted Frequency')
 
@@ -186,7 +194,7 @@ def visualize_results(results,data,*args,**kwargs):
     plt.yscale('log')
 
     for val,color,l in zip(
-            (0,1),(settings['neg_color'],settings['pos_color']),('Correct','Incorrect')):
+            (0,1),(settings['neg_color'],settings['pos_color']),('Incorrect','Correct')):
         xs = [i for i,p in enumerate(cresults['pattern']) if p == val]
         ys = [f for f,p in zip(cresults['freqs'],cresults['pattern']) if p == val]
         if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l,edgecolor='none')
@@ -211,10 +219,82 @@ def visualize_results(results,data,*args,**kwargs):
 
     # show plots
     plt.show(block=False)
+    #raw_input('Press enter to close...')
+    #plt.close()
+
+    return cresults
+
+#------------------------------------------------------------------------------# 
+
+def compare_results(cresults,*args,**kwargs):
+
+    # default settings parameters
+    settings = {
+            'fdr':0.01,
+            'fdr_plot':0.01,
+            'pos_color':'black',
+            'mixed1_color':'green',
+            'mixed2_color':'red',
+            'neg_color':'white',
+            'analysis':('MAD-HYPE','ALPHABETR'),
+            'legend':True,
+            'silent':False
+               }
+
+    # update settings
+    for arg in args: settings.update(arg)
+    settings.update(kwargs)
+
+    if len(cresults) != 2:
+        print 'Results the wrong length ({})'.format(len(cresults))
+        return None 
+
+    # heavy lifting on the data
+    assert cresults[0]['freqs'] == cresults[1]['freqs'],'Frequencies between results not identical' 
+
+    ### REPERTOIRE DISPLAY FIGURE ###
+
+    fig,ax = plt.subplots(figsize=(10,5))
+
+    plt.yscale('log')
+
+    total = cresults[0]['total']    
+
+    for val,color,l in zip(
+            ((0,0),(1,0),(0,1),(1,1)),
+            (settings['neg_color'],settings['mixed1_color'],
+                settings['mixed2_color'],settings['pos_color']),
+                ('Neither Correct','MAD-HYPE Correct','ALPHABETR Correct','Both Correct')):
+        xs = [i for i,p1,p2 in zip(xrange(total),cresults[0]['pattern'],cresults[1]['pattern']) 
+                if p1 == val[0] and p2 == val[1]]
+        ys = [f for f,p1,p2 in zip(cresults[0]['freqs'],cresults[0]['pattern'],cresults[1]['pattern'])
+                if p1 == val[0] and p2 == val[1]]
+        if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l,edgecolor='none')
+
+    plt.plot(xrange(len(cresults[0]['freqs'])),cresults[0]['freqs'],color='k')
+
+    if settings['legend'] == True:
+        leg = plt.legend()
+        leg.get_frame().set_edgecolor('k')
+
+
+    plt.xlim((0,len(cresults[0]['freqs'])))
+    plt.ylim((min(cresults[0]['freqs']),10**ceil(log10(max(cresults[0]['freqs'])-1e-9))))
+    ax.set_xticks([0,len(cresults[0]['freqs'])/2,len(cresults[0]['freqs'])])
+    ax.spines['top'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.xlabel('Clone #',fontweight='bold')
+    plt.ylabel('',fontweight='bold',size=12)
+    ax.axes.get_xaxis().set_visible(False)
+    plt.tick_params(labelsize=20)
+
+    # show plots
+    plt.show(block=False)
     raw_input('Press enter to close...')
     plt.close()
 
-    return cresults
+#------------------------------------------------------------------------------# 
 
 if __name__ == '__main__':
     test_settings()
