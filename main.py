@@ -80,6 +80,7 @@ def simulate_system(*args,**kwargs):
         # gather results
         if options['visual']:
             # visualize results if requested
+            print 'Visualizing!'
             compiled_results.append(visualize_results(results,data,options))
         else:
             # gather results
@@ -128,31 +129,35 @@ if __name__ == "__main__":
         '''
         options = {
                 # experimental design
-                'num_cells':100,
+                'num_cells':1000,
                 'num_wells':(96,),
-                'analysis':('alphabetr',),
+                'analysis':('madhype','alphabetr'),
                 # madhype parameters
                 'threshold':0.5, # minimum ratio accepted by match_probability
                 # alphabetr parameters
                 'pair_threshold':0.0001,
-                'iters':10,
+                'iters':5,
                 # simulation parameters
-                'cell_freq_max':0.05,
+                'cell_freq_max':0.01,
                 'cpw':(1000,),
                 'seed':1,
                 # visual cues
                 'silent':False,
-                'visual':True,
+                'visual':False,
+                'visual_block':False,
                 'compare':False
                 }
 
-        results = simulate_system(options)
-        '''
-        for i in xrange(1):
-            if i == 9:
-                options['compare'] = True
+        #results = simulate_system(options)
+        #'''
+        start = 9
+        total = 2
+        print 'Starting {} - {}'.format(start,start+total-1)
+        for i in xrange(start,start+total):
+            #if i == 9:
+            #    options['compare'] = True
             results = simulate_system(options,seed=i)
-        '''
+        #'''#
 
     if mode == 2:
     
