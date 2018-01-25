@@ -338,10 +338,10 @@ if __name__ == '__main__':
 
     if mode == 'normal':
         # TESTING: estimate_match_frequencies
-        well_data = {'w_i':(15,),
-                     'w_j':(16,),
+        well_data = {'w_i':(5,),
+                     'w_j':(7,),
                      'w_ij':(23,),
-                     'w_o':(42,),
+                     'w_o':(61,),
                      'w_tot':(96,),
                      'cpw':(10,),
                      'alpha':1}

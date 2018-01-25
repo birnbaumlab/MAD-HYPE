@@ -19,10 +19,10 @@ def main(*args,**kwargs):
     well_edge_size = 5
     margin = (0.7,2)
 
-    w_i = 15
-    w_j = 16
+    w_i = 5
+    w_j = 7
     w_ij = 23
-    w_o = 42
+    w_o = 61
 
     x = np.linspace(1,rows,rows)
     y = np.linspace(1,columns,columns)
@@ -51,7 +51,7 @@ def main(*args,**kwargs):
             print combos
 
             w_i_indices = combos[:w_i+w_ij]
-            w_j_indices = combos[w_ij:w_i+w_j+w_ij]
+            w_j_indices = combos[w_i:w_i+w_j+w_ij]
 
             sets = [(w_i_indices,'r',-0.1),(w_j_indices,'b',0.1)]
 
