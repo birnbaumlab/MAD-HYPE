@@ -15,6 +15,7 @@ import itertools as it
 # nonstandard libraries
 import numpy as np
 import scipy.optimize, scipy.misc, scipy.cluster
+import matplotlib.pyplot as plt
 
 # homegrown libraries
 
@@ -49,7 +50,8 @@ def solve(seq_data,*args,**kwargs):
   ## Computes a solution to the alpha-beta pairing problem, using the methods in Lee et al. (2017)
   def compute_well_pairings(alpha_idx, beta_idx, scores):
 
-    if len(alpha_idx)==0 or len(beta_idx)==0:  return [] # scipy hungarian implementation doesn't handle this edge case
+    if len(alpha_idx)==0 or len(beta_idx)==0:  
+        return [] # scipy hungarian implementation doesn't handle this edge case
 
     # Reformulate problem as a general assignment problem
     # Then apply Hungarian algorithm
@@ -89,12 +91,14 @@ def solve(seq_data,*args,**kwargs):
           increment = 1./len(well_alpha_idx) + 1./len(well_beta_idx)
           S[a_idx][b_idx] += increment
 
+
     # Compute well pairings for any well, if it hasn't been done already
     # Then accumulate the number of times each pair has been assigned in a well pairing
     pairing_counts = {}
     for idx, well_idx in enumerate(wells_idx):
       well_pairings = compute_well_pairings(*well_data[well_idx], scores=S)
       #print "Computing likely pairings... {0}%\r".format(int(100*((iter+1) + float(idx)/len(wells_idx))/iters)),
+      #print 'Well pairings:',well_pairings
       for a,b in well_pairings:
         pairing_counts[(a,b)] = pairing_counts.get((a,b), 0) + 1
 
@@ -102,6 +106,9 @@ def solve(seq_data,*args,**kwargs):
     cutoff = np.mean(pairing_counts.values())
 
     # Extract all pairs with counts exceeding the cutoff
+
+    #print 'Cutoff:',cutoff
+
     good_pairs = [pair for pair in pairing_counts if pairing_counts[pair]>cutoff]
 
     # For each pair exceeding the cutoff, increment the overall_pairing_counts number
@@ -111,9 +118,16 @@ def solve(seq_data,*args,**kwargs):
     print "Computing likely pairings... {0}%\r".format(100*(iter+1)/iters),
     sys.stdout.flush()
 
+  print ''
+
   overall_good_pairs = [pair for pair in overall_pairing_counts if overall_pairing_counts[pair]>=pair_threshold*iters]
 
   pairs = [(all_alphas[a], all_betas[b]) for a,b in overall_good_pairs]
+
+  print 'Pairs:',
+  for p in pairs:
+      if p[0] == 9:
+          print '!!',p
 
   # Turns pairs of associated alpha- and beta- chains into cells that may have dual alpha chains
   cells, cell_freqs, cell_freqs_CI = pairs_to_cells(seq_data, pairs) 
@@ -122,6 +136,11 @@ def solve(seq_data,*args,**kwargs):
 
   # NOTE: not using confidence intervals atm
   results = [(c,t,{'i':0.,'j':0.,'ij':f}) for c,t,f in zip(cells,thresholds,cell_freqs)]
+
+  print 'HERE:'
+  for r in sorted(results,key=lambda x: -x[1]):
+      pass#print r
+  
 
   '''
   # OUTDATED
@@ -186,7 +205,7 @@ def estimate_cell_frequencies(seq_data, cells):
     cell_freq_CIs.append((f_min, f_max))
 
     print "Computing chain pair frequencies... {0}%\r".format(int(100.*len(cell_freqs)/len(cells))),
-  
+  print '' 
   return cell_freqs, cell_freq_CIs
 
 def pairs_to_cells(seq_data, pairs):

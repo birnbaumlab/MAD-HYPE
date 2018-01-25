@@ -86,7 +86,10 @@ class DataGenerator(object):
         cell_freq_max = self.settings['cell_freq_max']
 
         # create local cell IDs
-        self.cells = [((i,),(i,)) for i in xrange(num_cells)]
+        a_inds,b_inds = np.arange(num_cells),np.arange(num_cells)
+        np.random.shuffle(a_inds)
+        np.random.shuffle(b_inds)
+        self.cells = [((a_inds[i],),(b_inds[i],)) for i in xrange(num_cells)]
         #np.random.shuffle(self.cells) # FIXME
 
         # create frequencies associations

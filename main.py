@@ -77,7 +77,6 @@ def simulate_system(*args,**kwargs):
     for mode in options['analysis']:
         results = solve[mode](data,options)
 
-
         # gather results
         if options['visual']:
             # visualize results if requested
@@ -129,28 +128,31 @@ if __name__ == "__main__":
         '''
         options = {
                 # experimental design
-                'num_cells':1000,
+                'num_cells':100,
                 'num_wells':(96,),
-                'analysis':('madhype','alphabetr',),
+                'analysis':('alphabetr',),
                 # madhype parameters
                 'threshold':0.5, # minimum ratio accepted by match_probability
                 # alphabetr parameters
                 'pair_threshold':0.0001,
                 'iters':10,
                 # simulation parameters
-                'cell_freq_max':0.01,
+                'cell_freq_max':0.05,
                 'cpw':(1000,),
                 'seed':1,
                 # visual cues
                 'silent':False,
-                'visual':False,
+                'visual':True,
                 'compare':False
                 }
 
-        for i in xrange(10):
+        results = simulate_system(options)
+        '''
+        for i in xrange(1):
             if i == 9:
                 options['compare'] = True
             results = simulate_system(options,seed=i)
+        '''
 
     if mode == 2:
     

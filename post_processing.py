@@ -219,8 +219,8 @@ def visualize_results(results,data,*args,**kwargs):
 
     # show plots
     plt.show(block=False)
-    #raw_input('Press enter to close...')
-    #plt.close()
+    raw_input('Press enter to close...')
+    plt.close()
 
     return cresults
 
