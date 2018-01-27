@@ -97,7 +97,7 @@ def solve(data,*args,**kwargs):
     pair_datas = [] # initialize list
 
     # REMOVE THIS
-    bypass_filter = False 
+    bypass_filter = True 
 
     # Iterate through combinations!
     for i,a in enumerate(uniques['A']):

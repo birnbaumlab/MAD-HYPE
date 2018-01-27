@@ -130,26 +130,28 @@ if __name__ == "__main__":
         options = {
                 # experimental design
                 'num_cells':1000,
-                'num_wells':(96,),
-                'analysis':('madhype','alphabetr'),
+                'num_wells':(42,54,),
+                'analysis':('madhype',),
                 # madhype parameters
                 'threshold':0.5, # minimum ratio accepted by match_probability
                 # alphabetr parameters
                 'pair_threshold':0.0001,
-                'iters':5,
+                'iters':10,
                 # simulation parameters
                 'cell_freq_max':0.01,
-                'cpw':(1000,),
+                'cpw':(25,1758,),
                 'seed':1,
                 # visual cues
                 'silent':False,
-                'visual':False,
-                'visual_block':False,
-                'compare':False
+                'visual':True,
+                'visual_block':True,
+                'compare':True
                 }
 
-        #results = simulate_system(options)
-        #'''
+        print 'Starting on seed {}...'.format(options['seed'])
+        results = simulate_system(options)
+
+        '''
         start = 9
         total = 2
         print 'Starting {} - {}'.format(start,start+total-1)

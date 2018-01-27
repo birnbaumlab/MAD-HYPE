@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 # homegrown libraries
 plt.rcParams["font.family"] = "serif"
 
+
 '''
 MAIN FUNCTIONS
 '''
@@ -154,6 +155,7 @@ def visualize_results(results,data,*args,**kwargs):
     ax = plt.figure().gca() # initialize figure
 
     linewidth = 5
+    fs = 18
 
     # get data attributes
     false_limit = cresults['xy'][0][-1]
@@ -173,20 +175,31 @@ def visualize_results(results,data,*args,**kwargs):
 
     ### FREQUENCY ESTIMATION FIGURE ###
 
-    ax = plt.figure().gca()
+    ax = plt.figure(figsize=(9,6)).gca()
+    plt.subplots_adjust(left=0.3,right=0.9,top=0.9,bottom=0.2,hspace=1.0,wspace=1.0)
+    [i.set_linewidth(3) for i in ax.spines.itervalues()]
 
     ax.set_xscale('log')
     ax.set_yscale('log')
+    ax.set_ylim((7e-5,1.5e-2))
+
+    plt.rcParams['image.cmap'] = 'pink'
 
     # plot available species
-    plt.scatter(*zip(*cresults['positive_matched_freqs']),c=cresults['positive_confidence']) 
+    sc = plt.scatter(*zip(*cresults['positive_matched_freqs']),c=cresults['positive_confidence'],linewidth=0.0,edgecolor='black') 
+
     if cresults['negative_matched_freqs']: plt.scatter(*zip(*cresults['negative_matched_freqs']),c='r', marker='x')
-    if cresults['non_matched_freqs']: plt.scatter(*zip(*cresults['non_matched_freqs']),c='k', marker='x')
+    #if cresults['non_matched_freqs']: plt.scatter(*zip(*cresults['non_matched_freqs']),c='k', marker='x')
 
     # label axes
-    plt.xlabel('Clonal Frequency')
-    plt.ylabel('Predicted Frequency')
+    plt.xlabel('Clonal Frequency',fontsize=fs,fontweight='bold')
+    plt.ylabel('Predicted Frequency',fontsize=fs,fontweight='bold')
 
+    # add colorbar
+    #plt.colorbar(sc)
+    cbar = plt.colorbar(sc, ticks=[])
+
+    plt.savefig('xxx.png', format='png', dpi=500)
 
     ### REPERTOIRE DISPLAY FIGURE ###
 
