@@ -112,7 +112,6 @@ class DataGenerator(object):
         num_wells = self.settings['num_wells']
         cpw = self.settings['cpw']
         chain_deletion_prob = self.settings['chain_deletion_prob']
-        chain_misplacement_prob = self.settings['chain_misplacement_prob']
 
         # assertion check
         assert type(num_wells) == type(cpw), "num_wells and cpw differ in type"
@@ -131,9 +130,7 @@ class DataGenerator(object):
         # start generating well data
         self.well_data = {'A':[],'B':[]}
 
-        # aggregate misplaced chains
-        misplaced_a = []
-        misplaced_b = []
+        misplaced_a = 
 
         for well_ind,cpw in enumerate(self.cpw):
             # select cell indices for each well
@@ -145,22 +142,12 @@ class DataGenerator(object):
             np.random.shuffle(a)
             np.random.shuffle(b)
             # truncation length, then remove duplicates
-            a_ind,b_ind = binomial(len(a),chain_misplacement_prob),binomial(len(b),chain_misplacement_prob)
-            a,b = (a[a_ind:]),(b[b_ind:])
-            # misplaced chains, aggregated for later distribution
-            misplaced_a += a[:a_ind]
-            misplaced_b += b[:b_ind]
+            a_ind,b_ind = binomial(len(a),chain_deletion_prob),binomial(len(b),chain_deletion_prob)
+            a,b = set(a[a_ind:]),set(b[b_ind:])
+
             # store in wells
             self.well_data['A'].append(a)
             self.well_data['B'].append(b)
-
-        # indices to place misplaced chains
-        a_ind = np.random.randint(0,len(self.cpw),(len(misplaced_a),))
-        b_ind = np.random.randint(0,len(self.cpw),(len(misplaced_b),))
-
-        for i in xrange(len(self.cpw)):
-            self.well_data['A'][i] += [a for a,ind in zip(misplaced_a,a_ind) if ind == i] 
-            self.well_data['B'][i] += [b for b,ind in zip(misplaced_b,b_ind) if ind == i] 
 
         self.well_data['A'] = [set(wd[binomial(len(wd),chain_deletion_prob):]) for wd in self.well_data['A']]
         self.well_data['B'] = [set(wd[binomial(len(wd),chain_deletion_prob):]) for wd in self.well_data['B']]

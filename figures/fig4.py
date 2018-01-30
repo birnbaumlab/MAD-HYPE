@@ -111,14 +111,14 @@ def main(*args,**kwargs):
 def setBoxColors(bp):
     """ function for setting the colors of the box plots pairs """
     for i in [0,1]:
-        setp(bp['boxes'][2*i+0], color='blue')
-        setp(bp['caps'][4*i+0], color='blue')
-        setp(bp['caps'][4*i+1], color='blue')
-        setp(bp['whiskers'][4*i+0], color='blue')
-        setp(bp['whiskers'][4*i+1], color='blue')
-        setp(bp['fliers'][2*i+0], color='blue')
-        ##setp(bp['fliers'][1], color='blue')
-        setp(bp['medians'][2*i+0], color='blue')
+        setp(bp['boxes'][2*i+0], color='green')
+        setp(bp['caps'][4*i+0], color='green')
+        setp(bp['caps'][4*i+1], color='green')
+        setp(bp['whiskers'][4*i+0], color='green')
+        setp(bp['whiskers'][4*i+1], color='green')
+        setp(bp['fliers'][2*i+0], color='green')
+        ##setp(bp['fliers'][1], color='green')
+        setp(bp['medians'][2*i+0], color='green')
 
         setp(bp['boxes'][2*i+1], color='red')
         setp(bp['caps'][4*i+2], color='red')

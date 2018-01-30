@@ -5,6 +5,9 @@ This collection of scripts is designed to produce figures that we care about
 
 from figures import fig1
 from figures import fig2
+from figures import fig4
+from figures import fig2s
+from figures import fig3s
 from main import simulate_system
 
 #------------------------------------------------------------------------------#
@@ -22,8 +25,12 @@ settings = {
         'visual':True
         }
 
-fig1.main()
-#fig2.main(settings)
+#fig1.main()
+#fig2.main()
+#fig4.main()
+#fig2s.main()
+
+fig3s.main()
 
 
 #------------------------------------------------------------------------------#
