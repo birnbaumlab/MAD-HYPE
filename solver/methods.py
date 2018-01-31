@@ -57,7 +57,7 @@ def match_probability(well_data,prior = 1.0,memory={}):
            (well_data['cpw']) + \
            (well_data['alpha'],)
     try:
-        # check memory for probability
+        # backdoor check memory for probability
         return memory[key]
 
     except KeyError:
@@ -76,8 +76,10 @@ def match_probability(well_data,prior = 1.0,memory={}):
         # calculate probability for clonal match
         p_match = estimate_probability(well_data,freqs_match)
 
+
         # calculate probability for clonal nonmatch
         p_nonmatch = estimate_probability(well_data,freqs_nonmatch)
+
 
         #"""#
         #TESTING
@@ -305,7 +307,7 @@ def _binomial_pdf(n,k,f):
 
 def _multinomial(*args):
     """ binomial pdf calculator, n choose k at f """
-    return factorial(sum(args))/reduce(mul,[factorial(arg) for arg in args],1)
+    return factorial(sum(args),exact=False)/reduce(mul,[factorial(arg,exact=False) for arg in args],1)
 
 #------------------------------------------------------------------------------# 
 """ Testing Methods """

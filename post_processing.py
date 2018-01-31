@@ -53,6 +53,8 @@ def analyze_results(results,data,*args,**kwargs):
 
     # look at error rate (stratified by confidence)
     x1,y1,fdr = [0],[0],0.01
+    warning=True # warning if you didn't pass enough points
+
     for c in cells_with_scores:
         try:
             data['cells'][c[0]]
@@ -62,7 +64,11 @@ def analyze_results(results,data,*args,**kwargs):
             x1.append(x1[-1]+1)
             y1.append(y1[-1])
         if x1[-1] > options['fdr']*y1[-1]:
+            warning=False
             break
+    if warning:
+        print 'WARNING: Number of passed guesses did not meet FDR!'
+        print 'Lower the match threshold and you will see better results!'
 
     total_matches_at_fdr = x1[-1] + y1[-1]
 
@@ -172,6 +178,7 @@ def visualize_results(results,data,*args,**kwargs):
     # add labels
     plt.xlabel('False positives (#)')
     plt.ylabel('True positives (#)')
+    plt.savefig('routine1.png', format='png', dpi=300)
 
     ### FREQUENCY ESTIMATION FIGURE ###
 
@@ -198,8 +205,7 @@ def visualize_results(results,data,*args,**kwargs):
     # add colorbar
     #plt.colorbar(sc)
     cbar = plt.colorbar(sc, ticks=[])
-
-    plt.savefig('xxx.png', format='png', dpi=500)
+    plt.savefig('routine2.png', format='png', dpi=300)
 
     ### REPERTOIRE DISPLAY FIGURE ###
 
@@ -230,6 +236,7 @@ def visualize_results(results,data,*args,**kwargs):
     plt.ylabel('',fontweight='bold',size=12)
     ax.axes.get_xaxis().set_visible(False)
     plt.tick_params(labelsize=20)
+    plt.savefig('routine3.png', format='png', dpi=300)
 
     # show plots
     plt.show(block=False)

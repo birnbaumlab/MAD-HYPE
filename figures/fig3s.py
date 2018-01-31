@@ -1,5 +1,7 @@
 
 # standard libraries
+import os
+import pickle
 
 # nonstandard libraries
 import numpy as np
@@ -11,7 +13,7 @@ from main import simulate_system
 # library modifications
 plt.rcParams["font.family"] = "serif"
 plt.rcParams['xtick.labelsize'] = 14 
-plt.rcParams['xtick.labelsize'] = 14
+plt.rcParams['ytick.labelsize'] = 14
 
 def main(*args,**kwargs):
 
@@ -28,15 +30,28 @@ def main(*args,**kwargs):
     settings['chain_deletion_prob'] = 0.1
     settings['chain_misplacement_prob'] = 0.0
 
-    all_coverage = {}
-    all_matches = {}
+
+    if os.path.isfile('figS3A_data.p'):
+        (all_coverage,all_matches) = pickle.load(open('figS3A_data.p','rb'))
+    else:
+        all_coverage = {}
+        all_matches = {}
 
     #
     for mod,values in modifications.items():
 
         all_results = []
-        all_coverage[mod] = []
-        all_matches[mod] = []
+
+        try:
+            all_coverage[mod]
+            all_matches[mod]
+            print 'Skipping {}!'.format(mod)
+            continue
+             
+        except KeyError:
+            all_coverage[mod] = []
+            all_matches[mod] = []
+
 
         for i,v in enumerate(values): 
 
@@ -46,6 +61,8 @@ def main(*args,**kwargs):
 
             all_coverage[mod].append([results['frac_repertoire'] for results in all_results])
             all_matches[mod].append([results['positives'] for results in all_results])
+        
+        pickle.dump((all_coverage,all_matches),open('figS3A_data.p','wb'))
 
 
     # plot/display settings
@@ -105,7 +122,7 @@ def main(*args,**kwargs):
     settings['chain_misplacement_prob'] = 0.0
 
     num_wells_range = [(48,),(96,)] 
-    cpw_range = np.logspace(0,4,41,dtype=int)
+    cpw_range = np.logspace(0,4,5,dtype=int)
     freq_range = np.logspace(-4,-1,13)
     #cpw_range = np.logspace(0,3,4,dtype=int)
     #freq_range = np.logspace(-2,-1,3)
@@ -113,23 +130,49 @@ def main(*args,**kwargs):
     repeats =  3
     fs = 18
 
-    id_map = np.zeros((len(freq_range),len(cpw_range)))
+    pickle_files = ['figS3C_data.p','figS3D_data.p']
 
     for plot_ind,num_wells in enumerate(num_wells_range):
+
+        if os.path.isfile(pickle_files[plot_ind]):
+            id_map = pickle.load(open(pickle_files[plot_ind],'rb'))
+        else:
+            id_map = np.zeros((len(freq_range),len(cpw_range)))
+
+
         for i,freq in enumerate(freq_range):
+
             for j,cpw in enumerate(cpw_range):
+
                 print 'Starting f = {} / cpw = {}...'.format(freq,cpw)
                 val = []
+
+                print 'Val:',id_map[i][j]
+                if id_map[i][j] != 0.:
+                    print 'Skipping! {} found...'.format(id_map[i][j])
+                    continue
+
                 for r in xrange(repeats):
+
+                    if int(1./freq) >= 5000 and cpw >= 1000: 
+                        threshold = 2.0 
+                    else:
+                        threshold = 0.1
+
                     results = simulate_system(
                             settings,
                             num_wells=num_wells,
                             cpw=(cpw,),
                             cell_freq_max=0.0,
-                            num_cells=int(1./freq)
+                            num_cells=int(1./freq),
+                            threshold=threshold,
+                            seed=r
                             )
+
                     val.append(results[0]['frac_repertoire'])
+
                 id_map[i][j] = np.mean(val)
+                pickle.dump(id_map,open(pickle_files[plot_ind],'wb'))
 
         axes[1][plot_ind].imshow(id_map,interpolation='nearest')
         axes[1][plot_ind].set_aspect(aspect='auto')
@@ -149,7 +192,7 @@ def main(*args,**kwargs):
 
 
         plt.title('Identification of clones with {} wells'.format(num_wells[0]))
-        axes[1][plot_ind].set_xlabel('Cells/well',fontsize=fs)
+        axes[1][plot_ind].set_xlabel('Cells/Well',fontsize=fs)
         axes[1][plot_ind].set_ylabel('Clonal Frequency',fontsize=fs)
 
     # plot figure
@@ -184,7 +227,7 @@ def default_settings():
             'num_wells':(96,),
             'analysis':('madhype',),
             # madhype parameters
-            'threshold':0.5, # minimum ratio accepted by match_probability
+            'threshold':0.1, # minimum ratio accepted by match_probability
             # alphabetr parameters
             'pair_threshold':0.0001,
             'iters':10,

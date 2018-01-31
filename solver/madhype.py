@@ -97,14 +97,14 @@ def solve(data,*args,**kwargs):
     pair_datas = [] # initialize list
 
     # REMOVE THIS
-    bypass_filter = True 
+    bypass_filter = False 
 
     # Iterate through combinations!
     for i,a in enumerate(uniques['A']):
 
         # give heads up on progress
         if i % 10 == 0: 
-            pass#if not silent: print 'Starting A-chain {}...'.format(i)
+            if not silent: print 'Starting A-chain {}...'.format(i)
 
         # apply filter (before itersection,A)
         if filt.check_dist(well_distribution['A'][a]) and not bypass_filter: continue
