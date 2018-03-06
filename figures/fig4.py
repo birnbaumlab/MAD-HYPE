@@ -79,8 +79,8 @@ def main(*args,**kwargs):
     setBoxColors(bp)
  
     axes[0].set_xticks((1.5,3.5))
-    axes[0].set_xticklabels(('N = 100','N = 1000'),fontsize=fs)
-    axes[0].set_xlabel('Cells/well',fontsize=fs)
+    axes[0].set_xticklabels(('100','1000'),fontsize=fs)
+    axes[0].set_xlabel('Cells/well (#)',fontsize=fs)
 
     axes[0].set_ylim((0,1000))
     axes[0].set_yticks((0,250,500,750,1000))
@@ -120,14 +120,14 @@ def setBoxColors(bp):
         ##setp(bp['fliers'][1], color='green')
         setp(bp['medians'][2*i+0], color='green')
 
-        setp(bp['boxes'][2*i+1], color='red')
-        setp(bp['caps'][4*i+2], color='red')
-        setp(bp['caps'][4*i+3], color='red')
-        setp(bp['whiskers'][4*i+2], color='red')
-        setp(bp['whiskers'][4*i+3], color='red')
-        #setp(bp['fliers'][i+1], color='red')
-        #setp(bp['fliers'][3], color='red')
-        setp(bp['medians'][2*i+1], color='red')
+        setp(bp['boxes'][2*i+1], color='#FFD870')
+        setp(bp['caps'][4*i+2], color='#FFD870')
+        setp(bp['caps'][4*i+3], color='#FFD870')
+        setp(bp['whiskers'][4*i+2], color='#FFD870')
+        setp(bp['whiskers'][4*i+3], color='#FFD870')
+        #setp(bp['fliers'][i+1], color='#FFD870')
+        #setp(bp['fliers'][3], color='#FFD870')
+        setp(bp['medians'][2*i+1], color='#FFD870')
 
 if __name__ == "__main__":
     main()

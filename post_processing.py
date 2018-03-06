@@ -256,7 +256,7 @@ def compare_results(cresults,*args,**kwargs):
             'fdr_plot':0.01,
             'pos_color':'black',
             'mixed1_color':'green',
-            'mixed2_color':'red',
+            'mixed2_color':'#FFD870',
             'neg_color':'white',
             'analysis':('MAD-HYPE','ALPHABETR'),
             'legend':True,

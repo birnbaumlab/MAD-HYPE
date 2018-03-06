@@ -26,11 +26,11 @@ settings = {
         'visual':True
         }
 
-#fig1.main()
+fig1.main()
 #fig2.main()
 #fig4.main()
 
-fig1s.main()
+#fig1s.main()
 #fig2s.main()
 #fig3s.main()
 

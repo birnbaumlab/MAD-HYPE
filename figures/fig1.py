@@ -11,7 +11,7 @@ def main(*args,**kwargs):
     """ Makes diagram figures """
     rows,columns = 8,12
     cpw = 10
-    colors = ['b','g','r','c','m','y','b']
+    colors = [(a,a,a) for a in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]]
 
     well_dev = 0.2
     cell_size = 100
@@ -19,10 +19,10 @@ def main(*args,**kwargs):
     well_edge_size = 5
     margin = (0.7,2)
 
-    w_i = 5
-    w_j = 7
-    w_ij = 23
-    w_o = 61
+    w_i = 5 
+    w_j = 7 
+    w_ij = 23 
+    w_o = 61 
 
     x = np.linspace(1,rows,rows)
     y = np.linspace(1,columns,columns)
@@ -50,10 +50,10 @@ def main(*args,**kwargs):
             np.random.shuffle(combos)
             print combos
 
-            w_i_indices = combos[:w_i+w_ij]
-            w_j_indices = combos[w_i:w_i+w_j+w_ij]
+            w_j_indices = combos[:w_i+w_ij]
+            w_i_indices = combos[w_i:w_i+w_j+w_ij]
 
-            sets = [(w_i_indices,'r',-0.1),(w_j_indices,'b',0.1)]
+            sets = [(w_i_indices,(0.3,0.3,0.3),-0.1),(w_j_indices,(0.6,0.6,0.6),0.1)]
 
             for w,c,shift in sets: 
                 for x,y in w:

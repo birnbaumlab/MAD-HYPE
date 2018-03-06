@@ -127,24 +127,25 @@ if __name__ == "__main__":
                 'visual':True
                 }
         '''
+
         options = {
                 # experimental design
                 'num_cells':1000,
-                'num_wells':(42,54,),
-                'analysis':('madhype',),
+                'num_wells':(96,),
+                'analysis':('madhype','alphabetr'),
                 # madhype parameters
-                'threshold':0.5, # minimum ratio accepted by match_probability
+                'threshold':0.1, # minimum ratio accepted by match_probability
                 # alphabetr parameters
-                'pair_threshold':0.0001,
+                'pair_threshold':0.00001,
                 'iters':10,
                 # simulation parameters
                 'cell_freq_max':0.01,
-                'cpw':(25,1758,),
-                'seed':1,
+                'cpw':(1000,),
+                'seed':2,
                 # visual cues
                 'silent':False,
-                'visual':True,
-                'visual_block':True,
+                'visual':False,
+                'visual_block':False,
                 'compare':True
                 }
 
