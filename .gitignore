@@ -1,11 +1,14 @@
 solver_data/*
 results/*
+outdated/*
 
 # Things that don't need to be committed
 *.swp
 *.lprof
 *.swo
 *.png
+*.pyc
+*.out
 
 # Python testing files
 .test.py
