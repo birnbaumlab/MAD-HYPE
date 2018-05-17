@@ -1,5 +1,11 @@
 solver_data/*
+results/*
+
+# Things that don't need to be committed
 *.swp
 *.lprof
 *.swo
 *.png
+
+# Python testing files
+.test.py
