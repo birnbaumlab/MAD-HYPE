@@ -92,7 +92,7 @@ class DataGenerator(object):
         np.random.shuffle(a_inds)
         np.random.shuffle(b_inds)
         self.cells = [((a_inds[i],),(b_inds[i],)) for i in xrange(num_cells)]
-        #np.random.shuffle(self.cells) # FIXME
+        np.random.shuffle(self.cells) # FIXME
 
         # create frequencies associations
         if cell_freq_distro == 'constant':

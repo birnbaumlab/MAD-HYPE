@@ -1,3 +1,5 @@
 solver_data/*
 *.swp
 *.lprof
+*.swo
+*,png
