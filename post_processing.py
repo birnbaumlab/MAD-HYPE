@@ -66,6 +66,7 @@ def analyze_results(results,data,*args,**kwargs):
         if x1[-1] > options['fdr']*y1[-1]:
             warning=False
             break
+
     if warning:
         print 'WARNING: Number of passed guesses did not meet FDR!'
         print 'Lower the match threshold and you will see better results!'
@@ -121,6 +122,7 @@ def analyze_results(results,data,*args,**kwargs):
 
     if True:#not options['silent']:
         # display characteristics of the data
+
         print 'Positives:',results['positives']
         print 'Negatives:',results['negatives']
         print 'Fraction of repertoire:',results['frac_repertoire']

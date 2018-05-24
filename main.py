@@ -38,18 +38,18 @@ def simulate_system(*args,**kwargs):
               # experimental design
               'num_wells':(24,),
               'cpw':(10,),
-              'analysis':('madhype',),
+              'analysis':('madhype','alphabetr'),
               # simulated repertoire
               'num_cells':100,
               'seed':1,
-              'cell_freq_distro':'power-law',
-              'cell_freq_constant':1.0,
-              'chain_misplacement_prob':0, # TODO: add functionality
-              'chain_deletion_prob':0.1,
+              'cell_freq_distro': 'power-law',
+              'cell_freq_constant':       1.0,
+              'chain_misplacement_prob':  0.0, # TODO: add functionality
+              'chain_deletion_prob':      0.1,
               'alpha_dual_prob':          0.0,
               'beta_dual_prob':           0.0,
-              'alpha_sharing_probs':     0.5,
-              'beta_sharing_probs':      0.5,
+              'alpha_sharing_probs':      0.0,
+              'beta_sharing_probs':       0.0,
               # madhype analysis constants
               'threshold':0.1, # minimum ratio accepted by match_probability
               'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
@@ -60,8 +60,8 @@ def simulate_system(*args,**kwargs):
               'pair_threshold':0.9,
               # visual cues
               'silent':False,
-              'visual':False,
-              'compare':False
+              'visual':True,
+              'compare':False,
               }
 
     # Update settings
@@ -74,6 +74,7 @@ def simulate_system(*args,**kwargs):
     sg.generate_cells()
     data = sg.generate_data()
 
+    # cells
     for cell in sg.cells:
         print cell
 
@@ -82,7 +83,13 @@ def simulate_system(*args,**kwargs):
 
     # Solve using MAD-HYPE method
     for mode in options['analysis']:
+        print mode
         results = solve[mode](data,options)
+
+        results.sort(key=lambda x: -x[1])
+
+        for r in results[:100]:
+            print r 
 
         # gather results
         if options['visual']:
@@ -122,39 +129,35 @@ if __name__ == "__main__":
 
     if mode == 1:
         
-        '''
         options = {
-                'num_cells':10000,
-                'num_wells':(48,48),
-                'cell_freq_max':0.01,
-                'cpw':(250,1750),
-                'seed':1,
-                # visual cues
-                'silent':False,
-                'visual':True
-                }
-        '''
-
-        options = {
-                # experimental design
-                'num_cells':1000,
-                'num_wells':(96,),
-                'analysis':('madhype','alphabetr'),
-                # madhype parameters
-                'threshold':0.1, # minimum ratio accepted by match_probability
-                # alphabetr parameters
-                'pair_threshold':0.00001,
-                'iters':10,
-                # simulation parameters
-                'cell_freq_max':0.01,
-                'cpw':(1000,),
-                'seed':2,
-                # visual cues
-                'silent':False,
-                'visual':False,
-                'visual_block':False,
-                'compare':True
-                }
+              # experimental design
+              'num_wells':(96,),
+              'cpw':(100,),
+              'analysis':('madhype',),
+              # simulated repertoire
+              'num_cells':500,
+              'seed':1,
+              'cell_freq_distro':'power-law',
+              'cell_freq_constant':1.0,
+              'chain_misplacement_prob':0.0, # TODO: add functionality
+              'chain_deletion_prob':0.1,
+              'alpha_dual_prob':          0.,
+              'beta_dual_prob':           0.,
+              'alpha_sharing_probs':     None,
+              'beta_sharing_probs':      None,
+              # madhype analysis constants
+              'threshold':0.1, # minimum ratio accepted by match_probability
+              'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
+              'prior_alpha':1.0, # prior for clonal frequency
+              'prior_match':1.0, # prior for clonal match ( <= 1.0 )
+              # alphabetr analysis constants
+              'iters':100,
+              'pair_threshold':0.95,
+              # visual cues
+              'silent':False,
+              'visual':True,
+              'compare':False,
+              }
 
         print 'Starting on seed {}...'.format(options['seed'])
         results = simulate_system(options)

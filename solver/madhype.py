@@ -137,7 +137,7 @@ def solve(data,*args,**kwargs):
             
             # CHANGE THIS BACK, THIS IS IMPORTANT (REMOVE SECOND STATEMENT #
             # THIS IS A TEMPORARY CHANGE TO GAIN ACCESS TO CERTAIN VALUES #
-            if a == b:
+            if False:#a == b:
                 results.append((((a,),(b,)),p,f[0]))
             elif p > options['threshold']:
                 if filt.check_tuple(pair_data['w_ij']): continue

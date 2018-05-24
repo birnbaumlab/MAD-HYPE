@@ -105,12 +105,11 @@ class DataGenerator(object):
 
 
         # Generate the degree for each alpha- and beta-chain from the given distribution
+        # PVH: using 2*number cells to ensure we get enough space for dual chains
         adegs = np.random.choice(
-                range(1,len(alpha_sharing_probs)+1), num_cells, replace=True, p=alpha_sharing_probs)
+                range(1,len(alpha_sharing_probs)+1), 2*num_cells, replace=True, p=alpha_sharing_probs)
         bdegs = np.random.choice(
-                range(1,len(beta_sharing_probs)+1), num_cells, replace=True, p=beta_sharing_probs)
-
-
+                range(1,len(beta_sharing_probs)+1), 2*num_cells, replace=True, p=beta_sharing_probs)
 
         # Generate how many alpha- and beta-chains will be in each cell (i.e. how many dual chains)
         adual = [2 if v<=alpha_dual_prob else 1 for v in np.random.uniform(size=num_cells)]
@@ -120,17 +119,32 @@ class DataGenerator(object):
         alphas = [(i,) for i,n in enumerate(adegs) for _ in range(n)][:sum(adual)] 
         betas = [(i,) for i,n in enumerate(bdegs) for _ in range(n)][:sum(bdual)]
 
+        if len(alphas) < sum(adual): print 'Short on alphas...'
+        if len(betas)  < sum(bdual): print 'Short on betas...'
+
         # create local cell IDs
         a_inds,b_inds = np.arange(num_cells),np.arange(num_cells)
         np.random.shuffle(a_inds)
         np.random.shuffle(b_inds)
 
-
         # Randomly assign alpha- and beta-chains to each other
         np.random.shuffle(alphas)
         np.random.shuffle(betas)
 
+        #merged_alphas,merged_betas = [],[]
+        
+        print 'Length of alphas:',len(alphas)
+        print 'Sum of adual:',sum(adual)
+        print 'Sum of bdual:',sum(bdual)
+
         for i in range(num_cells):
+
+          print 'Length of alphas:',len(alphas)
+
+          #if adual[i]==1:  merged_betas.append(tuple(sorted(alphas[i]+alphas[i+1])))
+          #elif adual[i]==2:  alphas[i:i+2] = [tuple(sorted(alphas[i]+alphas[i+1]))]
+          #if bdual[i]==2:  betas[i:i+2] = [tuple(sorted(betas[i]+betas[i+1]))]
+
           if adual[i]==2:  alphas[i:i+2] = [tuple(sorted(alphas[i]+alphas[i+1]))]
           if bdual[i]==2:  betas[i:i+2] = [tuple(sorted(betas[i]+betas[i+1]))]
 
@@ -218,7 +232,9 @@ class DataGenerator(object):
         # compile useful information
         data = {
                 'well_data':self.well_data,
-                'cells':dict([(c,f) for c,f in zip(self.cells,self.freqs)]),
+                #'cells':dict([(c,f) for c,f in zip(self.cells,self.freqs)]),
+                'cells':dict([(((a,),(b,)),f) for c,f in zip(self.cells,self.freqs)
+                    for a in c[0] for b in c[1]]),
                 'settings':self.settings
                }
 
