@@ -38,7 +38,7 @@ def simulate_system(*args,**kwargs):
               # experimental design
               'num_wells':(24,),
               'cpw':(10,),
-              'analysis':('alphabetr',),
+              'analysis':('madhype',),
               # simulated repertoire
               'num_cells':100,
               'seed':1,
@@ -46,6 +46,10 @@ def simulate_system(*args,**kwargs):
               'cell_freq_constant':1.0,
               'chain_misplacement_prob':0, # TODO: add functionality
               'chain_deletion_prob':0.1,
+              'alpha_dual_prob':          0.0,
+              'beta_dual_prob':           0.0,
+              'alpha_sharing_probs':     0.5,
+              'beta_sharing_probs':      0.5,
               # madhype analysis constants
               'threshold':0.1, # minimum ratio accepted by match_probability
               'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
@@ -69,6 +73,9 @@ def simulate_system(*args,**kwargs):
     sg = DataGenerator(options)
     sg.generate_cells()
     data = sg.generate_data()
+
+    for cell in sg.cells:
+        print cell
 
     # prepare for storage
     compiled_results = []

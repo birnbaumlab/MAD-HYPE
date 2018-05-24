@@ -48,14 +48,18 @@ class DataGenerator(object):
 
         ## Set default parameter values
         self.settings = {
-                        'num_wells':96,
-                        'cpw':35,
-                        'num_cells':1000,
-                        'cell_freq_distro':'power-law',
-                        'cell_freq_constant':-1,
-                        'cell_freq_max':0.01,
-                        'chain_misplacement_prob':0,
-                        'chain_deletion_prob':0.1,
+                        'num_wells':                 96,
+                        'cpw':                       35,
+                        'num_cells':               1000,
+                        'cell_freq_distro': 'power-law',
+                        'cell_freq_constant':        -1,
+                        'cell_freq_max':           0.01,
+                        'chain_misplacement_prob':    0,
+                        'chain_deletion_prob':      0.1,
+                        'alpha_dual_prob':           0.,
+                        'beta_dual_prob':            0.,
+                        'alpha_sharing_probs':     None,
+                        'beta_sharing_probs':      None,
                         'seed':42
                         }
 
@@ -64,8 +68,6 @@ class DataGenerator(object):
 
         # update settings 
         self.update(*args,**kwargs)
-        #print 'Deletion:',self.settings['chain_deletion_prob']
-        #raw_input()
 
     def update(self,*args,**kwargs):
 
@@ -86,13 +88,61 @@ class DataGenerator(object):
         cell_freq_distro = self.settings['cell_freq_distro']
         cell_freq_constant = self.settings['cell_freq_constant']
         cell_freq_max = self.settings['cell_freq_max']
+        alpha_dual_prob = self.settings['alpha_dual_prob']
+        beta_dual_prob = self.settings['beta_dual_prob']
+        alpha_sharing_probs = self.settings['alpha_sharing_probs']
+        beta_sharing_probs = self.settings['beta_sharing_probs']
+
+        # interpret sharing chain probs
+        if alpha_sharing_probs is None: 
+            alpha_sharing_probs = [0.816,0.085,0.021,0.007,0.033,0.005,0.033]
+        if beta_sharing_probs is None:
+          beta_sharing_probs = [0.859,0.076,0.037,0.019,0.009]
+        if isinstance(alpha_sharing_probs,float):
+          alpha_sharing_probs = [(1-alpha_sharing_probs),(alpha_sharing_probs)]
+        if isinstance(beta_sharing_probs,float):
+          beta_sharing_probs = [(1-beta_sharing_probs),(beta_sharing_probs)]
+
+
+        # Generate the degree for each alpha- and beta-chain from the given distribution
+        adegs = np.random.choice(
+                range(1,len(alpha_sharing_probs)+1), num_cells, replace=True, p=alpha_sharing_probs)
+        bdegs = np.random.choice(
+                range(1,len(beta_sharing_probs)+1), num_cells, replace=True, p=beta_sharing_probs)
+
+
+
+        # Generate how many alpha- and beta-chains will be in each cell (i.e. how many dual chains)
+        adual = [2 if v<=alpha_dual_prob else 1 for v in np.random.uniform(size=num_cells)]
+        bdual = [2 if v<=beta_dual_prob else 1 for v in np.random.uniform(size=num_cells)]
+
+        # Cut off at the desired number of cells
+        alphas = [(i,) for i,n in enumerate(adegs) for _ in range(n)][:sum(adual)] 
+        betas = [(i,) for i,n in enumerate(bdegs) for _ in range(n)][:sum(bdual)]
 
         # create local cell IDs
         a_inds,b_inds = np.arange(num_cells),np.arange(num_cells)
         np.random.shuffle(a_inds)
         np.random.shuffle(b_inds)
-        self.cells = [((a_inds[i],),(b_inds[i],)) for i in xrange(num_cells)]
-        np.random.shuffle(self.cells) # FIXME
+
+
+        # Randomly assign alpha- and beta-chains to each other
+        np.random.shuffle(alphas)
+        np.random.shuffle(betas)
+
+        for i in range(num_cells):
+          if adual[i]==2:  alphas[i:i+2] = [tuple(sorted(alphas[i]+alphas[i+1]))]
+          if bdual[i]==2:  betas[i:i+2] = [tuple(sorted(betas[i]+betas[i+1]))]
+
+        # Due to random duplicates, there may be slightly less than num_cells cells
+        self.cells = list(set(zip(alphas, betas))) 
+
+        for i in xrange(len(self.cells),num_cells):
+            #print 'Making adjustment for duplicate at index {}...'.format(i)
+            cells.append(((i,),(i,)))
+
+        #self.cells = [((a_inds[i],),(b_inds[i],)) for i in xrange(num_cells)]
+        #np.random.shuffle(self.cells) # FIXME
 
         # create frequencies associations
         if cell_freq_distro == 'constant':
