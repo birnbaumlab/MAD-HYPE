@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from setuptools import setup, find_packages
+
+## TODO: add README file
+#with open('README.md') as f:
+#    readme = f.read()
+readme = ''
+
+with open('LICENSE') as f:
+    license = f.read()
+
+setup(
+    name='madhype',
+    version='0.1.0',
+    author='Patrick Holec, Joseph Berleant',
+    author_email='pholec@mit.edu',
+    url='https://github.com/OhEvolve/MAD-HYPE',
+    description='Multicell Analytical Deconvolution for High Yield Paired-chain Evaluation',
+    long_description=readme,
+    license=license,
+    classifiers=['Programming Language :: Python :: 2'],
+    install_requires=[ ## TODO add version numbers for dependencies
+        'scipy',
+        'numpy',
+        'matplotlib'
+    ],
+    packages=[ ## TODO replace with find_packages() call when madhype/ is cleaned up
+        'madhype',
+        'madhype.simulation',
+        'madhype.analysis',
+        'madhype.postprocessing'
+    ]
+)
+
