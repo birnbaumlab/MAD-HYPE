@@ -32,7 +32,7 @@ solve = {
 
 #------------------------------------------------------------------------------# 
 
-def simulate_system(*args,**kwargs):
+def simulate_run(*args,**kwargs):
 
     options = {
               # experimental design
@@ -107,6 +107,9 @@ def simulate_system(*args,**kwargs):
     # return compiled results
     return compiled_results
 
+
+def run(*args, **kwargs):
+  pass
 
 
 #------------------------------------------------------------------------------# 
