@@ -2,37 +2,40 @@ class CellGenerator(object):
     """ Convenience class to store settings for cell generation
     so that multiple cell populations can be generated easily with
     the same statistical properties. """
-    def __init__(self,
-            num_cells,
-            alpha_sharing_probs = None,
-            beta_sharing_probs = None,
-            alpha_dual_prob = 0.,
-            beta_dual_prob = 0.,
-            cell_freq_distro = 'power-law',
-            **kwargs):
 
-        ## Store number of cells
-        self.num_cells = num_cells
+    default_settings = {
+      'num_cells': 1000,
+      'alpha_sharing_probs': None,
+      'beta_sharing_probs': None,
+      'alpha_dual_prob': 0.,
+      'beta_dual_prob': 0.,
+      'cell_freq_distro': 'power-law',
+      'cell_freq_max': 0.01,
+      'cell_freq_constant': -1
+    }
 
-        ## Store chain sharing probabilities
-        if alpha_sharing_probs is None: 
-            alpha_sharing_probs = [0.816,0.085,0.021,0.007,0.033,0.005,0.033]
-        if beta_sharing_probs is None:
-            beta_sharing_probs = [0.859,0.076,0.037,0.019,0.009]
-        if isinstance(alpha_sharing_probs,float):
-            alpha_sharing_probs = [(1-alpha_sharing_probs),(alpha_sharing_probs)]
-        if isinstance(beta_sharing_probs,float):
-            beta_sharing_probs = [(1-beta_sharing_probs),(beta_sharing_probs)]
-        self.alpha_sharing_probs = alpha_sharing_probs
-        self.beta_sharing_probs = beta_sharing_probs
+    def __init__(self, **kwargs):
 
-        ## Store dual-clone probabilities
-        self.alpha_dual_prob = alpha_dual_prob
-        self.beta_dual_prob = beta_dual_prob
+        ## Store settings
+        self.settings = CellGenerator.default_settings.copy()
 
-        ## Store cell frequency distribution
-        self.cell_freq_distro = cell_freq_distro
-        self.cell_freq_distro_params = kwargs
+        ## Update settings from defaults
+        self.settings.update(kwargs)
+
+        ## Interpret value of XXX_sharing_probs
+        asp, bsp = self.settings['alpha_sharing_probs'], self.settings['beta_sharing_probs']
+        if not isinstance(asp, list):
+            if asp is None:
+                asp = [0.816,0.085,0.021,0.007,0.033,0.005,0.033]
+            elif isinstance(asp, float):
+                asp = [1-asp, asp]
+        if not isinstance(bsp, list):
+            if bsp is None:
+                bsp = [0.859,0.076,0.037,0.019,0.009]
+            if isinstance(bsp,float):
+                bsp = [1-bsp, bsp]
+        self.settings['alpha_sharing_probs'] = asp
+        self.settings['beta_sharing_probs'] = bsp
 
     def generate_cells(self, seed = None):
 
@@ -43,7 +46,7 @@ class CellGenerator(object):
           np.random.seed(self.settings['seed'])
 
         # transfer settings to local namespace
-        num_cells = self.num_cells
+        num_cells = self.settings['num_cells']
         alpha_sharing_probs = self.settings['alpha_sharing_probs']
         beta_sharing_probs = self.settings['beta_sharing_probs']
         alpha_dual_prob = self.settings['alpha_dual_prob']
@@ -98,13 +101,13 @@ class CellGenerator(object):
 
         # create frequencies associations
         if cell_freq_distro == 'constant':
-            self.freqs = [1./num_cells for _ in xrange(num_cells)]
+            freqs = [1./num_cells for _ in xrange(num_cells)]
         elif cell_freq_distro == 'power-law':
-            freq_max = cell_freq_distro_params['cell_freq_max']
-            alpha = cell_freq_distro_params['cell_freq_constant']
-            self.freqs =_power_law_distribution(num_cells,freq_max, alpha)
+            freq_max = self.settings['cell_freq_max']
+            alpha = self.settings['cell_freq_constant']
+            freqs =_power_law_distribution(num_cells,freq_max, alpha)
 
-        return cells
+        return cells, freqs
 
 def generate_cells(seed = None, **kwargs):
     gen = CellGenerator(**kwargs)
