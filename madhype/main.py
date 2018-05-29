@@ -17,10 +17,8 @@ from matplotlib import cm
 # homegrown libraries
 from analysis.madhype import solve as madhype
 from analysis.alphabetr import solve as alphabetr
-from simulation.data_generator import DataGenerator
-from post_processing import visualize_results
-from post_processing import analyze_results
-from post_processing import compare_results
+import simulation
+from postprocessing import visualize_results, analyze_results, compare_results
 
 # create a dictionary called to map strings to function handles
 global solve 
@@ -32,84 +30,89 @@ solve = {
 
 #------------------------------------------------------------------------------# 
 
-def simulate_run(*args,**kwargs):
+default_options = {
+          # experimental design
+          'num_wells':(24,),
+          'cpw':(10,),
+#          'analysis':('madhype','alphabetr'),
+          # simulated repertoire
+          'num_cells':100,
+          'seed':1,
+          'cell_freq_distro': 'power-law',
+          'cell_freq_constant':       1.0, # TODO: 1.0 or -1.0?
+          'cell_freq_max':            0.01,
+          'chain_misplacement_prob':  0.0, # TODO: add functionality
+          'chain_deletion_prob':      0.1,
+          'alpha_dual_prob':          0.0,
+          'beta_dual_prob':           0.0,
+          'alpha_sharing_probs':      0.0,
+          'beta_sharing_probs':       0.0,
+#          # madhype analysis constants
+#          'threshold':0.1, # minimum ratio accepted by match_probability
+#          'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
+#          'prior_alpha':1.0, # prior for clonal frequency
+#          'prior_match':1.0, # prior for clonal match ( <= 1.0 )
+#          # alphabetr analysis constants
+#          'iters':100,
+#          'pair_threshold':0.9,
+          # visual cues
+          'silent':False,
+          'visual':True,
+          'compare':False,
+}
 
-    options = {
-              # experimental design
-              'num_wells':(24,),
-              'cpw':(10,),
-              'analysis':('madhype','alphabetr'),
-              # simulated repertoire
-              'num_cells':100,
-              'seed':1,
-              'cell_freq_distro': 'power-law',
-              'cell_freq_constant':       1.0,
-              'chain_misplacement_prob':  0.0, # TODO: add functionality
-              'chain_deletion_prob':      0.1,
-              'alpha_dual_prob':          0.0,
-              'beta_dual_prob':           0.0,
-              'alpha_sharing_probs':      0.0,
-              'beta_sharing_probs':       0.0,
-              # madhype analysis constants
-              'threshold':0.1, # minimum ratio accepted by match_probability
-              'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
-              'prior_alpha':1.0, # prior for clonal frequency
-              'prior_match':1.0, # prior for clonal match ( <= 1.0 )
-              # alphabetr analysis constants
-              'iters':100,
-              'pair_threshold':0.9,
-              # visual cues
-              'silent':False,
-              'visual':True,
-              'compare':False,
-              }
+def simulate_run(solvers, solver_options, **kwargs):
+    options = default_options.copy()
 
     # Update settings
-    # TODO: add warning for non-key add
-    for arg in args: options.update(arg)
     options.update(kwargs)
 
     # Generate datasets
-    sg = DataGenerator(options)
-    sg.generate_cells()
-    data = sg.generate_data()
+    cells, cell_frequencies = simulation.generate_cells(**options)
+    data = simulation.generate_data(cells, cell_frequencies, **options)
 
     # cells
-    for cell in sg.cells:
-        print cell
+#    for cell in cells:
+#        print cell
+
+    run(data, solvers, solver_options, **options)
+
+def run(data, solvers, solver_options, **kwargs):
+    options = default_options.copy()
+
+    # Update settings
+    options.update(kwargs)
 
     # prepare for storage
     compiled_results = []
 
     # Solve using MAD-HYPE method
-    for mode in options['analysis']:
+    for mode in solvers:
         print mode
-        results = solve[mode](data,options)
+        results = solve[mode](data,**options) ## TODO: change options to **options
 
         results.sort(key=lambda x: -x[1])
 
-        for r in results[:100]:
-            print r 
+#        for r in results[:100]:
+#            print r 
 
         # gather results
         if options['visual']:
             # visualize results if requested
             print 'Visualizing!'
-            compiled_results.append(visualize_results(results,data,options))
+            compiled_results.append(visualize_results(results,data,**options))
         else:
             # gather results
-            compiled_results.append(analyze_results(results,data,options))
+            compiled_results.append(analyze_results(results,data,**options))
 
     # comparison if two methods are selected
     if options['compare']:
-        compare_results(compiled_results,data,options)
+        compare_results(compiled_results,data,**options)
 
     # return compiled results
     return compiled_results
 
 
-def run(*args, **kwargs):
-  pass
 
 
 #------------------------------------------------------------------------------# 
@@ -136,7 +139,7 @@ if __name__ == "__main__":
               # experimental design
               'num_wells':(96,),
               'cpw':(100,),
-              'analysis':('madhype',),
+#              'analysis':('madhype',),
               # simulated repertoire
               'num_cells':500,
               'seed':1,
@@ -148,32 +151,39 @@ if __name__ == "__main__":
               'beta_dual_prob':           0.,
               'alpha_sharing_probs':     None,
               'beta_sharing_probs':      None,
-              # madhype analysis constants
-              'threshold':0.1, # minimum ratio accepted by match_probability
-              'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
-              'prior_alpha':1.0, # prior for clonal frequency
-              'prior_match':1.0, # prior for clonal match ( <= 1.0 )
-              # alphabetr analysis constants
-              'iters':100,
-              'pair_threshold':0.95,
+#              # madhype analysis constants
+#              'threshold':0.1, # minimum ratio accepted by match_probability
+#              'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
+#              'prior_alpha':1.0, # prior for clonal frequency
+#              'prior_match':1.0, # prior for clonal match ( <= 1.0 )
+#              # alphabetr analysis constants
+#              'iters':100,
+#              'pair_threshold':0.95,
               # visual cues
               'silent':False,
               'visual':True,
               'compare':False,
               }
+        solvers = ['madhype']
+        solver_options = [{
+            'threshold': 0.1, # minimum ratio accepted by match_probability
+            'fdr': 0.01, # acceptable fdr (cuts off matches, sets filter)
+            'prior_alpha': 1.0, # prior for clonal frequency
+            'prior_match': 1.0 # prior for clonal match
+        }]
 
         print 'Starting on seed {}...'.format(options['seed'])
-        results = simulate_system(options)
+        results = simulate_run(solvers, solver_options, **options)
 
-        '''
-        start = 9
-        total = 2
-        print 'Starting {} - {}'.format(start,start+total-1)
-        for i in xrange(start,start+total):
-            #if i == 9:
-            #    options['compare'] = True
-            results = simulate_system(options,seed=i)
-        #'''#
+#        '''
+#        start = 9
+#        total = 2
+#        print 'Starting {} - {}'.format(start,start+total-1)
+#        for i in xrange(start,start+total):
+#            #if i == 9:
+#            #    options['compare'] = True
+#            results = simulate_system(options,seed=i)
+#        #'''#
 
     if mode == 2:
     

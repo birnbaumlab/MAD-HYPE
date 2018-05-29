@@ -21,25 +21,26 @@ import matplotlib.pyplot as plt
 
 #------------------------------------------------------------------------------# 
 
+default_settings = {
+        'iters':100,
+        'pair_threshold':0.9,
+        'silent':False
+}
+
+
 def extract_chains(seq_data):
   alphas_per_well, betas_per_well = seq_data['well_data']['A'],seq_data['well_data']['B']
   return list(set.union(*alphas_per_well)),list(set.union(*betas_per_well))
 
-def solve(seq_data,*args,**kwargs):
+
+def solve(seq_data,**kwargs):
 
   """ Solver using ALPHABETR method """
 
   print 'ALPHABETR solver...'
 
-  # create settings dictionary 
-  settings = {
-          'iters':100,
-          'pair_threshold':0.9,
-          'silent':False
-          }
-
-  # update settings
-  for arg in args: settings.update(arg)
+  # choose settings
+  settings = default_settings.copy()
   settings.update(kwargs)
 
   # transfer dictionary to local namespace

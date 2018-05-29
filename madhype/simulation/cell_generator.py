@@ -1,3 +1,6 @@
+import numpy as np
+import scipy.optimize
+
 class CellGenerator(object):
     """ Convenience class to store settings for cell generation
     so that multiple cell populations can be generated easily with
@@ -23,17 +26,16 @@ class CellGenerator(object):
         self.settings.update(kwargs)
 
         ## Interpret value of XXX_sharing_probs
-        asp, bsp = self.settings['alpha_sharing_probs'], self.settings['beta_sharing_probs']
-        if not isinstance(asp, list):
-            if asp is None:
-                asp = [0.816,0.085,0.021,0.007,0.033,0.005,0.033]
-            elif isinstance(asp, float):
-                asp = [1-asp, asp]
-        if not isinstance(bsp, list):
-            if bsp is None:
-                bsp = [0.859,0.076,0.037,0.019,0.009]
-            if isinstance(bsp,float):
-                bsp = [1-bsp, bsp]
+        asp = self.settings['alpha_sharing_probs']
+        bsp = self.settings['beta_sharing_probs']
+        if asp is None:
+            asp = [0.816,0.085,0.021,0.007,0.033,0.005,0.033]
+        elif isinstance(asp, float):
+            asp = [1-asp, asp]
+        if bsp is None:
+            bsp = [0.859,0.076,0.037,0.019,0.009]
+        elif isinstance(bsp,float):
+            bsp = [1-bsp, bsp]
         self.settings['alpha_sharing_probs'] = asp
         self.settings['beta_sharing_probs'] = bsp
 
@@ -43,10 +45,11 @@ class CellGenerator(object):
 
         # set random seed
         if seed is not None:
-          np.random.seed(self.settings['seed'])
+          np.random.seed(seed)
 
         # transfer settings to local namespace
         num_cells = self.settings['num_cells']
+        cell_freq_distro = self.settings['cell_freq_distro']
         alpha_sharing_probs = self.settings['alpha_sharing_probs']
         beta_sharing_probs = self.settings['beta_sharing_probs']
         alpha_dual_prob = self.settings['alpha_dual_prob']
@@ -76,13 +79,13 @@ class CellGenerator(object):
         np.random.shuffle(alphas)
         np.random.shuffle(betas)
 
-        print 'Length of alphas:',len(alphas)
-        print 'Sum of adual:',sum(adual)
-        print 'Sum of bdual:',sum(bdual)
+#        print 'Length of alphas:',len(alphas)
+#        print 'Sum of adual:',sum(adual)
+#        print 'Sum of bdual:',sum(bdual)
 
         for i in range(num_cells):
 
-          print 'Length of alphas:',len(alphas)
+#          print 'Length of alphas:',len(alphas)
 
           # it's technically possible for alphas[i]==alphas[i+1] in which case
           # this won't work quite right --JB
@@ -132,7 +135,7 @@ def _power_law_distribution(num_cells,max_freq,alpha):
         return [1] + [0 for _ in xrange(num_cells-1)]
  
     # Find a shift
-    shift = root(_get_max_freq_diff, 1.0, args=(num_cells,max_freq,alpha)).x
+    shift = scipy.optimize.root(_get_max_freq_diff, 1.0, args=(num_cells,max_freq,alpha)).x
     
     # Find best
     return _get_freq_distribution(shift,num_cells,max_freq,alpha)

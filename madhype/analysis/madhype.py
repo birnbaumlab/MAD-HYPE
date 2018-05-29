@@ -19,29 +19,27 @@ from matplotlib import cm
 # homegrown libraries
 from methods import match_probability
 
+default_options = {
+          # experimental design
+          'num_wells':(24,),
+          'cpw':(10,),
+          # analysis constants
+          'threshold':0.1, # minimum ratio accepted by match_probability
+          'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
+          'prior_alpha':1.0, # prior for clonal frequency
+          'prior_match':1.0, # prior for clonal match ( <= 1.0 )
+          # visual cues
+          'silent':False,
+          'visual':False
+}
 
 
-def solve(data,*args,**kwargs):
+def solve(data,**kwargs):
 
     """ Solver for generated and extracted datasets, using MADHYPE algorithm """
 
-    options = {
-              # experimental design
-              'num_wells':(24,),
-              'cpw':(10,),
-              # analysis constants
-              'threshold':0.1, # minimum ratio accepted by match_probability
-              'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
-              'prior_alpha':1.0, # prior for clonal frequency
-              'prior_match':1.0, # prior for clonal match ( <= 1.0 )
-              # visual cues
-              'silent':False,
-              'visual':False
-              }
-
-    # Update settings
-    # TODO: add warning for non-key add
-    for arg in args: options.update(arg)
+    # Determine options
+    options = default_options.copy()
     options.update(kwargs)
 
     # Pull out values into local namespace

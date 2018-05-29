@@ -18,7 +18,6 @@ import itertools
 # nonstandard libraries
 import numpy as np
 from numpy.random import binomial
-from scipy.optimize import root
 
 # homegrown libraries
 
@@ -28,17 +27,14 @@ class DataGenerator(object):
 
     """
     Methods:
-        __init__(self,*args,**kwargs)
-            input: dicts, kwargs
+        __init__(self,**kwargs)
+            input: kwargs
             output: (none)
-        update(self,*args,**kwargs)
-            input: dicts, kwargs
+        update(self,**kwargs)
+            input: kwargs
             output: (none)
-        generate_cells(self)
-            input: (none)
-            output: (none)
-        generate_data(self)
-            input: (none)
+        generate_data(self, cells, cell_frequencies, seed [op.])
+            input: list of cells, list of cell frequencies, int
             output: data dict 
     """ 
 
@@ -54,19 +50,18 @@ class DataGenerator(object):
     }
 
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         """ Initialize sequence generator object """
         ## Set parameter values
         self.settings = DataGenerator.default_settings.copy()
         
         ## update settings 
-        self.update(*args,**kwargs)
+        self.update(**kwargs)
 
-    def update(self,*args,**kwargs):
+    def update(self,**kwargs):
         """ Update settings using *args and **kwargs """ 
-        for d in args + [kwargs]:
-            for k in self.settings:
-                if k in d:  self.settings[k] = d[k]
+        for k in self.settings:
+            if k in kwargs:  self.settings[k] = kwargs[k]
 
     def generate_data(self, cells, cell_frequencies, seed = None):
         """ Generate simulated sequencing data from the given list of cells """
@@ -76,15 +71,15 @@ class DataGenerator(object):
           np.random.seed(seed)
 
         # transfer settings to local namespace
-        num_cells = self.settings['num_cells']
+        num_cells = len(cells)
         num_wells = self.settings['num_wells']
         cpw = self.settings['cpw']
         chain_deletion_prob = self.settings['chain_deletion_prob']
         chain_misplacement_prob = self.settings['chain_misplacement_prob']
 
         # Check that num_wells are cpw are consistent with each other
-        assert (isinstance(num_wells, int) and isinstance(cpw, int)) or \\
-                (len(num_wells) == len(cpw)), \\
+        assert (isinstance(num_wells, int) and isinstance(cpw, int)) or \
+                (len(num_wells) == len(cpw)), \
                 "num_wells and cpw must both be ints or iterables of equal length"
 
         # interpret user input for cpw distribution
@@ -103,10 +98,10 @@ class DataGenerator(object):
 
         for well_ind,cpw in enumerate(self.cpw):
             # select cell indices for each well
-            indices = np.random.choice(num_cells,size=(cpw,),p=self.freqs)
+            indices = np.random.choice(num_cells,size=(cpw,),p=cell_frequencies)
             # seperate chains in to a,b
-            a = list(itertools.chain(*[self.cells[i][0] for i in indices]))
-            b = list(itertools.chain(*[self.cells[i][1] for i in indices]))
+            a = list(itertools.chain(*[cells[i][0] for i in indices]))
+            b = list(itertools.chain(*[cells[i][1] for i in indices]))
             # shuffle listed chains
             np.random.shuffle(a)
             np.random.shuffle(b)
@@ -134,8 +129,8 @@ class DataGenerator(object):
         # compile useful information
         data = {
                 'well_data':self.well_data,
-                #'cells':dict([(c,f) for c,f in zip(self.cells,self.freqs)]),
-                'cells':dict([(((a,),(b,)),f) for c,f in zip(self.cells,self.freqs)
+                #'cells':dict([(c,f) for c,f in zip(cells,cell_frequencies)]),
+                'cells':dict([(((a,),(b,)),f) for c,f in zip(cells,cell_frequencies)
                     for a in c[0] for b in c[1]]),
                 'settings':self.settings
                }

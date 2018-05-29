@@ -20,7 +20,7 @@ MAIN FUNCTIONS
 
 #------------------------------------------------------------------------------# 
 
-def analyze_results(results,data,*args,**kwargs):
+def analyze_results(results,data,**kwargs):
 
     """
     Processes results dictionary using data object as reference
@@ -33,7 +33,6 @@ def analyze_results(results,data,*args,**kwargs):
               }
 
     # update settings
-    for arg in args: options.update(arg)
     options.update(kwargs)
 
     # assertion check
@@ -132,7 +131,7 @@ def analyze_results(results,data,*args,**kwargs):
 
 #------------------------------------------------------------------------------# 
 
-def visualize_results(results,data,*args,**kwargs):
+def visualize_results(results,data,**kwargs):
 
     """
     Processes results dictionary using data object as reference
@@ -150,11 +149,10 @@ def visualize_results(results,data,*args,**kwargs):
                }
 
     # update settings
-    for arg in args: settings.update(arg)
     settings.update(kwargs)
 
     # heavy lifting on the data
-    cresults = analyze_results(results,data,settings)
+    cresults = analyze_results(results,data,**settings)
 
     # 
 
@@ -250,7 +248,7 @@ def visualize_results(results,data,*args,**kwargs):
 
 #------------------------------------------------------------------------------# 
 
-def compare_results(cresults,*args,**kwargs):
+def compare_results(cresults,**kwargs):
 
     # default settings parameters
     settings = {
@@ -266,7 +264,6 @@ def compare_results(cresults,*args,**kwargs):
                }
 
     # update settings
-    for arg in args: settings.update(arg)
     settings.update(kwargs)
 
     if len(cresults) != 2:
