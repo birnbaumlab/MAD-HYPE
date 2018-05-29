@@ -15,9 +15,9 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 
 # homegrown libraries
-from solver.madhype import solve as madhype
-from solver.alphabetr import solve as alphabetr
-from sequence_generator import *
+from analysis.madhype import solve as madhype
+from analysis.alphabetr import solve as alphabetr
+from simulation.data_generator import DataGenerator
 from post_processing import visualize_results
 from post_processing import analyze_results
 from post_processing import compare_results
