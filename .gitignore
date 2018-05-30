@@ -12,3 +12,8 @@ outdated/*
 
 # Python testing files
 .test.py
+
+# Python build files
+build/*
+dist/*
+madhype.egg-info/*
