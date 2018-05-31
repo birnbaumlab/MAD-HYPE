@@ -26,13 +26,13 @@ def analyze_results(results,data,**kwargs):
     Processes results dictionary using data object as reference
     """
 
-    # default settings parameters
+    # default options parameters
     options = {
               'fdr':0.01,
               'silent':False
               }
 
-    # update settings
+    # update options
     options.update(kwargs)
 
     # assertion check
@@ -137,8 +137,8 @@ def visualize_results(results,data,**kwargs):
     Processes results dictionary using data object as reference
     """
 
-    # default settings parameters
-    settings = {
+    # default options parameters
+    options = {
             'fdr':0.01,
             'fdr_plot':0.01,
             'pos_color':'black',
@@ -148,11 +148,11 @@ def visualize_results(results,data,**kwargs):
             'visual_block':True
                }
 
-    # update settings
-    settings.update(kwargs)
+    # update options
+    options.update(kwargs)
 
     # heavy lifting on the data
-    cresults = analyze_results(results,data,**settings)
+    cresults = analyze_results(results,data,**options)
 
     # 
 
@@ -166,10 +166,10 @@ def visualize_results(results,data,**kwargs):
     # get data attributes
     false_limit = cresults['xy'][0][-1]
     true_limit = cresults['xy'][1][-1]
-    fdr_limit = min(false_limit,settings['fdr_plot']*true_limit)
+    fdr_limit = min(false_limit,options['fdr_plot']*true_limit)
 
     # plot FDR line
-    plt.plot((0,fdr_limit),(0,fdr_limit/settings['fdr_plot']),
+    plt.plot((0,fdr_limit),(0,fdr_limit/options['fdr_plot']),
             linestyle='--',color='k',linewidth=linewidth)
 
     # plot main data auroc
@@ -214,14 +214,14 @@ def visualize_results(results,data,**kwargs):
     plt.yscale('log')
 
     for val,color,l in zip(
-            (0,1),(settings['neg_color'],settings['pos_color']),('Incorrect','Correct')):
+            (0,1),(options['neg_color'],options['pos_color']),('Incorrect','Correct')):
         xs = [i for i,p in enumerate(cresults['pattern']) if p == val]
         ys = [f for f,p in zip(cresults['freqs'],cresults['pattern']) if p == val]
         if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l,edgecolor='none')
 
     plt.plot(xrange(len(cresults['freqs'])),cresults['freqs'],color='k')
 
-    if settings['legend'] == True:
+    if options['legend'] == True:
         leg = plt.legend()
         leg.get_frame().set_edgecolor('k')
 
@@ -240,7 +240,7 @@ def visualize_results(results,data,**kwargs):
 
     # show plots
     plt.show(block=False)
-    if settings['visual_block']:
+    if options['visual_block']:
         raw_input('Press enter to close...')
         plt.close()
 
@@ -250,8 +250,8 @@ def visualize_results(results,data,**kwargs):
 
 def compare_results(cresults,**kwargs):
 
-    # default settings parameters
-    settings = {
+    # default options parameters
+    options = {
             'fdr':0.01,
             'fdr_plot':0.01,
             'pos_color':'black',
@@ -263,8 +263,8 @@ def compare_results(cresults,**kwargs):
             'silent':False
                }
 
-    # update settings
-    settings.update(kwargs)
+    # update options
+    options.update(kwargs)
 
     if len(cresults) != 2:
         print 'Results the wrong length ({})'.format(len(cresults))
@@ -283,8 +283,8 @@ def compare_results(cresults,**kwargs):
 
     for val,color,l in zip(
             ((0,0),(1,0),(0,1),(1,1)),
-            (settings['neg_color'],settings['mixed1_color'],
-                settings['mixed2_color'],settings['pos_color']),
+            (options['neg_color'],options['mixed1_color'],
+                options['mixed2_color'],options['pos_color']),
                 ('Neither Correct','MAD-HYPE Correct','ALPHABETR Correct','Both Correct')):
         xs = [i for i,p1,p2 in zip(xrange(total),cresults[0]['pattern'],cresults[1]['pattern']) 
                 if p1 == val[0] and p2 == val[1]]
@@ -294,7 +294,7 @@ def compare_results(cresults,**kwargs):
 
     plt.plot(xrange(len(cresults[0]['freqs'])),cresults[0]['freqs'],color='k')
 
-    if settings['legend'] == True:
+    if options['legend'] == True:
         leg = plt.legend()
         leg.get_frame().set_edgecolor('k')
 
@@ -314,8 +314,3 @@ def compare_results(cresults,**kwargs):
     plt.show(block=False)
     raw_input('Press enter to close...')
     plt.close()
-
-#------------------------------------------------------------------------------# 
-
-if __name__ == '__main__':
-    test_settings()

@@ -1,33 +1,24 @@
 import numpy as np
 import scipy.optimize
 
+from ..defaults import general_options as default_options
+
 class CellGenerator(object):
-    """ Convenience class to store settings for cell generation
+    """ Convenience class to store options for cell generation
     so that multiple cell populations can be generated easily with
     the same statistical properties. """
 
-    default_settings = {
-      'num_cells': 1000,
-      'alpha_sharing_probs': None,
-      'beta_sharing_probs': None,
-      'alpha_dual_prob': 0.,
-      'beta_dual_prob': 0.,
-      'cell_freq_distro': 'power-law',
-      'cell_freq_max': 0.01,
-      'cell_freq_constant': -1
-    }
-
     def __init__(self, **kwargs):
 
-        ## Store settings
-        self.settings = CellGenerator.default_settings.copy()
+        ## Store options
+        self.options = default_options.copy()
 
-        ## Update settings from defaults
-        self.settings.update(kwargs)
+        ## Update options from defaults
+        self.options.update(kwargs)
 
         ## Interpret value of XXX_sharing_probs
-        asp = self.settings['alpha_sharing_probs']
-        bsp = self.settings['beta_sharing_probs']
+        asp = self.options['alpha_sharing_probs']
+        bsp = self.options['beta_sharing_probs']
         if asp is None:
             asp = [0.816,0.085,0.021,0.007,0.033,0.005,0.033]
         elif isinstance(asp, float):
@@ -36,24 +27,24 @@ class CellGenerator(object):
             bsp = [0.859,0.076,0.037,0.019,0.009]
         elif isinstance(bsp,float):
             bsp = [1-bsp, bsp]
-        self.settings['alpha_sharing_probs'] = asp
-        self.settings['beta_sharing_probs'] = bsp
+        self.options['alpha_sharing_probs'] = asp
+        self.options['beta_sharing_probs'] = bsp
 
     def generate_cells(self, seed = None):
 
-        """ Generate cells from settings"""
+        """ Generate cells from options"""
 
         # set random seed
         if seed is not None:
           np.random.seed(seed)
 
-        # transfer settings to local namespace
-        num_cells = self.settings['num_cells']
-        cell_freq_distro = self.settings['cell_freq_distro']
-        alpha_sharing_probs = self.settings['alpha_sharing_probs']
-        beta_sharing_probs = self.settings['beta_sharing_probs']
-        alpha_dual_prob = self.settings['alpha_dual_prob']
-        beta_dual_prob = self.settings['beta_dual_prob']
+        # transfer options to local namespace
+        num_cells = self.options['num_cells']
+        cell_freq_distro = self.options['cell_freq_distro']
+        alpha_sharing_probs = self.options['alpha_sharing_probs']
+        beta_sharing_probs = self.options['beta_sharing_probs']
+        alpha_dual_prob = self.options['alpha_dual_prob']
+        beta_dual_prob = self.options['beta_dual_prob']
 
         # Generate the degree for each alpha- and beta-chain from the given distribution
         # PVH: using 2*number cells to ensure we get enough space for dual chains
@@ -70,45 +61,31 @@ class CellGenerator(object):
         alphas = [(i,) for i,n in enumerate(adegs) for _ in range(n)][:sum(adual)] 
         betas = [(i,) for i,n in enumerate(bdegs) for _ in range(n)][:sum(bdual)]
 
-        # create local cell IDs
-        a_inds,b_inds = np.arange(num_cells),np.arange(num_cells)
-        np.random.shuffle(a_inds)
-        np.random.shuffle(b_inds)
-
         # Randomly assign alpha- and beta-chains to each other
         np.random.shuffle(alphas)
         np.random.shuffle(betas)
 
-#        print 'Length of alphas:',len(alphas)
-#        print 'Sum of adual:',sum(adual)
-#        print 'Sum of bdual:',sum(bdual)
-
         for i in range(num_cells):
-
-#          print 'Length of alphas:',len(alphas)
-
-          # it's technically possible for alphas[i]==alphas[i+1] in which case
-          # this won't work quite right --JB
-          if adual[i]==2:  alphas[i:i+2] = [tuple(sorted(alphas[i]+alphas[i+1]))]
-          if bdual[i]==2:  betas[i:i+2] = [tuple(sorted(betas[i]+betas[i+1]))]
+            # it's technically possible for alphas[i]==alphas[i+1] in which case
+            # this won't work quite right --JB
+            if adual[i]==2:  alphas[i:i+2] = [tuple(sorted(set(alphas[i]+alphas[i+1])))]
+            if bdual[i]==2:  betas[i:i+2] = [tuple(sorted(set(betas[i]+betas[i+1])))]
 
         # Due to random duplicates, there may be slightly less than num_cells cells
         cells = list(set(zip(alphas, betas))) 
 
+        if len(cells) < num_cells:
+            print 'madhype: WARNING: Cell generation produced {} cells. Adding {} new cells (no chain-sharing or dual clones)'.format(len(cells), num_cells - len(cells))
         for i in xrange(len(cells),num_cells):
-            #print 'Making adjustment for duplicate at index {}...'.format(i)
-            cells.append(((i,),(i,)))
-
-        #self.cells = [((a_inds[i],),(b_inds[i],)) for i in xrange(num_cells)]
-        #np.random.shuffle(self.cells) # FIXME
+            cells.append(((i,),(i,))) # these chain ids will be greater than any already used
 
         # create frequencies associations
         if cell_freq_distro == 'constant':
             freqs = [1./num_cells for _ in xrange(num_cells)]
         elif cell_freq_distro == 'power-law':
-            freq_max = self.settings['cell_freq_max']
-            alpha = self.settings['cell_freq_constant']
-            freqs =_power_law_distribution(num_cells,freq_max, alpha)
+            freq_max = self.options['cell_freq_max']
+            alpha = self.options['cell_freq_constant']
+            freqs = _power_law_distribution(num_cells,freq_max, alpha)
 
         return cells, freqs
 

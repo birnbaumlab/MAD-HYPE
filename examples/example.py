@@ -14,106 +14,11 @@ from scipy.misc import comb
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
-# homegrown libraries
-from analysis.madhype import solve as madhype
-from analysis.alphabetr import solve as alphabetr
-import simulation
-from postprocessing import visualize_results, analyze_results, compare_results
+# intrapackage libraries
+from madhype import simulate_run
+#from defaults import general_options as default_options
 
-# create a dictionary called to map strings to function handles
-global solve 
-solve = {
-        'madhype':madhype,
-        'alphabetr':alphabetr
-        }
-         
-
-#------------------------------------------------------------------------------# 
-
-default_options = {
-          # experimental design
-          'num_wells':(24,),
-          'cpw':(10,),
-#          'analysis':('madhype','alphabetr'),
-          # simulated repertoire
-          'num_cells':100,
-          'seed':1,
-          'cell_freq_distro': 'power-law',
-          'cell_freq_constant':       1.0, # TODO: 1.0 or -1.0?
-          'cell_freq_max':            0.01,
-          'chain_misplacement_prob':  0.0, # TODO: add functionality
-          'chain_deletion_prob':      0.1,
-          'alpha_dual_prob':          0.0,
-          'beta_dual_prob':           0.0,
-          'alpha_sharing_probs':      0.0,
-          'beta_sharing_probs':       0.0,
-#          # madhype analysis constants
-#          'threshold':0.1, # minimum ratio accepted by match_probability
-#          'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
-#          'prior_alpha':1.0, # prior for clonal frequency
-#          'prior_match':1.0, # prior for clonal match ( <= 1.0 )
-#          # alphabetr analysis constants
-#          'iters':100,
-#          'pair_threshold':0.9,
-          # visual cues
-          'silent':False,
-          'visual':True,
-          'compare':False,
-}
-
-def simulate_run(solvers, solver_options, **kwargs):
-    options = default_options.copy()
-
-    # Update settings
-    options.update(kwargs)
-
-    # Generate datasets
-    cells, cell_frequencies = simulation.generate_cells(**options)
-    data = simulation.generate_data(cells, cell_frequencies, **options)
-
-    # cells
-#    for cell in cells:
-#        print cell
-
-    run(data, solvers, solver_options, **options)
-
-def run(data, solvers, solver_options, **kwargs):
-    options = default_options.copy()
-
-    # Update settings
-    options.update(kwargs)
-
-    # prepare for storage
-    compiled_results = []
-
-    # Solve using MAD-HYPE method
-    for mode in solvers:
-        print mode
-        results = solve[mode](data,**options) ## TODO: change options to **options
-
-        results.sort(key=lambda x: -x[1])
-
-#        for r in results[:100]:
-#            print r 
-
-        # gather results
-        if options['visual']:
-            # visualize results if requested
-            print 'Visualizing!'
-            compiled_results.append(visualize_results(results,data,**options))
-        else:
-            # gather results
-            compiled_results.append(analyze_results(results,data,**options))
-
-    # comparison if two methods are selected
-    if options['compare']:
-        compare_results(compiled_results,data,**options)
-
-    # return compiled results
-    return compiled_results
-
-
-
+        
 
 #------------------------------------------------------------------------------# 
 

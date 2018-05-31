@@ -3,17 +3,16 @@
 This collection of scripts is designed to produce figures that we care about
 """
 
-from figures import fig1
-from figures import fig2
-from figures import fig4
-from figures import fig1s
-from figures import fig2s
-from figures import fig3s
-from main import simulate_system
+import fig1
+import fig2
+import fig4
+import fig1s
+import fig2s
+import fig3s
 
 #------------------------------------------------------------------------------#
 
-settings = {
+options = {
         'subplots':[1,2],
         'fdr':0.03,
         'num_cells':1000,

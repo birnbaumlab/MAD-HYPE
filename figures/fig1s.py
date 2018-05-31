@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
 # homegrown libraries
-from sequence_generator import *
-from main import simulate_system
+from madhype.simulation import *  # we should explicitly import here
+from madhype import simulate_run
 
 # library modifications
 plt.rcParams["font.family"] = "serif"
@@ -98,7 +98,7 @@ def main(*args,**kwargs):
                 'silent':False
                 }
 
-        simulate_system(settings,specific_settings[sample])
+        simulate_run(**dict(settings,**specific_settings[sample]))
         
 
     settings = {

@@ -18,14 +18,9 @@ import scipy.optimize, scipy.misc, scipy.cluster
 import matplotlib.pyplot as plt
 
 # homegrown libraries
+from ..defaults import alphabetr_options as default_options
 
 #------------------------------------------------------------------------------# 
-
-default_settings = {
-        'iters':100,
-        'pair_threshold':0.9,
-        'silent':False
-}
 
 
 def extract_chains(seq_data):
@@ -39,14 +34,14 @@ def solve(seq_data,**kwargs):
 
   print 'ALPHABETR solver...'
 
-  # choose settings
-  settings = default_settings.copy()
-  settings.update(kwargs)
+  # choose options
+  options = default_options.copy()
+  options.update(kwargs)
 
   # transfer dictionary to local namespace
-  iters = settings['iters']
-  pair_threshold = settings['pair_threshold']
-  silent = settings['silent']
+  iters = options['iters']
+  pair_threshold = options['pair_threshold']
+  silent = options['silent']
 
   ## Computes a solution to the alpha-beta pairing problem, using the methods in Lee et al. (2017)
   def compute_well_pairings(alpha_idx, beta_idx, scores):
@@ -400,8 +395,8 @@ def pairs_to_cells(seq_data, pairs):
   
 ## Auxiliary functions to help out pairs_to_cells() and estimate_cell_frequencies()
 def extract_cells_per_well(seq_data):
-  cpw = seq_data['settings']['cpw']
-  num_wells = seq_data['settings']['num_wells']
+  cpw = seq_data['options']['cpw']
+  num_wells = seq_data['options']['num_wells']
   cells_per_well = [c for c,w in zip(cpw,num_wells) for _ in xrange(w)]
   '''
   # OUTDATED

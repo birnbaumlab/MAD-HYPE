@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # homegrown libraries
-from main import simulate_system 
+from madhype import simulate_run 
 
 # library modifications
 plt.rcParams["font.family"] = "serif"
@@ -57,7 +57,7 @@ def main(*args,**kwargs):
 
             # iterate across system
             for r in xrange(repeats):
-                all_results += simulate_system(settings,**{mod:v,'seed':r})
+                all_results += simulate_run(**dict(settings, mod=v, seed=r))
 
             all_coverage[mod].append([results['frac_repertoire'] for results in all_results])
             all_matches[mod].append([results['positives'] for results in all_results])
@@ -159,7 +159,7 @@ def main(*args,**kwargs):
                     else:
                         threshold = 0.1
 
-                    results = simulate_system(
+                    results = simulate_run(**dict(
                             settings,
                             num_wells=num_wells,
                             cpw=(cpw,),
@@ -167,7 +167,7 @@ def main(*args,**kwargs):
                             num_cells=int(1./freq),
                             threshold=threshold,
                             seed=r
-                            )
+                            ))
 
                     val.append(results[0]['frac_repertoire'])
 

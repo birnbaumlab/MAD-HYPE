@@ -18,20 +18,7 @@ from matplotlib import cm
 
 # homegrown libraries
 from methods import match_probability
-
-default_options = {
-          # experimental design
-          'num_wells':(24,),
-          'cpw':(10,),
-          # analysis constants
-          'threshold':0.1, # minimum ratio accepted by match_probability
-          'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
-          'prior_alpha':1.0, # prior for clonal frequency
-          'prior_match':1.0, # prior for clonal match ( <= 1.0 )
-          # visual cues
-          'silent':False,
-          'visual':False
-}
+from ..defaults import madhype_options as default_options
 
 
 def solve(data,**kwargs):

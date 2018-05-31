@@ -20,6 +20,7 @@ import numpy as np
 from numpy.random import binomial
 
 # homegrown libraries
+from ..defaults import general_options as default_options
 
 #------------------------------------------------------------------------------# 
 
@@ -38,30 +39,19 @@ class DataGenerator(object):
             output: data dict 
     """ 
 
-    default_settings = {
-        'num_wells':                 96,
-        'cpw':                       35,
-        'chain_misplacement_prob':    0,
-        'chain_deletion_prob':      0.1,
-        'alpha_dual_prob':           0.,
-        'beta_dual_prob':            0.,
-        'alpha_sharing_probs':     None,
-        'beta_sharing_probs':      None,
-    }
-
 
     def __init__(self, **kwargs):
         """ Initialize sequence generator object """
         ## Set parameter values
-        self.settings = DataGenerator.default_settings.copy()
+        self.options = default_options.copy()
         
-        ## update settings 
+        ## update options 
         self.update(**kwargs)
 
     def update(self,**kwargs):
-        """ Update settings using *args and **kwargs """ 
-        for k in self.settings:
-            if k in kwargs:  self.settings[k] = kwargs[k]
+        """ Update options using *args and **kwargs """ 
+        for k in self.options:
+            if k in kwargs:  self.options[k] = kwargs[k]
 
     def generate_data(self, cells, cell_frequencies, seed = None):
         """ Generate simulated sequencing data from the given list of cells """
@@ -70,12 +60,12 @@ class DataGenerator(object):
         if seed is not None:
           np.random.seed(seed)
 
-        # transfer settings to local namespace
+        # transfer options to local namespace
         num_cells = len(cells)
-        num_wells = self.settings['num_wells']
-        cpw = self.settings['cpw']
-        chain_deletion_prob = self.settings['chain_deletion_prob']
-        chain_misplacement_prob = self.settings['chain_misplacement_prob']
+        num_wells = self.options['num_wells']
+        cpw = self.options['cpw']
+        chain_deletion_prob = self.options['chain_deletion_prob']
+        chain_misplacement_prob = self.options['chain_misplacement_prob']
 
         # Check that num_wells are cpw are consistent with each other
         assert (isinstance(num_wells, int) and isinstance(cpw, int)) or \
@@ -129,10 +119,9 @@ class DataGenerator(object):
         # compile useful information
         data = {
                 'well_data':self.well_data,
-                #'cells':dict([(c,f) for c,f in zip(cells,cell_frequencies)]),
                 'cells':dict([(((a,),(b,)),f) for c,f in zip(cells,cell_frequencies)
                     for a in c[0] for b in c[1]]),
-                'settings':self.settings
+                'options':self.options
                }
 
         return data # return results

@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 
 # homegrown libraries
-from solver.methods import match_probability
-from main import simulate_system 
+from madhype.analysis.methods import match_probability
+from madhype import simulate_run 
 
 # library modifications
 plt.rcParams["font.family"] = "FreeSerif"
@@ -89,7 +89,7 @@ def main(*args,**kwargs):
     if 2 in settings['subplots']:
         #TODO: add functionality
         """  """
-        simulate_system(settings)
+        simulate_run(**settings)
 
     if 3 in settings['subplots']:
         #TODO: add functionality
