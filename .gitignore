@@ -1,6 +1,9 @@
+# Unnecessary coding files
 solver_data/*
 results/*
 outdated/*
+
+pairseq-data.tgz
 
 # Things that don't need to be committed
 *.swp
