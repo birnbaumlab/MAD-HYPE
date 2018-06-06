@@ -1,10 +1,10 @@
 general_options = {
     # experimental design
-    'num_wells':(24,),
-    'cpw':(10,),
+    'num_wells':(96,),
+    'cpw':(50,),
 
     # simulated repertoire
-    'num_cells':100,
+    'num_cells':1000,
     'seed':1,
     'cell_freq_distro': 'power-law',
     'cell_freq_constant':       1.0,
@@ -23,10 +23,6 @@ general_options = {
 }
 
 madhype_options = {
-    # experimental design
-    'num_wells':(24,),
-    'cpw':(10,),
-
     # analysis constants
     'threshold':0.1, # minimum ratio accepted by match_probability
     'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)

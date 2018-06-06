@@ -30,8 +30,9 @@ def solve(data,**kwargs):
     options.update(kwargs)
 
     # Pull out values into local namespace
-    num_wells = options['num_wells']
-    cpw = options['cpw']
+    num_wells = data['options']['num_wells']
+    cpw = data['options']['cpw']
+    fdr = options['fdr']
     silent = options['silent']
 
     # Identify unique a,b sequences
@@ -61,7 +62,7 @@ def solve(data,**kwargs):
     """ --- Generate data density filter --- """
 
     # generate filter dictionary
-    filt = BuildFilter(well_distribution,options)
+    filt = BuildFilter(well_distribution,num_wells, fdr)
 
     '''#
     print 'Filter:'
@@ -152,17 +153,17 @@ def _data_intersect(d1,d2,num_wells):
 
 class BuildFilter(object):
 
-    def __init__(self,well_distribution,options):
+    def __init__(self,well_distribution,num_wells, fdr):
 
         """ Initializes filter using well distributions and options """
 
-        w_tot = sum(options['num_wells'])
+        w_tot = sum(num_wells)
         w_dict = Counter([tuple(len(i) for i in w) for w in well_distribution['A'].values()] +
                          [tuple(len(i) for i in w) for w in well_distribution['B'].values()])
         self.w_filter = dict([(k,1./
-                         ((v-1)/reduce(mul,[comb(W,w) for W,w in zip(options['num_wells'],k)]) + 1))
+                         ((v-1)/reduce(mul,[comb(W,w) for W,w in zip(num_wells,k)]) + 1))
                      for k,v in w_dict.items()])
-        self.fdr = options['fdr']
+        self.fdr = fdr
 
     def check_tuple(self,value):
 
