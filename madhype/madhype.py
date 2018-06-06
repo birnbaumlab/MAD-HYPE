@@ -29,7 +29,7 @@ def simulate_run(solvers, solver_options, **kwargs):
     cells, cell_frequencies = simulation.generate_cells(**options)
     data = simulation.generate_data(cells, cell_frequencies, **options)
 
-    run(data, solvers, solver_options, **options)
+    return run(data, solvers, solver_options, **options)
 
 def run(data, solvers, solver_options, **kwargs):
     options = default_options.copy()
