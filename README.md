@@ -99,7 +99,7 @@ for solver, result in zip(solvers, results):
   print "  Chain pairs not identified:", result['negatives']
 ```
 
-### Using MAD-HYPE to generated simulated cell populations and sequencing data
+### Using MAD-HYPE to generate simulated cell populations and sequencing data
 Under the hood, `simulate_run()` generates a simulated TCR repertoire and simulated sequencing data. The functions used to generate sample cell populations and sequencing data are exposed in the `madhype.simulation` subpackage.
 
 The following example script generates a sample population of 3000 cells. Simulated sequencing data is then generated from this cell population.
