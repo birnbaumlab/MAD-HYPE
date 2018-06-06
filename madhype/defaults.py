@@ -30,8 +30,7 @@ madhype_options = {
     'prior_match':1.0, # prior for clonal match ( <= 1.0 )
 
     # visual cues
-    'silent':False,
-    'visual':False
+    'silent':False
 }
 
 alphabetr_options = {
