@@ -2,6 +2,7 @@
 solver_data/*
 results/*
 outdated/*
+pairseq-data/*
 
 pairseq-data.tgz
 
