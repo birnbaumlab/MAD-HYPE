@@ -1,13 +1,4 @@
 
-
-"""
-        ### analysis on presented data
-        filesX,filesY = subjectXYdata(dirnameX,dirnameY) # returns dictionaries
-        catalog_repertoire(filesX,filesY,overwrite=False) 
-        data = data_assignment(dirname_exp,threshold=(5,91),overwrite=False,silent=False) # no save due to memory
-"""
-
-
 # standard libraries
 from copy import deepcopy
 import os
@@ -16,6 +7,7 @@ import gzip
 import csv
 import dbm 
 from collections import Counter
+from datetime import datetime
 
 # nonstandard libraries
 import gzip
@@ -25,10 +17,11 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 
 # homegrown libraries
-
+import madhype
+from madhype.defaults import madhype_options as default_options
+from madhype.postprocessing.postprocessing import analyze_results
 
 # library setup
-
 plotly.tools.set_credentials_file(username='Pandyr', api_key='AVy42TUJYGQm0TxLEPMl')
 
 def main():
@@ -42,21 +35,63 @@ def main():
 
     dirnameEXP = {
             'Experiment 1': dirnameDATA + '/experiment1',
-            'Experiment 2': dirnameDATA + '/experiment2',
+            #'Experiment 2': dirnameDATA + '/experiment2',
             }
 
-    #check_unzip_data(dirnameDATA)
+    #files = subjectXYdata(dirnameX,dirnameY)
 
-    files = subjectXYdata(dirnameX,dirnameY)
+    #repertoire = catalog_repertoire(*files,overwrite = False)
 
-    repertoire = catalog_repertoire(*files,overwrite = False)
-
-    for i in range(1,7):
-        reference = make_reference(repertoire,well_threshold = i)
-    
     results = load_howie_data(**dirnameEXP)
 
-    combine(results,reference)
+    data = {
+            'options':
+            {
+                'cpw':     (2000,),
+                'num_wells': (96,),
+            }
+           }
+
+    processing_options = {
+            'threshold':   (4,90),
+            'overwrite':     True,
+            'silent':       False,
+            'well_threshold':   5,
+            'well_cap':        96,
+            }
+
+    # create a subject reference
+    reference = make_reference(repertoire,**processing_options)
+
+    analyze_results(results['Experiment 1'],data,reference=reference)
+
+    raw_input('Waiting..')
+    
+    options = {
+            'reference': reference,
+            'visual':        False,
+            }
+
+    # run madhype on datasets
+    for label,dirname in dirnameEXP.items():
+        
+        data['well_data'] = data_assignment(dirname,reference,**processing_options)
+
+        solvers = ['madhype'] # only run MAD-HYPE
+        solver_options = [options] # use default parameters
+
+        # results
+        startTime = datetime.now()
+        results_madhype = madhype.run(
+                data,
+                solvers,
+                solver_options,
+                )
+
+        print 'MAD-HYPE took {} seconds.\n'.format(datetime.now()-startTime)
+
+
+    #combine(results,reference)
 
     print 'Finished!'
 
@@ -99,9 +134,11 @@ def combine(results,repertoire):
 
         xy_frequency = Counter(xys)
         
+        '''
         print 'States:'
         for xy,frequency in xy_frequency.items():
             print '{}: {}'.format(xy,frequency)
+        '''
         print 'FDR cap:'
         for xy,frequency in fdr_count.items():
             print '{}: {}'.format(xy,frequency)
@@ -111,14 +148,11 @@ def combine(results,repertoire):
         trace0 = go.Scatter(x=x,y=y) 
         py.plot([trace0,],filename='Howie FDR')
 
-        raw_input('Press enter to close..')
+        #raw_input('Press enter to close..')
 
 def find_origin(sequence,repertoire):
     """ Find patient origin of sequenece, returns tuple """
-    print sequence[0]
     alpha,beta = '',''
-    print type(repertoire['A'])
-    print len(repertoire['A'])
     if sequence[0] in repertoire['A']['X']: alpha += 'X'
     if sequence[0] in repertoire['A']['Y']: alpha += 'Y'
     if sequence[1] in repertoire['B']['X']: beta  += 'X'
@@ -158,7 +192,7 @@ def load_howie_data(**dirnames):
     for label,dirname in dirnames.items():
         # prepare howie results
         with open(dirname + '/tcr_pairseq_fdr1pct.pairs','r') as f: 
-            howie_results[label] = [(a[0],a[2],float(a[5])) for i,a in enumerate(csv.reader(f, dialect="excel-tab")) if i != 0]
+            howie_results[label] = [(((a[0],),(a[2],)),1.-float(a[5]),{'ij':0.0}) for i,a in enumerate(csv.reader(f, dialect="excel-tab")) if i != 0]
     
     return howie_results
 
@@ -205,9 +239,19 @@ def subjectXYdata(dirnameX,dirnameY):
             
     return subject_x_files,subject_y_files
 
-def make_reference(repertoire=None,count_threshold = 1,well_threshold = 5):
+def make_reference(repertoire=None,**kwargs):
 
-    fname = '{}n-{}m.p'.format(count_threshold,well_threshold)
+    options = {
+            'well_threshold': 5,
+            'well_cap':      94,
+            }
+
+    options.update(kwargs)
+
+    well_threshold = options['well_threshold']
+    well_cap =       options['well_cap']
+
+    fname = '{}n-{}m.p'.format(well_threshold,well_cap)
 
     if not file_check(fname):
 
@@ -221,7 +265,7 @@ def make_reference(repertoire=None,count_threshold = 1,well_threshold = 5):
         print 'Finished copy!'
 
         # change reference
-        change(reference,count_threshold,well_threshold)
+        change(reference,well_threshold,well_cap)
         # dump contents as pickle
         pickle_save(reference,fname)
 
@@ -242,11 +286,11 @@ def change(d,n,m):
             if d[k] == None: d.pop(k,None) # remove key if none referenced
         return d
     else:
-        hits = len([i for i in d if i >= n])
-        if hits >= m: return hits
+        hits = len([i for i in d])
+        if hits <= m and hits >= n: return hits
         return None
 
-def catalog_repertoire(filesX,filesY,overwrite=False):
+def catalog_repertoire(filesX,filesY,overwrite=False,**kwargs):
     """ Creates a dict that takes each unique sequence and assigns ownership between subject X/Y """
     """ This analysis is very slow, so I'm pulling as many tricks out as I can """
 
@@ -298,9 +342,6 @@ def catalog_repertoire(filesX,filesY,overwrite=False):
         print 'Writing...'
         pickle.dump(final_dict,open('./database/origin_dict.p','wb'),protocol=pickle.HIGHEST_PROTOCOL) 
         print 'Finished writing!'
-        # DBM save
-        #db_save(final_dict['A'],'origin_dict_A') 
-        #db_save(final_dict['B'],'origin_dict_B') 
     
     # if there already exists a dictionary that isn't to be overwritten 
     else:
@@ -309,7 +350,6 @@ def catalog_repertoire(filesX,filesY,overwrite=False):
         final_dict = pickle.load(open('./database/origin_dict.p','rb'))
         print 'Finished loading!'
         #for c in 'AB':
-        #    final_dict[c] = db_load(fname_dict[c])
 
     # final counts on chain sequence popularity 
     #for chain_id,seq_dict in final_dict.items():
@@ -321,35 +361,177 @@ def catalog_repertoire(filesX,filesY,overwrite=False):
 
 def file_check(*fnames):
     """ Checks for presence of pag and dir files, returns boolean """
-    db_files = [os.path.isfile('./database/'+f) for f in fnames]
-    val = all(db_files)
+    files = [os.path.isfile('./database/'+f) for f in fnames]
+    val = all(files)
     return val
 
 """ Pickle Functions """
+
+def pickle_load_unique(data_label,my_id,id_label):
+    """ Loads pickle by filename """
+    for file in os.listdir("./database"):
+        if file.startswith(id_label) and file.endswith(".p"):
+            loaded_id = pickle.load(open('./database/' + file,'rb'))
+            if my_id == loaded_id:
+                print 'Found matching record: {}'.format(file)
+                index = file[file.rindex('_')+1:-2]
+                return pickle.load(open('./database/' + data_label + '_{}.p'.format(index),'rb'))
+    print 'No matching datasets found!'            
+    return None
+
+def pickle_save_unique(my_data,data_label,my_id,id_label):
+    """ Saves a pickled version of files """
+    if not os.path.isdir('database'):
+        os.mkdir('database')
+    for i in range(1000):
+        if not os.path.isfile('./database/' + data_label + '_{}_.p'.format(i)):
+            pickle.dump(my_data,open('./database/' + data_label + '_{}.p'.format(i),'wb'))
+            pickle.dump(my_id,open('./database/' + id_label + '_{}.p'.format(i),'wb'))
+            return None
+    print 'No available names, please delete some files!'
 
 def pickle_load(fname):
     """ Loads pickle by filename """
     return pickle.load(open('./database/' + fname,'rb'))
 
-def pickle_save(fname):
+def pickle_save(my_data,fname):
     """ Saves a pickled version of files """
     if not os.path.isdir('database'):
         os.mkdir('database')
-    pickle.dump(final_dict,open('./database/' + fname,'wb'))
+    pickle.dump(my_data,open('./database/' + fname,'wb'))
+
+""" Great """
+
+def data_assignment(dirname,reference,**kwargs):
+    """ Pulls out data from experiment directory and assigns TCR wells """
+    """ Only valid for two subject testing """
+    """ Note: threshold mimicked from Howie """
+
+    options = {
+            'silent':False,
+            'threshold':(4,93),
+            }
+
+    options.update(kwargs) # update dictionary
+
+    # local namespace
+    silent = options['silent']
+    threshold = options['threshold']
+
+    # create DBM dictionaries
+    files = {'A':{},'B':{}}
+
+    well_data = pickle_load_unique('well_data',options,'options')
+
+    if well_data:
+        return well_data
+
+    """ Start unpackaging data, create the four dictionaries """ 
+    # initialize dictionaries
+    well_data = {'A':[],'B':[]} # will hold lists of lists containing chain indices
+
+    # directory name
+    dirfiles = os.listdir(dirname+'/cdna_data/')
+
+    """ Find the file names of all the data, unzip where needed """
+    # check across all files, unzip as needed
+    for file in dirfiles:
+        # check if starting file is gzipped
+        if file.endswith('.gz') and not any([file[:-3] in d for d in dirfiles if not d.endswith('.gz')]):
+            with gzip.open(dirname+'/cdna_data/'+file,'rb') as f:
+                with open(dirname+'/cdna_data/'+file[:-3],'wb') as f_new:
+                    f_new.write(f.read(file[:-3]))
+            print 'Unzipped {}.'.format(dirname+'/cdna_data/'+file)
+            files[file[file.index('TCR')+3]][int(file[file.index('.well')+5: \
+                    file.index('.results')])] = dirname+'/cdna_data/'+file[:-3]
+
+        # otherwise store file location
+        elif file.endswith('.tsv'):
+            files[file[file.index('TCR')+3]][int(file[file.index('.well')+5: \
+                    file.index('.results')])] = dirname+'/cdna_data/'+file
+
+    for chain_id,chain_files in files.items(): # iterate across file locations 
+
+        # iterate across repertoires to make independent dictionaries
+        for well_id in sorted(chain_files.keys(),key=int):
+
+            # go through file and pull sequences
+            with open(files[chain_id][well_id],'rb') as f:
+
+                if not silent: print 'Analyzing well {} for chain {}...'.format(well_id,chain_id)
+                well_data[chain_id].append([])
+
+                for i,line in enumerate(csv.reader(f, dialect="excel-tab")):
+
+                    if i == 0: continue # skip header line 
+
+                    if line[0] in reference[chain_id]['X'] or line[0] in reference[chain_id]['Y']:
+                        well_data[chain_id][-1].append(line[0])
+                   
+    # remove chains that occur less than threshold 
+    print 'Adjusting well data for well occurance threshold...'
+    chain_keys = {'A':[k for k,v in Counter(flatten(well_data['A'])).items() if v >= threshold[0] and v <= threshold[1]],
+                  'B':[k for k,v in Counter(flatten(well_data['B'])).items() if v >= threshold[0] and v <= threshold[1]]}
+
+    well_data['A'] = [compare_lists(j,chain_keys['A']) for i,j in enumerate(well_data['A'])]
+    print 'Finished well A adjustment!'
+    well_data['B'] = [compare_lists(j,chain_keys['B']) for i,j in enumerate(well_data['B'])]
+    print 'Finished well B adjustment!'
+
+    print 'Key size:'
+    print ' > A:',len(chain_keys['A'])
+    print ' > B:',len(chain_keys['B'])
+    print 'Uniques:' 
+    print ' > A:',len(set([i for w in well_data['A'] for i in w]))
+    print ' > B:',len(set([i for w in well_data['B'] for i in w]))
+
+    pickle_save_unique(well_data,'well_data',options,'options')
+    print 'Finished saving!'
+
+    return well_data
 
 
-""" DBM Functions """
+    
+class Results:
+    """ Quick class to package output data """
+    def __init__(self,well_dict,chain_origin,chain_seq):
+        # save data to object
+        self.well_data = [[a,b] for a,b in zip(well_dict['A'],well_dict['B'])]
+        self.chain_origin = chain_origin
+        self.chain_seq = chain_seq
+        
+        # also, pick up some slack and make some files for c++ embedding
+        with open('well_data_a.txt','w') as f:
+            for w in well_dict['A']: f.write('{}\n'.format(str(w)[1:-1]))
+        with open('well_data_b.txt','w') as f:
+            for w in well_dict['B']: f.write('{}\n'.format(str(w)[1:-1]))
+        with open('uniques_a.txt','w') as f:
+            for w in chain_origin['A'].keys(): f.write('{}\n'.format(w))
+        with open('uniques_b.txt','w') as f:
+            for w in chain_origin['B'].keys(): f.write('{}\n'.format(w))
 
-def db_load(fname):
-    return dbm.open('./database/'+os.path.splitext(fname)[0],'c')
 
-def db_save(my_dict,fname):
-    if not os.path.isdir('database'):
-        os.mkdir('database')
-    db = dbm.open('database/'+fname,'c')
-    for k,v in my_dict.items():
-        db[str(k)] = str(v) 
-    db.close()
+def flatten(l):
+    """ Flatten a list into a 1D list """
+    return [item for sublist in l for item in sublist]
+
+def compare_lists(l1,l2):
+    """ compares two lists of numerals looking for a match """
+    l1.sort()
+    l2.sort()
+    matches = []
+    i1,i2 = 0,0
+    while not (i1 == len(l1) or i2 == len(l2)):
+        if l1[i1] == l2[i2]:
+            matches.append(l1[i1])
+            i1 += 1
+            i2 += 1
+        elif l1[i1] > l2[i2]:
+            i2 += 1
+        else:
+            i1 += 1
+    return matches
+
 
 
 if __name__ == "__main__":

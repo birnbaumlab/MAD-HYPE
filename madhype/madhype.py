@@ -32,20 +32,28 @@ def simulate_run(solvers, solver_options, **kwargs):
     run(data, solvers, solver_options, **options)
 
 def run(data, solvers, solver_options, **kwargs):
-    options = default_options.copy()
+    general_options = default_options.copy()
 
     # Update options
-    options.update(kwargs)
+    general_options.update(kwargs)
 
     # prepare for storage
     compiled_results = []
 
     # Solve using MAD-HYPE method
-    for mode in solvers:
-        print mode
+    for mode,mode_options in zip(solvers,solver_options):
+
+        options = general_options.copy()
+        options.update(mode_options)
+
         results = solve[mode](data,**options) ## TODO: change options to **options
 
         results.sort(key=lambda x: -x[1])
+
+        # if there are no references for correct sequences
+        if 'cells' in data:
+            compiled_results.append(results)
+            continue
 
         # gather results
         if options['visual']:
