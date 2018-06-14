@@ -2,7 +2,9 @@
 solver_data/*
 results/*
 outdated/*
+database/*
 pairseq-data/*
+venv/*
 
 pairseq-data.tgz
 

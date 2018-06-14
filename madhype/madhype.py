@@ -46,9 +46,16 @@ def run(data, solvers, solver_options, **kwargs):
         options = general_options.copy()
         options.update(mode_options)
 
-        results = solve[mode](data,**options) ## TODO: change options to **options
+        results = solve[mode](data,**options)
 
+        if len(results) > options['max_pairs']:
+            print 'Reducing called pairs from {}->{} (declared limit)...'.format(
+                    len(results),options['max_pairs'])
+            results = results[:options['max_pairs']]
+
+        print 'Starting results sorting by p-value...'
         results.sort(key=lambda x: -x[1])
+        print 'Finished!'
 
         # if there are no references for correct sequences
         if 'cells' in data:
@@ -65,8 +72,8 @@ def run(data, solvers, solver_options, **kwargs):
             compiled_results.append(analyze_results(results,data,**options))
 
     # comparison if two methods are selected
-    if options['compare']:
-        compare_results(compiled_results,data,**options)
+    if general_options['compare']:
+        compare_results(compiled_results,data,**general_options)
 
     # return compiled results
     return compiled_results

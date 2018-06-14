@@ -66,9 +66,11 @@ def get_results_from_subject_reference(results,data,options):
     cells_with_scores = sorted(results,key=lambda x: -x[1])
     cells_without_scores = [i[0] for i in cells_with_scores]
 
+    reported_matches = [('TCRA','TCRB','p-ratio','TCRA origin','TCRB origin','f_ij','f_i','f_j')]
     total = 0
-    x,y = 0,0
+    x,y,n = 0,0,0
     x1,y1 = [0],[0]
+    pattern = []
     
     for c in cells_with_scores:
 
@@ -82,34 +84,40 @@ def get_results_from_subject_reference(results,data,options):
         if j in reference['B']['X']: b += 'X'
         if j in reference['B']['Y']: b += 'Y'
 
-        print a,b,c[1]
-        print i,j
-        print 'Freq:',c[2]
+        reported_matches.append((i,j,c[1],a,b,c[2]['i'],c[2]['j'],c[2]['ij']))
 
         total += 1
 
         if (a == 'X' and b == 'X') or (a == 'Y' and b == 'Y'):
+            pattern.append(1)
             y += 1
         elif (a == 'X' and b == 'Y') or (a == 'Y' and b == 'X'):
+            pattern.append(-1)
             x1.append(x)
             y1.append(y)
             x += 1
+            x1.append(x)
+            y1.append(y)
         else:
+            pattern.append(0)
+            n += 1
             continue 
 
-        if x1[-1] > options['fdr']*y1[-1]:
+        if x1[-1] > 2*options['fdr']*y1[-1]:
             print 'FDR met!'
             break
 
     results = {
               'positives':y1[-1],
               'negatives':x1[-1],
+              'neutral':n,
+              'pattern':pattern,
               'total':total,
-              'xy':[x1,y1]
+              'xy':[x1,y1],
+              'options':options,
               }
 
-    for k,v in results.items():
-        print k,v
+    write_matches_to_xlsx()
 
     trace0 = go.Scatter(x=x1,y=y1) 
     py.plot([trace0,],filename='Howie FDR')
