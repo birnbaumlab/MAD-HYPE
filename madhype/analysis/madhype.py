@@ -10,6 +10,7 @@ import time
 from collections import Counter
 from operator import mul
 from sys import argv
+import random
 
 # nonstandard libraries
 from scipy.misc import comb
@@ -58,11 +59,10 @@ def solve(data,**kwargs):
                         for i in xrange(len(num_wells))]
         if not silent: print 'Finished {} chain identification.'.format(label)
 
-    
     """ --- Generate data density filter --- """
 
     # generate filter dictionary
-    filt = BuildFilter(well_distribution,num_wells, fdr)
+    filt = BuildFilter(well_distribution,num_wells,fdr)
 
     '''#
     print 'Filter:'
@@ -115,17 +115,20 @@ def solve(data,**kwargs):
             # calculate match probability
             p,f = match_probability(pair_data,options['prior_match'])
 
-            #print pair_data
-            #print f
-            #print p
-            #print (a,b)
-            #raw_input()
-            
             # CHANGE THIS BACK, THIS IS IMPORTANT (REMOVE SECOND STATEMENT #
             # THIS IS A TEMPORARY CHANGE TO GAIN ACCESS TO CERTAIN VALUES #
-            if False:#a == b:
-                results.append((((a,),(b,)),p,f[0]))
-            elif p > options['threshold']:
+
+            '''
+            if a == 'TCTCTGCACATTGTGCCCTCCCAGCCTGGAGACTCTGCAGTGTACTTCTGTGCAGCATTAGGTGGTTCTGCAAGGCAACTGACCTTT' and \
+                    b == 'CTGTCGGCTGCTCCCTCCCAGACATCTGTGTACTTCTGTGCCAGCAGTTACGGAGCCCCCGGGACAGCCTTTTACGAGCAGTACTTC':#a == b:
+                #if a == 'TCCTTGTTCATCAGAGACTCACAGCCCAGTGATTCAGCCACCTACCTCTGTGCAGGAGTGCCCTCAGGAACCTACAAATACATCTTT':#a == b:
+                print 'STOP:'
+                print pair_data
+                print p,f 
+                #results.append((((a,),(b,)),p,f[0]))
+            '''
+
+            if p > options['threshold']:
                 if filt.check_tuple(pair_data['w_ij']): continue
                 results.append((((a,),(b,)),p,f[0]))
 
@@ -153,7 +156,7 @@ def _data_intersect(d1,d2,num_wells):
 
 class BuildFilter(object):
 
-    def __init__(self,well_distribution,num_wells, fdr):
+    def __init__(self,well_distribution,num_wells,fdr):
 
         """ Initializes filter using well distributions and options """
 

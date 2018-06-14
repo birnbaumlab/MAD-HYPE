@@ -20,6 +20,9 @@ general_options = {
     'silent':False,
     'visual':True,
     'compare':False,
+
+    # bridge options
+    'max_pairs':1000000,
 }
 
 madhype_options = {

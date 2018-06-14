@@ -9,10 +9,15 @@ from math import log10,ceil,floor
 # nonstandard libraries
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly
+import plotly.plotly as py
+import plotly.graph_objs as go
 
 # homegrown libraries
 plt.rcParams["font.family"] = "serif"
 
+# library setup
+plotly.tools.set_credentials_file(username='Pandyr', api_key='AVy42TUJYGQm0TxLEPMl')
 
 '''
 MAIN FUNCTIONS
@@ -28,17 +33,99 @@ def analyze_results(results,data,**kwargs):
 
     # default options parameters
     options = {
-              'fdr':0.01,
-              'silent':False
+              'fdr':0.05,
+              'silent':False,
+              'reference':None,
               }
 
     # update options
     options.update(kwargs)
 
-    # assertion check
+    # if this is not a simulated dataset with a hard set of 
+    if not 'cells' in data:
 
-    # check whats inside results
+        if options['reference'] == None:
+            print 'No cell or subject reference provided, cannot produce meaningful results!'
+            return {}
+
+        if not is_reference_valid(options):
+            print 'Reference not valid, cannot perform analysis!'
+            return {}
+        
+        print 'Starting analysis using subject reference'
+        return get_results_from_subject_reference(results,data,options)
+
+    else:
+
+        return get_results_from_cell_reference(results,data,options)
+
+def get_results_from_subject_reference(results,data,options):
+
+    reference = options['reference']
+
+    cells_with_scores = sorted(results,key=lambda x: -x[1])
+    cells_without_scores = [i[0] for i in cells_with_scores]
+
+    reported_matches = [('TCRA','TCRB','p-ratio','TCRA origin','TCRB origin','f_ij','f_i','f_j')]
+    total = 0
+    x,y,n = 0,0,0
+    x1,y1 = [0],[0]
+    pattern = []
     
+    for c in cells_with_scores:
+
+        a,b = '',''
+
+        i = c[0][0][0]
+        j = c[0][1][0]
+
+        if i in reference['A']['X']: a += 'X'
+        if i in reference['A']['Y']: a += 'Y'
+        if j in reference['B']['X']: b += 'X'
+        if j in reference['B']['Y']: b += 'Y'
+
+        reported_matches.append((i,j,c[1],a,b,c[2]['i'],c[2]['j'],c[2]['ij']))
+
+        total += 1
+
+        if (a == 'X' and b == 'X') or (a == 'Y' and b == 'Y'):
+            pattern.append(1)
+            y += 1
+        elif (a == 'X' and b == 'Y') or (a == 'Y' and b == 'X'):
+            pattern.append(-1)
+            x1.append(x)
+            y1.append(y)
+            x += 1
+            x1.append(x)
+            y1.append(y)
+        else:
+            pattern.append(0)
+            n += 1
+            continue 
+
+        if x1[-1] > 2*options['fdr']*y1[-1]:
+            print 'FDR met!'
+            break
+
+    results = {
+              'positives':y1[-1],
+              'negatives':x1[-1],
+              'neutral':n,
+              'pattern':pattern,
+              'total':total,
+              'xy':[x1,y1],
+              'options':options,
+              }
+
+    write_matches_to_xlsx()
+
+    trace0 = go.Scatter(x=x1,y=y1) 
+    py.plot([trace0,],filename='Howie FDR')
+
+    return results
+
+def get_results_from_cell_reference(results,data,options):
+
     # these are guessed cells
     cells_with_scores = sorted(results,key=lambda x: -x[1])
     cells_without_scores = [i[0] for i in cells_with_scores]
@@ -247,6 +334,39 @@ def visualize_results(results,data,**kwargs):
     return cresults
 
 #------------------------------------------------------------------------------# 
+
+def is_reference_valid(options):
+
+    reference = options['reference'] # transfer to local namespace
+
+    passing = True
+
+    # if this is not a simulated dataset with a hard set of 
+    if reference == None:
+        print 'No cell or subject reference provided, cannot produce meaningful results!'
+        return False  
+
+    # check to make sure the right dict keys exist
+    for s in 'AB':
+
+        if not s in reference:
+            print '{} not in reference dict!'.format(s)
+            passing = False
+            continue
+
+        for c in 'XY':
+            if not c in reference[s]:
+                print '{} not in reference[{}] subdict!'.format(c,s)
+                passing = False
+
+    return passing
+    
+
+
+
+
+    check_subject_reference(options)
+
 
 def compare_results(cresults,**kwargs):
 
