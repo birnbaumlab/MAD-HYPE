@@ -29,24 +29,20 @@ def simulate_run(solvers, solver_options, **kwargs):
     cells, cell_frequencies = simulation.generate_cells(**options)
     data = simulation.generate_data(cells, cell_frequencies, **options)
 
-    return run(data, solvers, solver_options, **options)
+    return data, run(data, solvers, solver_options, **options)
 
 def run(data, solvers, solver_options, **kwargs):
-    general_options = default_options.copy()
+    options = default_options.copy()
 
     # Update options
-    general_options.update(kwargs)
+    options.update(kwargs)
 
     # prepare for storage
     compiled_results = []
 
     # Solve using MAD-HYPE method
     for mode,mode_options in zip(solvers,solver_options):
-
-        options = general_options.copy()
-        options.update(mode_options)
-
-        results = solve[mode](data,**options)
+        results = solve[mode](data,**mode_options)
 
         if len(results) > options['max_pairs']:
             print 'Reducing called pairs from {}->{} (declared limit)...'.format(
@@ -56,11 +52,6 @@ def run(data, solvers, solver_options, **kwargs):
         print 'Starting results sorting by p-value...'
         results.sort(key=lambda x: -x[1])
         print 'Finished!'
-
-        # if there are no references for correct sequences
-        if 'cells' in data:
-            compiled_results.append(results)
-            continue
 
         # gather results
         if options['visual']:
@@ -72,8 +63,8 @@ def run(data, solvers, solver_options, **kwargs):
             compiled_results.append(analyze_results(results,data,**options))
 
     # comparison if two methods are selected
-    if general_options['compare']:
-        compare_results(compiled_results,data,**general_options)
+    if options['compare']:
+        compare_results(compiled_results,data,**options)
 
     # return compiled results
     return compiled_results

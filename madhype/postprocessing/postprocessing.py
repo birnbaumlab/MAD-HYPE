@@ -14,6 +14,7 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 
 # homegrown libraries
+from ..defaults import general_options as default_options
 plt.rcParams["font.family"] = "serif"
 
 # library setup
@@ -32,13 +33,10 @@ def analyze_results(results,data,**kwargs):
     """
 
     # default options parameters
-    options = {
-              'fdr':0.05,
-              'silent':False,
-              'reference':None,
-              }
-
+    options = default_options.copy()
+    
     # update options
+    # kwargs must contain 'reference' if the true cells are not included in the data
     options.update(kwargs)
 
     # if this is not a simulated dataset with a hard set of 
@@ -46,11 +44,11 @@ def analyze_results(results,data,**kwargs):
 
         if options['reference'] == None:
             print 'No cell or subject reference provided, cannot produce meaningful results!'
-            return {}
+            return {'raw_results': results}
 
         if not is_reference_valid(options):
             print 'Reference not valid, cannot perform analysis!'
-            return {}
+            return {'raw_results': results}
         
         print 'Starting analysis using subject reference'
         return get_results_from_subject_reference(results,data,options)
@@ -115,6 +113,7 @@ def get_results_from_subject_reference(results,data,options):
               'total':total,
               'xy':[x1,y1],
               'options':options,
+              'raw_results': cells_with_scores,
               }
 
     write_matches_to_xlsx()
@@ -138,7 +137,7 @@ def get_results_from_cell_reference(results,data,options):
     total_cells = len(cells_temp)
 
     # look at error rate (stratified by confidence)
-    x1,y1,fdr = [0],[0],0.01
+    x1,y1 = [0],[0]
     warning=True # warning if you didn't pass enough points
 
     for c in cells_with_scores:
@@ -203,7 +202,8 @@ def get_results_from_cell_reference(results,data,options):
               'negatives':len(pattern) - sum(pattern),
               'total':len(pattern),
               'freqs':cells_freqs,
-              'xy':[x1,y1]
+              'xy':[x1,y1],
+              'raw_results': cells_with_scores
               }
 
     if True:#not options['silent']:
@@ -225,15 +225,7 @@ def visualize_results(results,data,**kwargs):
     """
 
     # default options parameters
-    options = {
-            'fdr':0.01,
-            'fdr_plot':0.01,
-            'pos_color':'black',
-            'neg_color':'white',
-            'legend':True,
-            'silent':False,
-            'visual_block':True
-               }
+    options = default_options.copy()
 
     # update options
     options.update(kwargs)

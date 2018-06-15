@@ -200,7 +200,8 @@ def estimate_cell_frequencies(seq_data, cells):
     cell_freqs.append(f_opt)
     cell_freq_CIs.append((f_min, f_max))
 
-    print "Computing chain pair frequencies... {0}%\r".format(int(100.*len(cell_freqs)/len(cells))),
+    if (100 * len(cell_freqs)) % len(cells) < 100: # update status whenever percent complete changes
+      print "Computing chain pair frequencies... {0}%\r".format(int(100.*len(cell_freqs)/len(cells))),
   print '' 
   return cell_freqs, cell_freq_CIs
 
@@ -310,6 +311,8 @@ def pairs_to_cells(seq_data, pairs):
 
       if alt_log_likelihood - null_log_likelihood >= 10:
         duals.append(cells_temp[3])
+      ## It appears Lee et al. include an additional restriction (see https://github.com/edwardslee/alphabetr/blob/f8fe7cdc1630e89ba173d0652b59b03724b1cade/R/dual_top.R#L160), that the null_log_likelihood be between 40 and 100.
+      ## Not implemented here, as it's not part of the published methodology.
 
     return duals
 

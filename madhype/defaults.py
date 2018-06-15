@@ -5,7 +5,7 @@ general_options = {
 
     # simulated repertoire
     'num_cells':1000,
-    'seed':1,
+#    'seed':1,
     'cell_freq_distro': 'power-law',
     'cell_freq_constant':       1.0,
     'cell_freq_max':            0.01,
@@ -16,13 +16,22 @@ general_options = {
     'alpha_sharing_probs':      0.0,
     'beta_sharing_probs':       0.0,
 
-    # visual cues
-    'silent':False,
+    # postprocessing
     'visual':True,
     'compare':False,
-
-    # bridge options
     'max_pairs':1000000,
+    'fdr': 0.01,
+    'reference': None,
+
+    # visualization
+    'fdr_plot': 0.01,
+    'pos_color': 'black',
+    'neg_color': 'white',
+    'legend': True,
+    'visual_block': True,
+
+    # misc
+    'silent':False
 }
 
 madhype_options = {
