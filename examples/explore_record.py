@@ -47,21 +47,21 @@ def main():
             'options':
             {
                 'cpw':     (2000,),
-                'num_wells': (24,),
+                'num_wells': (96,),
             }
            }
 
     processing_options = {
-            'threshold':   (4,90),
-            'overwrite':     True,        # surpresses some inte
-            'silent':       False,        # supresses some intermediate input/output
-            'well_threshold':   5,        # minimum number of wells for a chain to appear to be added to subject reference 
-            'well_cap':        96,        # maximum number of wells for a chain to appear to be added to subject reference 
-            'appears_in_reference':False, # only add a sequence from data if it appears in a reference
+            'data_well_threshold':      3,  # minimum number of wells for a chain to appear to be added to dataset
+            'data_well_cap':           96,  # maximum number of wells for a chain to appear to be added to dataset
+            'overwrite':            False,  # surpresses some inte
+            'silent':               False,  # supresses some intermediate input/output
+            'subject_well_threshold':   5,  # minimum number of wells for a chain to appear to be added to subject reference 
+            'subject_well_cap':        96,  # maximum number of wells for a chain to appear to be added to subject reference 
+            'appears_in_reference': False,  # only add a sequence from data if it appears in a reference
             }
 
     # create a subject reference
-
     reference = make_reference(repertoire,**processing_options)
 
     #results = load_howie_data(**dirnameEXP)
@@ -72,7 +72,10 @@ def main():
             'reference': reference,
             'visual':        False,
             'max_pairs':    400000,
+            'threshold':      100.,
             }
+
+    options.update(processing_options)
 
     # run madhype on datasets
     for label,dirname in dirnameEXP.items():
@@ -92,7 +95,6 @@ def main():
                 )
 
         print 'MAD-HYPE took {} seconds.\n'.format(datetime.now()-startTime)
-
 
     #combine(results,reference)
 
@@ -234,14 +236,14 @@ def subjectXYdata(dirnameX,dirnameY):
 def make_reference(repertoire=None,**kwargs):
 
     options = {
-            'well_threshold': 5,
-            'well_cap':      94,
+            'subject_well_threshold': 5,
+            'subject_well_cap':      94,
             }
 
     options.update(kwargs)
 
-    well_threshold = options['well_threshold']
-    well_cap =       options['well_cap']
+    well_threshold = options['subject_well_threshold']
+    well_cap =       options['subject_well_cap']
 
     fname = '{}n-{}m.p'.format(well_threshold,well_cap)
 
@@ -401,7 +403,8 @@ def data_assignment(dirname,reference,**kwargs):
 
     options = {
             'silent':False,
-            'threshold':(4,93),
+            'data_well_threshold':    4,
+            'data_well_cap':         96,
             'appears_in_reference':True,
             }
 
@@ -409,7 +412,8 @@ def data_assignment(dirname,reference,**kwargs):
 
     # local namespace
     silent = options['silent']
-    threshold = options['threshold']
+    threshold = options['data_well_threshold']
+    cap = options['data_well_cap']
     appears_in_reference = options['appears_in_reference']
 
     # create DBM dictionaries
@@ -482,8 +486,8 @@ def data_assignment(dirname,reference,**kwargs):
                    
     # remove chains that occur less than threshold 
     print 'Adjusting well data for well occurance threshold...'
-    chain_keys = {'A':[k for k,v in Counter(flatten(well_data['A'])).items() if v >= threshold[0] and v <= threshold[1]],
-                  'B':[k for k,v in Counter(flatten(well_data['B'])).items() if v >= threshold[0] and v <= threshold[1]]}
+    chain_keys = {'A':[k for k,v in Counter(flatten(well_data['A'])).items() if v >= threshold and v <= cap],
+                  'B':[k for k,v in Counter(flatten(well_data['B'])).items() if v >= threshold and v <= cap]}
 
     well_data['A'] = [compare_lists(j,chain_keys['A']) for i,j in enumerate(well_data['A'])]
     print 'Finished well A adjustment!'

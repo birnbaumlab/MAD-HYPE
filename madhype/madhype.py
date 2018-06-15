@@ -48,19 +48,14 @@ def run(data, solvers, solver_options, **kwargs):
 
         results = solve[mode](data,**options)
 
-        if len(results) > options['max_pairs']:
-            print 'Reducing called pairs from {}->{} (declared limit)...'.format(
-                    len(results),options['max_pairs'])
-            results = results[:options['max_pairs']]
-
         print 'Starting results sorting by p-value...'
         results.sort(key=lambda x: -x[1])
         print 'Finished!'
 
-        # if there are no references for correct sequences
-        if 'cells' in data:
-            compiled_results.append(results)
-            continue
+        if len(results) > options['max_pairs']:
+            print 'Reducing called pairs from {}->{} (declared limit)...'.format(
+                    len(results),options['max_pairs'])
+            results = results[:options['max_pairs']]
 
         # gather results
         if options['visual']:

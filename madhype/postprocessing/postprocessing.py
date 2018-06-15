@@ -5,6 +5,7 @@ Attempt to test variable cells per well
 
 # standard libraries
 from math import log10,ceil,floor
+import os
 
 # nonstandard libraries
 import numpy as np
@@ -12,6 +13,7 @@ import matplotlib.pyplot as plt
 import plotly
 import plotly.plotly as py
 import plotly.graph_objs as go
+import openpyxl
 
 # homegrown libraries
 plt.rcParams["font.family"] = "serif"
@@ -30,6 +32,8 @@ def analyze_results(results,data,**kwargs):
     """
     Processes results dictionary using data object as reference
     """
+
+    print 'Analyzing results..'
 
     # default options parameters
     options = {
@@ -53,6 +57,7 @@ def analyze_results(results,data,**kwargs):
             return {}
         
         print 'Starting analysis using subject reference'
+
         return get_results_from_subject_reference(results,data,options)
 
     else:
@@ -71,8 +76,11 @@ def get_results_from_subject_reference(results,data,options):
     x,y,n = 0,0,0
     x1,y1 = [0],[0]
     pattern = []
-    
-    for c in cells_with_scores:
+
+    for index,c in enumerate(cells_with_scores):
+
+        if index < 1000:
+            print index,' : ',c 
 
         a,b = '',''
 
@@ -110,19 +118,85 @@ def get_results_from_subject_reference(results,data,options):
     results = {
               'positives':y1[-1],
               'negatives':x1[-1],
-              'neutral':n,
+              'neutrals':n,
               'pattern':pattern,
               'total':total,
-              'xy':[x1,y1],
+              'x':x1,
+              'y':y1,
               'options':options,
+              'matches':reported_matches,
               }
 
-    write_matches_to_xlsx()
+    write_results_to_xslx(results)
 
     trace0 = go.Scatter(x=x1,y=y1) 
     py.plot([trace0,],filename='Howie FDR')
 
+    print 'Finished plotly stuff!'
+
     return results
+
+def write_results_to_xslx(results):
+
+    # pull options and matches from results
+    options = results.pop('options',{})
+    matches = results.pop('matches',{})
+    options.pop('reference',{})
+    results.pop('reference',{})
+
+    # create new workbook
+    wb = openpyxl.Workbook() # open new workbook
+
+    # settings sheet
+    _write_dict_to_wb(wb,options,'OPTIONS')
+    _write_dict_to_wb(wb,results,'SUMMARY')
+
+    # data sheet
+    ws = wb.create_sheet(title='MATCHES')
+    for match in matches:
+        ws.append(match)
+
+    # save file to unique name
+    _unique_wb_save(wb,'results','./results')
+
+def _write_dict_to_wb(wb,settings,sheet_name):
+    """ Settings writing """
+    ws = wb.create_sheet(title=sheet_name)
+
+    for k,v in settings.items():
+        if isinstance(v,dict):
+            ws.append((k,'dict->'))
+            for k2,v2 in v.items():
+                if isinstance(v2,(tuple,list)):
+                    ws.append(('->',k2)+tuple(v2))
+                else:
+                    ws.append(('->',k2,v2))
+        elif isinstance(v,(tuple,list)):
+            ws.append([k] + list(v))
+        else:
+            ws.append((k,str(v)))
+
+def _unique_wb_save(wb,name,directory):
+
+    if not os.path.isdir(directory):
+        os.mkdir(directory)
+
+    # reference object
+    for i in range(1,10000):
+
+        reference_fname = os.path.join(directory,'{}_{}.xlsx'.format(name,str(i).zfill(4)))
+
+        if os.path.isfile(reference_fname): continue
+
+        # try removing starting blank sheet
+        try: del wb['Sheet']
+        except: pass
+
+        print 'Saving to excel:',reference_fname
+
+        wb.save(reference_fname) # save final workbook
+
+        return
 
 def get_results_from_cell_reference(results,data,options):
 
