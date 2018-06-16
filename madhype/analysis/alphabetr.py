@@ -17,6 +17,7 @@ import multiprocessing as mp
 import numpy as np
 import scipy.optimize, scipy.misc, scipy.cluster
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 # homegrown libraries
 from ..defaults import alphabetr_options as default_options
@@ -102,15 +103,10 @@ def _solve_singleprocessing(well_data, all_alphas, all_betas, **kwargs):
     iters = kwargs['iters']
 
     overall_pairing_counts = {}
-    for iter in range(iters):
+    for iter in tqdm(range(iters)):
         pairs = _solve_iter(solve_args)
         for p in pairs:
             overall_pairing_counts[p] = overall_pairing_counts.get(p, 0) + 1
-
-        if 100 * iter % iters < 100:
-            print "Computing likely pairings... {0}%\r".format(100*(iter+1)/iters),
-            sys.stdout.flush()
-    print ''
     return overall_pairing_counts
 def _solve_multiprocessing(well_data, all_alphas, all_betas, **kwargs):
     solve_args = (well_data, all_alphas, all_betas, kwargs)
@@ -122,17 +118,9 @@ def _solve_multiprocessing(well_data, all_alphas, all_betas, **kwargs):
     pool.close()
     
     overall_pairing_counts = {}
-    iter = 0
-    for pairs in results_iter:
+    for pairs in tqdm(results_iter):
         for p in pairs:
             overall_pairing_counts[p] = overall_pairing_counts.get(p, 0) + 1
-
-        if 100 * iter % iters < 100:
-            print "Computing likely pairings... {0}%\r".format(100*(iter+1)/iters),
-            sys.stdout.flush()
-
-        iter += 1
-    print ''
     return overall_pairing_counts
 def _solve_iter(args):
     well_data, all_alphas, all_betas, options = args
