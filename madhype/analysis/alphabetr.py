@@ -11,6 +11,7 @@ Solver for ALPHABETR method
 import random
 import sys
 import itertools as it
+import multiprocessing as mp
 
 # nonstandard libraries
 import numpy as np
@@ -43,20 +44,7 @@ def solve(seq_data,**kwargs):
     pair_threshold = options['pair_threshold']
     silent = options['silent']
 
-    ## Computes a solution to the alpha-beta pairing problem, using the methods in Lee et al. (2017)
-    def compute_well_pairings(alpha_idx, beta_idx, scores):
-
-        if len(alpha_idx)==0 or len(beta_idx)==0:    
-                return [] # scipy hungarian implementation doesn't handle this edge case
-
-        # Reformulate problem as a general assignment problem
-        # Then apply Hungarian algorithm
-        # Indices in the results of running Hungarian are transformed back into alpha/beta chain ids
-        ratings = [[-scores[i][j] for j in beta_idx] for i in alpha_idx]
-        pairings = [(alpha_idx[i], beta_idx[j]) for i,j in zip(*scipy.optimize.linear_sum_assignment(ratings))]
-
-        return pairings
-    
+   
     # Extract all distinct alpha- and beta-chains observed
     # TODO: might be better to extract the chains directly from the cells in the system
     all_alphas, all_betas = extract_chains(seq_data)
@@ -69,52 +57,10 @@ def solve(seq_data,**kwargs):
     well_data = zip(*[[[label_to_idx[chain][l] for l in well_labels] 
             for well_labels in seq_data['well_data'][chain]] for chain in ('A','B')])
 
-    overall_pairing_counts = {}
-    for iter in range(iters):
-        # Choose random subset of wells for this iter
-        # Loop is to ensure that subset size is greater than 0 (can happen w/ small well count)
-        #wells_idx = []
-        #while len(wells_idx)==0:    wells_idx = [i for i in range(len(well_data)) if random.random()>0.5]
-        # Actually, each random subset is constant fraction (0.75) of all wells
-        wells_idx = np.random.choice(range(len(well_data)), int(0.75*len(well_data)), replace=False)
-        
-        # Calculate association scores
-        S = [[0 for j in range(len(all_betas))] for i in range(len(all_alphas))]
-        for well_idx in wells_idx:
-            well_alpha_idx, well_beta_idx = well_data[well_idx]
-            for a_idx in well_alpha_idx:
-                for b_idx in well_beta_idx:
-                    increment = 1./len(well_alpha_idx) + 1./len(well_beta_idx)
-                    S[a_idx][b_idx] += increment
-
-
-        # Compute well pairings for any well, if it hasn't been done already
-        # Then accumulate the number of times each pair has been assigned in a well pairing
-        pairing_counts = {}
-        for idx, well_idx in enumerate(wells_idx):
-            well_pairings = compute_well_pairings(*well_data[well_idx], scores=S)
-            #print "Computing likely pairings... {0}%\r".format(int(100*((iter+1) + float(idx)/len(wells_idx))/iters)),
-            #print 'Well pairings:',well_pairings
-            for a,b in well_pairings:
-                pairing_counts[(a,b)] = pairing_counts.get((a,b), 0) + 1
-
-        # Compute filter cutoff (average of all nonzero pair counts)
-        cutoff = np.mean(pairing_counts.values())
-
-        # Extract all pairs with counts exceeding the cutoff
-
-        #print 'Cutoff:',cutoff
-
-        good_pairs = [pair for pair in pairing_counts if pairing_counts[pair]>cutoff]
-
-        # For each pair exceeding the cutoff, increment the overall_pairing_counts number
-        for pair in good_pairs:
-            overall_pairing_counts[pair] = overall_pairing_counts.get(pair, 0) + 1
-
-        print "Computing likely pairings... {0}%\r".format(100*(iter+1)/iters),
-        sys.stdout.flush()
-
-    print ''
+    if options['num_processes'] is None:
+        overall_pairing_counts = _solve_singleprocessing(well_data, all_alphas, all_betas, **options)
+    else:
+        overall_pairing_counts = _solve_multiprocessing(well_data, all_alphas, all_betas, **options)
 
     overall_good_pairs = [pair for pair in overall_pairing_counts if overall_pairing_counts[pair]>=pair_threshold*iters]
 
@@ -149,6 +95,93 @@ def solve(seq_data,**kwargs):
     '''
 
     return results
+
+## Auxiliary solve functions
+def _solve_singleprocessing(well_data, all_alphas, all_betas, **kwargs):
+    solve_args = (well_data, all_alphas, all_betas, kwargs)
+    iters = kwargs['iters']
+
+    overall_pairing_counts = {}
+    for iter in range(iters):
+        pairs = _solve_iter(solve_args)
+        for p in pairs:
+            overall_pairing_counts[p] = overall_pairing_counts.get(p, 0) + 1
+
+        if 100 * iter % iters < 100:
+            print "Computing likely pairings... {0}%\r".format(100*(iter+1)/iters),
+            sys.stdout.flush()
+    print ''
+    return overall_pairing_counts
+def _solve_multiprocessing(well_data, all_alphas, all_betas, **kwargs):
+    solve_args = (well_data, all_alphas, all_betas, kwargs)
+    iters = kwargs['iters']
+    num_processes = kwargs['num_processes']
+
+    pool = mp.Pool(num_processes)
+    results_iter = pool.imap_unordered(_solve_iter, [solve_args] * iters)
+    pool.close()
+    
+    overall_pairing_counts = {}
+    iter = 0
+    for pairs in results_iter:
+        for p in pairs:
+            overall_pairing_counts[p] = overall_pairing_counts.get(p, 0) + 1
+
+        if 100 * iter % iters < 100:
+            print "Computing likely pairings... {0}%\r".format(100*(iter+1)/iters),
+            sys.stdout.flush()
+
+        iter += 1
+    print ''
+    return overall_pairing_counts
+def _solve_iter(args):
+    well_data, all_alphas, all_betas, options = args
+
+    # Choose random subset of wells for this iter
+    # Each random subset is constant fraction (0.75) of all wells
+    wells_idx = np.random.choice(range(len(well_data)), int(0.75*len(well_data)), replace=False)
+    
+    # Calculate association scores
+    S = [[0 for j in range(len(all_betas))] for i in range(len(all_alphas))]
+    for well_idx in wells_idx:
+        well_alpha_idx, well_beta_idx = well_data[well_idx]
+        for a_idx in well_alpha_idx:
+            for b_idx in well_beta_idx:
+                increment = 1./len(well_alpha_idx) + 1./len(well_beta_idx)
+                S[a_idx][b_idx] += increment
+
+
+    # Compute well pairings for every well
+    # Then accumulate the number of times each pair has been assigned in a well pairing
+    pairing_counts = {}
+    for idx, well_idx in enumerate(wells_idx):
+        well_pairings = _compute_well_pairings(*well_data[well_idx], scores=S)
+        for a,b in well_pairings:
+            pairing_counts[(a,b)] = pairing_counts.get((a,b), 0) + 1
+
+    # Compute filter cutoff (average of all nonzero pair counts)
+    cutoff = np.mean(pairing_counts.values())
+
+    # Extract all pairs with counts exceeding the cutoff
+    good_pairs = [pair for pair in pairing_counts if pairing_counts[pair]>cutoff]
+
+    return good_pairs
+
+## Computes a solution to the alpha-beta pairing problem, using the methods in Lee et al. (2017)
+def _compute_well_pairings(alpha_idx, beta_idx, scores):
+
+    if len(alpha_idx)==0 or len(beta_idx)==0:    
+        return [] # scipy hungarian implementation doesn't handle this edge case
+
+    # Reformulate problem as a general assignment problem
+    # Then apply Hungarian algorithm
+    # Indices in the results of running Hungarian are transformed back into alpha/beta chain ids
+    ratings = [[-scores[i][j] for j in beta_idx] for i in alpha_idx]
+    pairings = [(alpha_idx[i], beta_idx[j]) for i,j in zip(*scipy.optimize.linear_sum_assignment(ratings))]
+
+    return pairings
+ 
+
 
 def estimate_cell_frequencies(seq_data, cells):
 

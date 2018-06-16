@@ -48,5 +48,8 @@ madhype_options = {
 alphabetr_options = {
     'iters':100,
     'pair_threshold':0.9,
-    'silent':False
+
+    'num_processes': 8,
+
+    'silent':False,
 }
