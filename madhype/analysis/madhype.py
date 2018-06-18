@@ -70,17 +70,8 @@ def solve(data,**kwargs):
         print '{}: p = {}'.format(k,v)
     #'''
 
-    '''#
-    print 'Cells:'
-    for i in xrange(options['num_cells']):
-        c = ((i,),(i,))
-        print '{}: p = {}'.format(c,data['cells'][c])
-    #'''
-
     # initialize list
     results = [] # initialize list
-    freqs = [] # initialize list
-    pair_datas = [] # initialize list
 
     # REMOVE THIS
     bypass_filter = False 

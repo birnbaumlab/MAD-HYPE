@@ -1,4 +1,3 @@
-
 # standard libraries
 from copy import deepcopy
 import os
@@ -38,16 +37,16 @@ def main():
             #'Experiment 2': dirnameDATA + '/experiment2',
             }
 
-    #files = subjectXYdata(dirnameX,dirnameY)
+    files = subjectXYdata(dirnameX,dirnameY)
 
-    #repertoire = catalog_repertoire(*files,overwrite = False)
+    repertoire = catalog_repertoire(*files,overwrite = False)
 
 
     data = {
             'options':
             {
                 'cpw':     (2000,),
-                'num_wells': (96,),
+                'num_wells': (24,),
             }
            }
 
@@ -58,12 +57,13 @@ def main():
             'silent':               False,  # supresses some intermediate input/output
             'subject_well_threshold':   5,  # minimum number of wells for a chain to appear to be added to subject reference 
             'subject_well_cap':        96,  # maximum number of wells for a chain to appear to be added to subject reference 
-            'appears_in_reference': False,  # only add a sequence from data if it appears in a reference
+            'appears_in_reference':  True,  # only add a sequence from data if it appears in a reference
             }
 
     # create a subject reference
     reference = make_reference(repertoire,**processing_options)
 
+    print 'Defeinitely here'
     #results = load_howie_data(**dirnameEXP)
     #analyze_results(results['Experiment 1'],data,reference=reference)
     #raw_input('Waiting..')
@@ -363,6 +363,8 @@ def file_check(*fnames):
 
 def pickle_load_unique(data_label,my_id,id_label):
     """ Loads pickle by filename """
+    if not os.path.isdir('database'):
+        os.mkdir('database')
     for file in os.listdir("./database"):
         if file.startswith(id_label) and file.endswith(".p"):
             loaded_id = pickle.load(open('./database/' + file,'rb'))
