@@ -11,6 +11,7 @@ from collections import Counter
 from operator import mul
 from sys import argv
 import random
+from multiprocessing import cpu_count, Process, Pipe
 
 # nonstandard libraries
 from scipy.misc import comb
@@ -64,66 +65,138 @@ def solve(data,**kwargs):
     # generate filter dictionary
     filt = BuildFilter(well_distribution,num_wells,fdr)
 
-    '''#
-    print 'Filter:'
-    for k,v in w_filter.items():
-        print '{}: p = {}'.format(k,v)
-    #'''
-
     # initialize list
     results = [] # initialize list
 
     # REMOVE THIS
     bypass_filter = False 
 
-    # Iterate through combinations!
-    for i,a in enumerate(uniques['A']):
+    # arguments to pass to worker functions
+    args = [well_distribution['B'],
+            num_wells,
+            cpw,
+            filt,
+            options['prior_alpha'],
+            options['prior_match'],
+            options['threshold']]
 
-        # give heads up on progress
-        if i % 10 == 0: 
-            if not silent: print 'Starting A-chain {}...'.format(i)
+    cores = cpu_count()
+    cores = 4
 
-        # apply filter (before itersection,A)
-        if filt.check_dist(well_distribution['A'][a]) and not bypass_filter: continue
+    alpha_dicts = chunkify_dict(well_distribution['A'],cores)
 
-        for j,b in enumerate(uniques['B']):
+    print 'Sequences partitioned into {} sections...'.format(len(alpha_dicts))
+    print 'Sequences per core:'
+    for alpha in alpha_dicts:
+        print '{} sequences'.format(len(alpha))
 
-            # apply filter (before itersection,B)
-            if filt.check_dist(well_distribution['B'][b]) and not bypass_filter: continue
+    # multithread solver 
+    results = parmap(create_worker(*args),alpha_dicts)
 
-            # set up input
-            pair_data = _data_intersect(
-                    well_distribution['A'][a],well_distribution['B'][b],num_wells)
+    # flatten list
+    results = [entry for subresults in results for entry in subresults]
 
-            # apply filter (on intersection)
-            if filt.check_tuple(pair_data['w_ij']) and not bypass_filter: continue
-
-            # add keys to dictionary where needed
-            pair_data['alpha'] = options['prior_alpha']
-            pair_data['cpw'] = cpw
-            pair_data['label'] = ((a,),(b,))
-
-            # calculate match probability
-            p,f = match_probability(pair_data,options['prior_match'])
-
-            # CHANGE THIS BACK, THIS IS IMPORTANT (REMOVE SECOND STATEMENT #
-            # THIS IS A TEMPORARY CHANGE TO GAIN ACCESS TO CERTAIN VALUES #
-
-            '''
-            if a == 'TCTCTGCACATTGTGCCCTCCCAGCCTGGAGACTCTGCAGTGTACTTCTGTGCAGCATTAGGTGGTTCTGCAAGGCAACTGACCTTT' and \
-                    b == 'CTGTCGGCTGCTCCCTCCCAGACATCTGTGTACTTCTGTGCCAGCAGTTACGGAGCCCCCGGGACAGCCTTTTACGAGCAGTACTTC':#a == b:
-                #if a == 'TCCTTGTTCATCAGAGACTCACAGCCCAGTGATTCAGCCACCTACCTCTGTGCAGGAGTGCCCTCAGGAACCTACAAATACATCTTT':#a == b:
-                print 'STOP:'
-                print pair_data
-                print p,f 
-                #results.append((((a,),(b,)),p,f[0]))
-            '''
-
-            if p > options['threshold']:
-                if filt.check_tuple(pair_data['w_ij']): continue
-                results.append((((a,),(b,)),p,f[0]))
-
+    # return results
     return results
+
+
+#------------------------------------------------------------------------------# 
+""" Multiprocessing Methods """
+#------------------------------------------------------------------------------# 
+
+def _data_intersect(d1,d2,num_wells):
+    """ Inputs two lists of sets of indices, formats for match_probability """
+    d1,d2 = (set(d1),),(set(d2),)
+
+    w_ij = tuple(len(s1.intersection(s2)) for s1,s2 in zip(d1,d2))
+    w_i  = tuple(len(s1) - w for s1,w in zip(d1,w_ij))
+    w_j  = tuple(len(s2) - w for s2,w in zip(d2,w_ij))
+    w_o  = tuple(w4 - w2 - w3 - w1 for w1,w2,w3,w4 in zip(w_ij,w_i,w_j,num_wells))
+    
+    return {
+            'w_j':w_j,
+            'w_ij':w_ij,
+            'w_o':w_o,
+            'w_tot':num_wells
+            }
+
+
+def spawn(f,index):
+    """ Attaches arbitrary function to pipe """
+    def fun(pipe,x):
+        pipe.send(f(x,index))
+        pipe.close()
+    return fun
+
+def parmap(f,X):
+    pipe=[Pipe() for x in X]
+    proc=[Process(target=spawn(f,index+1),args=(c,x)) 
+            for index,(x,(p,c)) in enumerate(zip(X,pipe))]
+    [p.start() for p in proc]
+    [p.join() for p in proc]
+    return [p.recv() for (p,c) in pipe]
+
+def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
+    """ Creates a multiprocessing worker with preset information """
+
+    def worker(alphas,index,count=0):
+        """ Worker function, using betas and num_wells """
+
+        # initialize list
+        results = [] # initialize list
+
+        # REMOVE THIS
+        bypass_filter = False 
+
+        # Iterate through combinations!
+        for i,(a,a_dist) in enumerate(alphas.items()):
+
+            # give heads up on progress
+            if i % 1000 == 0: 
+                print 'Starting A-chain {}...\r'.format(i)
+
+            # apply filter (before itersection,A)
+            if filt.check_dist(a_dist) and not bypass_filter: continue
+
+            for j,(b,b_dist) in enumerate(betas.items()):
+
+                # apply filter (before itersection,B)
+                if filt.check_dist(b_dist) and not bypass_filter: continue
+
+                # set up input
+                pair_data = _data_intersect(a_dist,b_dist,num_wells)
+
+                # apply filter (on intersection)
+                if filt.check_tuple(pair_data['w_ij']) and not bypass_filter: continue
+
+                # add keys to dictionary where needed
+                pair_data['alpha'] = prior_alpha
+                pair_data['cpw'] = cpw
+                pair_data['label'] = ((a,),(b,))
+
+                # calculate match probability
+                p,f = match_probability(pair_data,prior_match)
+
+                if p > threshold:
+                    if filt.check_tuple(pair_data['w_ij']): continue
+                    results.append((((a,),(b,)),p,f[0]))
+
+        print 'Finished {}!'.format(index)
+
+        return results
+
+    # returns worker function
+    return worker 
+
+def chunkify_iterable(iterable,n):
+    """ Breaks iterable into n approx. equal chunks """ 
+    return list(iterable[i::n] for i in range(n))
+
+def chunkify_dict(mydict,n):
+    """ Breaks iterable into n approx. equal chunks """ 
+    subdict = [[] for i in range(n)]
+    [subdict[i%n].append(item) for i,item in enumerate(mydict.items())]
+    return list(dict(s) for s in subdict)
 
 #------------------------------------------------------------------------------# 
 """ Internal Methods """

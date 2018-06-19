@@ -37,9 +37,8 @@ def main():
             #'Experiment 2': dirnameDATA + '/experiment2',
             }
 
-    files = subjectXYdata(dirnameX,dirnameY)
-
-    repertoire = catalog_repertoire(*files,overwrite = False)
+    #files = subjectXYdata(dirnameX,dirnameY)
+    #repertoire = catalog_repertoire(*files,overwrite = False)
 
 
     data = {
@@ -57,7 +56,7 @@ def main():
             'silent':               False,  # supresses some intermediate input/output
             'subject_well_threshold':   5,  # minimum number of wells for a chain to appear to be added to subject reference 
             'subject_well_cap':        96,  # maximum number of wells for a chain to appear to be added to subject reference 
-            'appears_in_reference':  True,  # only add a sequence from data if it appears in a reference
+            'appears_in_reference': False,  # only add a sequence from data if it appears in a reference
             }
 
     # create a subject reference
