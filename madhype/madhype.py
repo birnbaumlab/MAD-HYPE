@@ -44,14 +44,14 @@ def run(data, solvers, solver_options, **kwargs):
     for mode,mode_options in zip(solvers,solver_options):
         results = solve[mode](data,**mode_options)
 
+        print 'Starting results sorting by p-value...'
+        results.sort(key=lambda x: -x[1])
+        print 'Finished!'
+
         if len(results) > options['max_pairs']:
             print 'Reducing called pairs from {}->{} (declared limit)...'.format(
                     len(results),options['max_pairs'])
             results = results[:options['max_pairs']]
-
-        print 'Starting results sorting by p-value...'
-        results.sort(key=lambda x: -x[1])
-        print 'Finished!'
 
         # gather results
         if options['visual']:
