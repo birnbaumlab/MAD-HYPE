@@ -48,7 +48,7 @@ madhype_options = {
 
 alphabetr_options = {
     'iters':100,
-    'pair_threshold':0.9,
+    'pair_threshold':0.1,
 
     'num_cores':0, # 0 -> max_core usage
 

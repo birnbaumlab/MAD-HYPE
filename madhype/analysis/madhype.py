@@ -146,6 +146,7 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
         """ Worker function, using betas and num_wells """
 
         total_alphas = len(alphas)
+        step_size = max(1,total_alphas/1000) 
 
         # initialize list
         results = [] # initialize list
@@ -157,7 +158,7 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
         for i,(a,a_dist) in enumerate(alphas.items()):
 
             # give heads up on progress
-            if i % (total_alphas/1000) == 0 and index == 1: 
+            if i % step_size == 0 and index == 1: 
                 print '{}% complete...\r'.format(round(100*float(i)/total_alphas,1)),
 
             # apply filter (before itersection,A)

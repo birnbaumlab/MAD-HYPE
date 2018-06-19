@@ -12,6 +12,7 @@ import random
 import sys
 import itertools as it
 import multiprocessing as mp
+from multiprocessing import cpu_count
 
 # nonstandard libraries
 import numpy as np
@@ -58,7 +59,7 @@ def solve(seq_data,**kwargs):
     well_data = zip(*[[[label_to_idx[chain][l] for l in well_labels] 
             for well_labels in seq_data['well_data'][chain]] for chain in ('A','B')])
 
-    if options['num_processes'] is None:
+    if options['num_cores'] is None:
         overall_pairing_counts = _solve_singleprocessing(well_data, all_alphas, all_betas, **options)
     else:
         overall_pairing_counts = _solve_multiprocessing(well_data, all_alphas, all_betas, **options)
@@ -111,9 +112,16 @@ def _solve_singleprocessing(well_data, all_alphas, all_betas, **kwargs):
 def _solve_multiprocessing(well_data, all_alphas, all_betas, **kwargs):
     solve_args = (well_data, all_alphas, all_betas, kwargs)
     iters = kwargs['iters']
-    num_processes = kwargs['num_processes']
+    num_cores = kwargs['num_cores']
 
-    pool = mp.Pool(num_processes)
+    if num_cores == 0:
+        num_cores = cpu_count()
+    elif num_cores > cpu_count():
+        print 'Number of cores exceeds CPU count, reducing core usage {}->{}...'.format(
+                num_cores,cpu_count())
+        num_cores = cpu_count
+
+    pool = mp.Pool(num_cores)
     results_iter = pool.imap_unordered(_solve_iter, [solve_args] * iters)
     pool.close()
     

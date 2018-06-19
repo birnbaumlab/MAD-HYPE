@@ -16,3 +16,4 @@ for solver, result in zip(solvers, results):
   print "  Total # Cells:", result['total']
   print "  Chain pairs identified:", result['positives']
   print "  Chain pairs not identified:", result['negatives']
+
