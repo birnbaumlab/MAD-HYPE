@@ -62,7 +62,6 @@ def main():
     # create a subject reference
     reference = make_reference(repertoire,**processing_options)
 
-    print 'Defeinitely here'
     #results = load_howie_data(**dirnameEXP)
     #analyze_results(results['Experiment 1'],data,reference=reference)
     #raw_input('Waiting..')

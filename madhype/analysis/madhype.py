@@ -34,8 +34,10 @@ def solve(data,**kwargs):
     # Pull out values into local namespace
     num_wells = data['options']['num_wells']
     cpw = data['options']['cpw']
+    num_cores = options['num_cores']
     fdr = options['fdr']
     silent = options['silent']
+    
 
     # Identify unique a,b sequences
     uniques = {
@@ -80,10 +82,14 @@ def solve(data,**kwargs):
             options['prior_match'],
             options['threshold']]
 
-    cores = cpu_count()
-    cores = 4
+    if num_cores == 0:
+        num_cores = cpu_count()
+    elif num_cores > cpu_count():
+        print 'Number of cores exceeds CPU count, reducing core usage {}->{}...'.format(
+                num_cores,cpu_count())
+        num_cores = cpu_count
 
-    alpha_dicts = chunkify_dict(well_distribution['A'],cores)
+    alpha_dicts = chunkify_dict(well_distribution['A'],num_cores)
 
     # multithread solver 
     results = parmap(create_worker(*args),alpha_dicts)
