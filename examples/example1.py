@@ -4,11 +4,17 @@
 import madhype
 
 # Set up run parameters
-solvers = ['madhype', 'alphabetr']
+solvers = ['madhype','alphabetr']
 solver_options = [{}, {}] # don't change default parameters
 
+# Set up parameters that apply to all solvers/simulations
+general_options = {
+        'cpw':(50,),
+        'num_wells':(96,),
+        }
+
 # Run MAD-HYPE with default parameters
-results = madhype.simulate_run(solvers, solver_options)
+results = madhype.simulate_run(solvers, solver_options, **general_options)
 
 # Print out results
 for solver, result in zip(solvers, results):
