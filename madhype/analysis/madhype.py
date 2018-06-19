@@ -85,13 +85,10 @@ def solve(data,**kwargs):
 
     alpha_dicts = chunkify_dict(well_distribution['A'],cores)
 
-    print 'Sequences partitioned into {} sections...'.format(len(alpha_dicts))
-    print 'Sequences per core:'
-    for alpha in alpha_dicts:
-        print '{} sequences'.format(len(alpha))
-
     # multithread solver 
     results = parmap(create_worker(*args),alpha_dicts)
+
+    print 'Finished!'
 
     # flatten list
     results = [entry for subresults in results for entry in subresults]
@@ -142,6 +139,8 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
     def worker(alphas,index,count=0):
         """ Worker function, using betas and num_wells """
 
+        total_alphas = len(alphas)
+
         # initialize list
         results = [] # initialize list
 
@@ -152,8 +151,8 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
         for i,(a,a_dist) in enumerate(alphas.items()):
 
             # give heads up on progress
-            if i % 1000 == 0: 
-                print 'Starting A-chain {}...\r'.format(i)
+            if i % (total_alphas/1000) == 0 and index == 1: 
+                print '{}% complete...\r'.format(round(100*float(i)/total_alphas,1)),
 
             # apply filter (before itersection,A)
             if filt.check_dist(a_dist) and not bypass_filter: continue
@@ -181,7 +180,8 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
                     if filt.check_tuple(pair_data['w_ij']): continue
                     results.append((((a,),(b,)),p,f[0]))
 
-        print 'Finished {}!'.format(index)
+        if index == 1:
+            print '\nWaiting on other cores to finish...!'
 
         return results
 
