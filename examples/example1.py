@@ -9,7 +9,7 @@ solver_options = [{}, {}] # don't change default parameters
 
 # Set up parameters that apply to all solvers/simulations
 general_options = {
-        'cpw':(50,),
+        'cpw':(1000,),
         'num_wells':(96,),
         }
 

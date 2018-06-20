@@ -17,7 +17,7 @@ general_options = {
     'beta_sharing_probs':       0.0,
 
     # postprocessing
-    'visual':True,
+    'visual':False,
     'compare':False,
     'max_pairs':1000000,
     'fdr': 0.01,
