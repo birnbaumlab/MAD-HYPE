@@ -64,7 +64,7 @@ def run(data, solvers, solver_options, **kwargs):
 
     # comparison if two methods are selected
     if options['compare']:
-        compare_results(compiled_results,data,**options)
+        compare_results(compiled_results,**options)
 
     # return compiled results
     return compiled_results

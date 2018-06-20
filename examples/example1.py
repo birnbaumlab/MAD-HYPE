@@ -9,17 +9,19 @@ solver_options = [{}, {}] # don't change default parameters
 
 # Set up parameters that apply to all solvers/simulations
 general_options = {
-        'cpw':(1000,),
+        'cpw':(10,),
         'num_wells':(96,),
         }
 
 # Run MAD-HYPE with default parameters
-results = madhype.simulate_run(solvers, solver_options, **general_options)
+data,results = madhype.simulate_run(solvers, solver_options, **general_options)
 
 # Print out results
 for solver, result in zip(solvers, results):
-  print "{} Results:".format(solver)
-  print "  Total # Cells:", result['total']
-  print "  Chain pairs identified:", result['positives']
-  print "  Chain pairs not identified:", result['negatives']
+
+    print "{} Results:".format(solver)
+
+    print "  Total # Cells:", result['total']
+    print "  Chain pairs identified:", result['positives']
+    print "  Chain pairs not identified:", result['negatives']
 

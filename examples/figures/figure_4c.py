@@ -1,51 +1,64 @@
 
-"""
-This program is to make diagrams that are too frustrating to do by hand
-"""
-
-# standard libraries
-import math
+## MAD-HYPE/examples/figures/figure_4c.py
 
 # nonstandard libraries
 import matplotlib.pyplot as plt
 from pylab import setp
 
+# Import MAD-HYPE package
+import madhype
+from madhype.postprocessing.plots import plot_comparison
+
 # library modifications
 plt.rcParams["font.family"] = "serif"
 
-def main(*args,**kwargs):
+def main():
 
-    """ Makes diagram figures """
+    # Set up run parameters
+    solvers = ['madhype','alphabetr']
+    solver_options = [{}, {}] # don't change default parameters
+
+    # variants
+    cpws = [(10,),(30,)]
+    num_simulations = 5
+
+    # Set up parameters that apply to all solvers/simulations
+    general_options = {
+            'num_wells': (96,),
+            }
+
+    fig,ax = plt.subplots(2,1,figsize = (10,10))
+
+    general_options['fig'] = fig
 
     matches_by_cpw = {
-            100:{
-                'madhype':[697,664,699,718,740,723,727,693,734,724],
-                'alphabetr':[436,430,525,448,450,542,434,496,444,563]
-                },
-            1000:{
-                'madhype':[945,937,941,948,946,941,940,942,946,941],
-                'alphabetr':[903,47,914,932,920,89,920,922,899,918]
-                }
             }
 
     coverage_by_cpw = {
-            100:{
-                'madhype':
-                [0.877930962132,0.864676101089,0.881788598911,0.891740493664,0.896221893956,
-                 0.889533656519,0.894632759173,0.878798270374,0.899417127207,0.891927331392],
-                'alphabetr':
-                [0.748020305916,0.752852033505,0.802814157319,0.760043654059,0.760682382822,
-                 0.809304374966,0.752895331150, 0.787971286782,0.757627278537,0.822973830961]
-                },
-            1000:{
-                'madhype':
-                [0.700650595765,0.67367769407,0.690086260119,0.70870390341,0.703248656572,
-                 0.690300620824,0.683764563204,0.691218875063,0.707222467948,0.690284851379],
-                'alphabetr':
-                [0.739069450512,0.0420614543952,0.748443960839,0.798745740671,0.761087857233,
-                 0.0747117077914,0.768919011223,0.76105297092,0.755368621068,0.764853043629],
-                }
             }
+
+    for _,cpw in enumerate(cpws):
+
+        print 'Running simulations with {} cpw...'.format(cpw)
+
+        # set the number of cells per well
+        general_options['cpw'] = cpw
+        matches_by_cpw[cpw] = dict([(s,[]) for s in solvers])
+        coverage_by_cpw[cpw] = dict([(s,[]) for s in solvers])
+
+        for index in xrange(num_simulations):
+
+            print 'Starting simulation {}/{}...'.format(index+1,num_simulations)
+
+            # Run MAD-HYPE with default parameters
+            data,results = madhype.simulate_run(solvers, solver_options, **general_options)
+
+            # iterate across data
+            for method_name,result in zip(solvers,results):
+                matches_by_cpw[cpw][method_name].append(result['positives'])
+                coverage_by_cpw[cpw][method_name].append(result['frac_repertoire'])
+
+    ### START FIGURE ###
 
     # settings
     boxprops = dict(linewidth=3.0,zorder=1)
@@ -53,30 +66,23 @@ def main(*args,**kwargs):
     fs = 18
 
     # figure specific properties
-    fig,axes = plt.subplots(nrows=2, ncols=1, figsize=(5, 12), sharey=False)
+    fig,axes = plt.subplots(nrows=len(cpws), ncols=1, figsize=(2*len(cpws)+1, 12), sharey=False)
     plt.subplots_adjust(left=0.3,right=0.9,hspace=1.0,wspace=1.0)
 
     # set border for figure
     for ax in axes:
         [i.set_linewidth(3) for i in ax.spines.itervalues()]
 
-    matches = [matches_by_cpw[100]['madhype'],
-               matches_by_cpw[100]['alphabetr'],
-               matches_by_cpw[1000]['madhype'],
-               matches_by_cpw[1000]['alphabetr']]
+    matches  = [matches_by_cpw[c][s] for s in solvers for c in cpws]
+    coverage = [coverage_by_cpw[c][s] for s in solvers for c in cpws]
 
-    coverage = [coverage_by_cpw[100]['madhype'],
-                coverage_by_cpw[100]['alphabetr'],
-                coverage_by_cpw[1000]['madhype'],
-                coverage_by_cpw[1000]['alphabetr']]
-
-    labels = ['$N$ = 100','$N$ = 100','$N$ = 1000','$N$ = 1000']
+    labels = ['$N$ = {}'.format(c) for _ in xrange(2) for c in cpws]
 
     # boxplot matches
     bp = axes[0].boxplot(matches, labels=labels, boxprops=boxprops, meanprops=meanlineprops, widths=0.6, meanline=True, showmeans=True)
     axes[0].plot((2.5,2.5),(0,1000),linestyle='--',color='k')
     setBoxColors(bp)
- 
+
     axes[0].set_xticks((1.5,3.5))
     axes[0].set_xticklabels(('100','1000'),fontsize=fs)
     axes[0].set_xlabel('Cells/well (#)',fontsize=fs)
@@ -105,7 +111,6 @@ def main(*args,**kwargs):
     plt.savefig('fig4C.png', format='png', dpi=200)
     plt.close()
 
-# --- Internal Methods --- #
 
 def setBoxColors(bp):
     """ function for setting the colors of the box plots pairs """
@@ -116,7 +121,6 @@ def setBoxColors(bp):
         setp(bp['whiskers'][4*i+0], color='green')
         setp(bp['whiskers'][4*i+1], color='green')
         setp(bp['fliers'][2*i+0], color='green')
-        ##setp(bp['fliers'][1], color='green')
         setp(bp['medians'][2*i+0], color='green')
 
         setp(bp['boxes'][2*i+1], color='#FFD870')
@@ -124,10 +128,8 @@ def setBoxColors(bp):
         setp(bp['caps'][4*i+3], color='#FFD870')
         setp(bp['whiskers'][4*i+2], color='#FFD870')
         setp(bp['whiskers'][4*i+3], color='#FFD870')
-        #setp(bp['fliers'][i+1], color='#FFD870')
-        #setp(bp['fliers'][3], color='#FFD870')
         setp(bp['medians'][2*i+1], color='#FFD870')
+
 
 if __name__ == "__main__":
     main()
-
