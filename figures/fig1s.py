@@ -5,9 +5,11 @@ Supplemnetary Figure 1
 
 # nonstandard libraries
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize
+from scipy.optimize import minimize,root
+import numpy as np
 
 # homegrown libraries
+import madhype
 from madhype.simulation import *  # we should explicitly import here
 from madhype import simulate_run
 
@@ -64,8 +66,6 @@ def main(*args,**kwargs):
 
     # iterate across sample/data sets
     for ind,(sample,fname) in enumerate(fnames.items()):
-
-        continue 
         
         with open('./figures/'+fname) as f:
             data = f.readlines()
@@ -93,12 +93,15 @@ def main(*args,**kwargs):
         settings = {
                 'cell_freq_constant':alpha.x,
                 'cell_freq_max':max(data),
-                'analysis':('madhype',),
                 'visual':True,
+                'display':True,
                 'silent':False
                 }
 
-        simulate_run(**dict(settings,**specific_settings[sample]))
+        solvers = ['madhype']
+        solver_options = [{}]
+
+        data,results = madhype.simulate_run(solvers, solver_options, **settings)
         
 
     settings = {
@@ -108,8 +111,8 @@ def main(*args,**kwargs):
         }
 
     print 'Starting finals...'
-    #simulate_system(settings,specific_settings['Peripheral Blood (9-25 y)'])
-    simulate_system(settings,specific_settings['Peripheral Blood (61-66 y)'])
+    #simulate_system(settings,**specific_settings['Peripheral Blood (9-25 y)'])
+    #simulate_system(settings,specific_settings['Peripheral Blood (61-66 y)'])
 
 
     '''
@@ -162,4 +165,6 @@ def _get_freq_distribution(shift,num_cells,max_freq,alpha):
 
 #------------------------------------------------------------------------------# 
 
+if __name__ == '__main__':
+    main()
 

@@ -17,11 +17,16 @@ general_options = {
     'beta_sharing_probs':       0.0,
 
     # postprocessing
-    'visual':False,
-    'compare':False,
-    'max_pairs':1000000,
-    'fdr': 0.01,
-    'reference': None,
+    'visual':                    False,
+    'plot_auroc':                False,
+    'plot_frequency_estimation': False,
+    'plot_repertoire':            True,
+    # plot comparing results
+    'compare':                   False,
+    'plot_comparison':            True,
+    'max_pairs':               1000000,
+    'fdr':                        0.01,
+    'reference':                  None,
 
     # visualization
     'fdr_plot': 0.01,

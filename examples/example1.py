@@ -11,6 +11,9 @@ solver_options = [{}, {}] # don't change default parameters
 general_options = {
         'cpw':(10,),
         'num_wells':(96,),
+        'visual':True,
+        'plot_frequency_estimation':True,
+        'display':True,
         }
 
 # Run MAD-HYPE with default parameters
