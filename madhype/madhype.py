@@ -64,4 +64,3 @@ def run(data, solvers, solver_options, **kwargs):
     return compiled_results
 
 
-

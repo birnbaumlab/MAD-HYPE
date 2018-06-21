@@ -140,6 +140,7 @@ def plot_frequency_estimation(cresults,**kwargs):
             'fs':          18,
             'linewidth':    3,
             'figsize':  (9,6),
+            'colorbar': False,
                   }
 
     # update options
@@ -155,12 +156,12 @@ def plot_frequency_estimation(cresults,**kwargs):
 
     ### START FIGURE ###
 
-    plt.subplots_adjust(left=0.3,right=0.9,top=0.9,bottom=0.2,hspace=1.0,wspace=1.0)
     [i.set_linewidth(linewidth) for i in ax.spines.itervalues()]
 
     ax.set_xscale('log')
     ax.set_yscale('log')
-    ax.set_ylim((7e-5,1.5e-2))
+    #ax.set_ylim((7e-5,1.5e-2))
+    ax.tick_params(width = 3,length=8,labelsize=18)
 
     plt.rcParams['image.cmap'] = 'pink'
 
@@ -176,7 +177,8 @@ def plot_frequency_estimation(cresults,**kwargs):
     plt.ylabel('Predicted Frequency',fontsize=fs,fontweight='bold')
 
     # create colorbar
-    cbar = plt.colorbar(sc, ticks=[])
+    if options['colorbar']:
+        cbar = plt.colorbar(sc, ticks=[])
 
     # show plots
     _output(options)
@@ -193,6 +195,7 @@ def plot_repertoire(cresults,**kwargs):
             'fs':           18,
             'linewidth':     5,
             'figsize':  (10,5),
+            'legend':     True,
                   }
 
     # update options
@@ -234,6 +237,7 @@ def plot_repertoire(cresults,**kwargs):
     plt.tick_params(labelsize=20)
 
     # show plots
+    _set_legend(options)
     _output(options)
 
 #------------------------------------------------------------------------------#
@@ -292,7 +296,11 @@ def _get_axis(options):
 def _set_legend(options):
     """ Set legend for current figure """
     if options['legend'] == True:
-        leg = plt.legend()
+        leg = plt.legend(
+                prop={'size': 18},
+                edgecolor = 'black',
+                frameon = False,
+                )
         leg.get_frame().set_edgecolor('k')
 
 #------------------------------------------------------------------------------#

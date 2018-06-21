@@ -301,11 +301,10 @@ def get_results_from_cell_reference(results,data,options):
               }
 
     if True:#not options['silent']:
-        # display characteristics of the data
 
         print 'Positives:',results['positives']
         print 'Negatives:',results['negatives']
-        print 'Fraction of repertoire:',results['frac_repertoire']
+        print 'Fraction of repertoire:',round(results['frac_repertoire'],1)
         print 'Total clones:',results['total']
 
     return results

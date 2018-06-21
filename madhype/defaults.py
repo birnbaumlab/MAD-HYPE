@@ -1,7 +1,7 @@
 general_options = {
     # experimental design
     'num_wells':(96,),
-    'cpw':(50,),
+    'cpw':(100,),
 
     # simulated repertoire
     'num_cells':1000,
@@ -20,7 +20,19 @@ general_options = {
     'visual':                    False,
     'plot_auroc':                False,
     'plot_frequency_estimation': False,
-    'plot_repertoire':            True,
+    'plot_repertoire':           False,
+
+    # visual settings 
+    'title':            True, # whether title  is displayed
+    'legend':           True, # whether legend is displayed
+    'save':            False, # whether plots are saved
+    'savename': 'img_{}.png', # whether plots are saved
+    'display':         False, # whether plots are displayed
+    'hold':             True, # if plots are displayed, pause for user input
+    'ax':               None, # an axis to plot on
+    'fig':              None, # an axis to plot on
+    'figsize':         (6,12), # size of newly generated figure
+
     # plot comparing results
     'compare':                   False,
     'plot_comparison':            True,
