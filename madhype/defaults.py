@@ -1,7 +1,7 @@
 general_options = {
     # experimental design
     'num_wells':(96,),
-    'cpw':(50,),
+    'cpw':(100,),
 
     # simulated repertoire
     'num_cells':1000,
@@ -17,11 +17,28 @@ general_options = {
     'beta_sharing_probs':       0.0,
 
     # postprocessing
-    'visual':True,
-    'compare':False,
-    'max_pairs':1000000,
-    'fdr': 0.01,
-    'reference': None,
+    'visual':                    False,
+    'plot_auroc':                False,
+    'plot_frequency_estimation': False,
+    'plot_repertoire':           False,
+
+    # visual settings 
+    'title':            True, # whether title  is displayed
+    'legend':           True, # whether legend is displayed
+    'save':            False, # whether plots are saved
+    'savename': 'img_{}.png', # whether plots are saved
+    'display':         False, # whether plots are displayed
+    'hold':             True, # if plots are displayed, pause for user input
+    'ax':               None, # an axis to plot on
+    'fig':              None, # an axis to plot on
+    'figsize':         (6,12), # size of newly generated figure
+
+    # plot comparing results
+    'compare':                   False,
+    'plot_comparison':            True,
+    'max_pairs':               1000000,
+    'fdr':                        0.01,
+    'reference':                  None,
 
     # visualization
     'fdr_plot': 0.01,
@@ -48,7 +65,7 @@ madhype_options = {
 
 alphabetr_options = {
     'iters':100,
-    'pair_threshold':0.1,
+    'pair_threshold':-1,
 
     'num_cores':0, # 0 -> max_core usage
 

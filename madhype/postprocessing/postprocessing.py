@@ -16,6 +16,7 @@ import plotly.graph_objs as go
 import openpyxl
 
 # homegrown libraries
+import plots
 from ..defaults import general_options as default_options
 plt.rcParams["font.family"] = "serif"
 
@@ -56,11 +57,30 @@ def analyze_results(results,data,**kwargs):
         
         print 'Starting analysis using subject reference'
 
-        return get_results_from_subject_reference(results,data,options)
+        cresults = get_results_from_subject_reference(results,data,options)
 
     else:
 
-        return get_results_from_cell_reference(results,data,options)
+        cresults = get_results_from_cell_reference(results,data,options)
+
+    if options['visual']:
+
+        print 'Generating figures...'
+
+        ### AUROC FIGURE ###
+        if options['plot_auroc']:
+            plots.plot_auroc(cresults,**options)    
+
+        ### FREQUENCY ESTIMATION FIGURE ###
+        if options['plot_frequency_estimation']:
+            plots.plot_frequency_estimation(cresults,**options)    
+
+        ### REPERTOIRE DISPLAY FIGURE ###
+        if options['plot_repertoire']:
+            plots.plot_repertoire(cresults,**options)    
+       
+    return cresults
+
 
 def get_results_from_subject_reference(results,data,options):
 
@@ -261,6 +281,7 @@ def get_results_from_cell_reference(results,data,options):
                 non_matched_freqs.append((true_freq,true_freq))
                 #print '{} did not show up!'.format(cell)
 
+
     positive_confidence = [(p - min(positive_confidence))/
             (max(positive_confidence) - min(positive_confidence)) 
             for p in positive_confidence]
@@ -281,17 +302,17 @@ def get_results_from_cell_reference(results,data,options):
               }
 
     if True:#not options['silent']:
-        # display characteristics of the data
 
         print 'Positives:',results['positives']
         print 'Negatives:',results['negatives']
-        print 'Fraction of repertoire:',results['frac_repertoire']
+        print 'Fraction of repertoire:',round(results['frac_repertoire'],1)
         print 'Total clones:',results['total']
 
     return results
 
 #------------------------------------------------------------------------------# 
 
+# OUTDATED, should be unused...
 def visualize_results(results,data,**kwargs):
 
     """
@@ -307,95 +328,14 @@ def visualize_results(results,data,**kwargs):
     # heavy lifting on the data
     cresults = analyze_results(results,data,**options)
 
-    # 
-
     ### AUROC FIGURE ###
-
-    ax = plt.figure().gca() # initialize figure
-
-    linewidth = 5
-    fs = 18
-
-    # get data attributes
-    false_limit = cresults['xy'][0][-1]
-    true_limit = cresults['xy'][1][-1]
-    fdr_limit = min(false_limit,options['fdr_plot']*true_limit)
-
-    # plot FDR line
-    plt.plot((0,fdr_limit),(0,fdr_limit/options['fdr_plot']),
-            linestyle='--',color='k',linewidth=linewidth)
-
-    # plot main data auroc
-    plt.plot(*cresults['xy'],linewidth=linewidth) 
-
-    # add labels
-    plt.xlabel('False positives (#)')
-    plt.ylabel('True positives (#)')
-    plt.savefig('routine1.png', format='png', dpi=300)
+    plots.plot_auroc(cresults,**kwargs)    
 
     ### FREQUENCY ESTIMATION FIGURE ###
-
-    ax = plt.figure(figsize=(9,6)).gca()
-    plt.subplots_adjust(left=0.3,right=0.9,top=0.9,bottom=0.2,hspace=1.0,wspace=1.0)
-    [i.set_linewidth(3) for i in ax.spines.itervalues()]
-
-    ax.set_xscale('log')
-    ax.set_yscale('log')
-    ax.set_ylim((7e-5,1.5e-2))
-
-    plt.rcParams['image.cmap'] = 'pink'
-
-    # plot available species
-    sc = plt.scatter(*zip(*cresults['positive_matched_freqs']),c=cresults['positive_confidence'],linewidth=0.0,edgecolor='black') 
-
-    if cresults['negative_matched_freqs']: plt.scatter(*zip(*cresults['negative_matched_freqs']),c='r', marker='x')
-    #if cresults['non_matched_freqs']: plt.scatter(*zip(*cresults['non_matched_freqs']),c='k', marker='x')
-
-    # label axes
-    plt.xlabel('Clonal Frequency',fontsize=fs,fontweight='bold')
-    plt.ylabel('Predicted Frequency',fontsize=fs,fontweight='bold')
-
-    # add colorbar
-    #plt.colorbar(sc)
-    cbar = plt.colorbar(sc, ticks=[])
-    plt.savefig('routine2.png', format='png', dpi=300)
+    plots.plot_frequency_estimation(cresults,**kwargs)    
 
     ### REPERTOIRE DISPLAY FIGURE ###
-
-    fig,ax = plt.subplots(figsize=(10,5))
-
-    plt.yscale('log')
-
-    for val,color,l in zip(
-            (0,1),(options['neg_color'],options['pos_color']),('Incorrect','Correct')):
-        xs = [i for i,p in enumerate(cresults['pattern']) if p == val]
-        ys = [f for f,p in zip(cresults['freqs'],cresults['pattern']) if p == val]
-        if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l,edgecolor='none')
-
-    plt.plot(xrange(len(cresults['freqs'])),cresults['freqs'],color='k')
-
-    if options['legend'] == True:
-        leg = plt.legend()
-        leg.get_frame().set_edgecolor('k')
-
-
-    plt.xlim((0,len(cresults['freqs'])))
-    plt.ylim((min(cresults['freqs']),10**ceil(log10(max(cresults['freqs'])-1e-9))))
-    ax.set_xticks([0,len(cresults['freqs'])/2,len(cresults['freqs'])])
-    ax.spines['top'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    plt.xlabel('Clone #',fontweight='bold')
-    plt.ylabel('',fontweight='bold',size=12)
-    ax.axes.get_xaxis().set_visible(False)
-    plt.tick_params(labelsize=20)
-    plt.savefig('routine3.png', format='png', dpi=300)
-
-    # show plots
-    plt.show(block=False)
-    if options['visual_block']:
-        raw_input('Press enter to close...')
-        plt.close()
+    plots.plot_repertoire(cresults,**kwargs)    
 
     return cresults
 
@@ -427,76 +367,10 @@ def is_reference_valid(options):
 
     return passing
     
-
-
-
-
     check_subject_reference(options)
 
 
 def compare_results(cresults,**kwargs):
 
-    # default options parameters
-    options = {
-            'fdr':0.01,
-            'fdr_plot':0.01,
-            'pos_color':'black',
-            'mixed1_color':'green',
-            'mixed2_color':'#FFD870',
-            'neg_color':'white',
-            'analysis':('MAD-HYPE','ALPHABETR'),
-            'legend':True,
-            'silent':False
-               }
+    plots.plot_comparison(cresults,**kwargs) 
 
-    # update options
-    options.update(kwargs)
-
-    if len(cresults) != 2:
-        print 'Results the wrong length ({})'.format(len(cresults))
-        return None 
-
-    # heavy lifting on the data
-    assert cresults[0]['freqs'] == cresults[1]['freqs'],'Frequencies between results not identical' 
-
-    ### REPERTOIRE DISPLAY FIGURE ###
-
-    fig,ax = plt.subplots(figsize=(10,5))
-
-    plt.yscale('log')
-
-    total = cresults[0]['total']    
-
-    for val,color,l in zip(
-            ((0,0),(1,0),(0,1),(1,1)),
-            (options['neg_color'],options['mixed1_color'],
-                options['mixed2_color'],options['pos_color']),
-                ('Neither Correct','MAD-HYPE Correct','ALPHABETR Correct','Both Correct')):
-        xs = [i for i,p1,p2 in zip(xrange(total),cresults[0]['pattern'],cresults[1]['pattern']) 
-                if p1 == val[0] and p2 == val[1]]
-        ys = [f for f,p1,p2 in zip(cresults[0]['freqs'],cresults[0]['pattern'],cresults[1]['pattern'])
-                if p1 == val[0] and p2 == val[1]]
-        if len(xs) > 0: plt.bar(xs,ys,color=color,width=1,log=True,label=l,edgecolor='none')
-
-    plt.plot(xrange(len(cresults[0]['freqs'])),cresults[0]['freqs'],color='k')
-
-    if options['legend'] == True:
-        leg = plt.legend()
-        leg.get_frame().set_edgecolor('k')
-
-
-    plt.xlim((0,len(cresults[0]['freqs'])))
-    plt.ylim((min(cresults[0]['freqs']),10**ceil(log10(max(cresults[0]['freqs'])-1e-9))))
-    ax.set_xticks([0,len(cresults[0]['freqs'])/2,len(cresults[0]['freqs'])])
-    ax.spines['top'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    plt.xlabel('Clone #',fontweight='bold')
-    plt.ylabel('',fontweight='bold',size=12)
-    ax.axes.get_xaxis().set_visible(False)
-    plt.tick_params(labelsize=20)
-
-    # show plots
-    plt.show(block=False)
-    raw_input('Press enter to close...')
-    plt.close()

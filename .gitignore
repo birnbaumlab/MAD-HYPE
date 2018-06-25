@@ -9,12 +9,14 @@ venv/*
 pairseq-data.tgz
 
 # Things that don't need to be committed
+*.p
 *.swp
 *.lprof
 *.swo
 *.png
 *.pyc
 *.out
+*.eps
 
 # Python testing files
 .test.py

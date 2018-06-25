@@ -1,5 +1,6 @@
 
 # standard libraries
+import copy
 
 # nonstandard libraries
 import numpy as np
@@ -18,10 +19,10 @@ def main(*args,**kwargs):
             'chain_misplacement_prob':[.0,.1,.2,.3,.4,.5,.75]
             }
 
-    repeats = 10
+    repeats = 1000
 
     settings = default_settings()
-    settings['cell_freq_max'] = 0.01
+    settings['cell_freq_max'] = 0.05
     settings['num_cells'] = 1000
     settings['cpw'] = (100,)
     settings['chain_deletion_prob'] = 0.0
@@ -29,6 +30,9 @@ def main(*args,**kwargs):
 
     all_coverage = {}
     all_matches = {}
+
+    solvers = ['madhype']
+    solver_options = [{}]
 
     #
     for mod,values in modifications.items():
@@ -41,7 +45,15 @@ def main(*args,**kwargs):
 
             # iterate across system
             for r in xrange(repeats):
-                all_results += simulate_run(**dict(settings, mod=v, seed=r))
+
+                specific_settings = copy.copy(settings)
+
+                specific_settings[mod] = v
+                specific_settings['seed'] = r
+
+                _,results = simulate_run(solvers,solver_options,**specific_settings)
+
+                all_results += results
 
             all_coverage[mod].append([results['frac_repertoire'] for results in all_results])
             all_matches[mod].append([results['positives'] for results in all_results])
@@ -156,6 +168,8 @@ def default_settings():
             'compare':False
             }
 
+if __name__ == "__main__":
+    main()
 
 
 

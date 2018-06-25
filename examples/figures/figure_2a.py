@@ -9,6 +9,9 @@ import numpy as np
 
 def main(*args,**kwargs):
     """ Makes diagram figures """
+
+    print 'Creating figures for Figure 2A...'
+
     rows,columns = 8,12
     cpw = 10
     colors = [(a,a,a) for a in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]]
@@ -48,7 +51,6 @@ def main(*args,**kwargs):
         elif mode == 'dna':
             combos = [(i,j) for i in xrange(1,rows+1) for j in xrange(1,columns+1)]
             np.random.shuffle(combos)
-            print combos
 
             w_j_indices = combos[:w_i+w_ij]
             w_i_indices = combos[w_i:w_i+w_j+w_ij]
@@ -73,12 +75,9 @@ def main(*args,**kwargs):
         fig.patch.set_facecolor([0.9,0.9,0.9])
         plt.subplots_adjust(left=0.02, right=0.98, top=0.98, bottom=0.02)
 
-        #plt.savefig('myfig.png',facecolor=fig.get_facecolor(), edgecolor='none',bbox_inches='tight')
         plt.savefig('{}.png'.format(mode),facecolor=fig.get_facecolor(), edgecolor='k',edgewidth=5)
-
-        #plt.show(block=False)
-        #raw_input('Press enter to close...')
-        #plt.close()
+        
+        print 'Saved {}.png!'.format(mode)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,7 @@
 # standard libraries
 import os
 import pickle
+import copy
 
 # nonstandard libraries
 import numpy as np
@@ -21,11 +22,11 @@ def main(*args,**kwargs):
             'prior_alpha':[.1,0.5,1.0,2.0,10]
             }
 
-    repeats =  10
+    repeats = 2 
 
     settings = default_settings()
     settings['cell_freq_max'] = 0.01
-    settings['num_cells'] = 1000
+    settings['num_cells'] = 100
     settings['cpw'] = (100,)
     settings['chain_deletion_prob'] = 0.1
     settings['chain_misplacement_prob'] = 0.0
@@ -37,7 +38,9 @@ def main(*args,**kwargs):
         all_coverage = {}
         all_matches = {}
 
-    #
+    solvers = ['madhype']
+    solver_options = [{}]
+
     for mod,values in modifications.items():
 
         all_results = []
@@ -57,7 +60,15 @@ def main(*args,**kwargs):
 
             # iterate across system
             for r in xrange(repeats):
-                all_results += simulate_run(**dict(settings, mod=v, seed=r))
+
+                specific_settings = copy.copy(settings)
+
+                specific_settings[mod] = v
+                specific_settings['seed'] = r
+
+                _,results = simulate_run(solvers,solver_options,**specific_settings)
+
+                all_results += results
 
             all_coverage[mod].append([results['frac_repertoire'] for results in all_results])
             all_matches[mod].append([results['positives'] for results in all_results])
@@ -159,15 +170,16 @@ def main(*args,**kwargs):
                     else:
                         threshold = 0.1
 
-                    results = simulate_run(**dict(
-                            settings,
-                            num_wells=num_wells,
-                            cpw=(cpw,),
-                            cell_freq_max=0.0,
-                            num_cells=int(1./freq),
-                            threshold=threshold,
-                            seed=r
-                            ))
+                    specific_settings = copy.copy(settings)
+
+                    specific_settings['num_wells'] = num_wells
+                    specific_settings['cpw'] = (cpw,)
+                    specific_settings['cell_freq_max'] = 0.0 # forces uniform
+                    specific_settings['num_cells'] = int(1./freq) # forces uniform
+                    specific_settings['threshold'] = threshold 
+                    specific_settings['seed'] = r
+
+                    _,results = simulate_run(solvers,solver_options,**specific_settings)
 
                     val.append(results[0]['frac_repertoire'])
 
@@ -198,7 +210,7 @@ def main(*args,**kwargs):
     # plot figure
     plt.show(block=False)
     raw_input('Press enter to close...')
-    plt.savefig('fig3S.png', format='png', dpi=300)
+    plt.savefig('Figure S3.png', format='png', dpi=300)
     plt.close()
 
 
@@ -242,6 +254,9 @@ def default_settings():
             'compare':False
             }
 
+
+if __name__ == "__main__":
+    main()
 
 
 

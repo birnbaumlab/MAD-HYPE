@@ -54,20 +54,13 @@ def run(data, solvers, solver_options, **kwargs):
             results = results[:options['max_pairs']]
 
         # gather results
-        if options['visual']:
-            # visualize results if requested
-            print 'Visualizing!'
-            compiled_results.append(visualize_results(results,data,**options))
-        else:
-            # gather results
-            compiled_results.append(analyze_results(results,data,**options))
+        compiled_results.append(analyze_results(results,data,**options))
 
     # comparison if two methods are selected
     if options['compare']:
-        compare_results(compiled_results,data,**options)
+        compare_results(compiled_results,**options)
 
     # return compiled results
     return compiled_results
-
 
 

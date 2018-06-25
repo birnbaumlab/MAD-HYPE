@@ -4,16 +4,26 @@
 import madhype
 
 # Set up run parameters
-solvers = ['madhype', 'alphabetr']
-solver_options = [{}, {'pair_threshold':-1}] # don't change default parameters
+solvers = ['madhype','alphabetr']
+solver_options = [{}, {}] # don't change default parameters
+
+# Set up parameters that apply to all solvers/simulations
+general_options = {
+        'cpw':(50,),
+        'num_wells':(96,),
+        'alpha_sharing_probs': None,
+        'beta_sharing_probs': None,
+        }
 
 # Run MAD-HYPE with default parameters
-seq_data, results = madhype.simulate_run(solvers, solver_options, alpha_sharing_probs=None, beta_sharing_probs=None, visual=False)
+data,results = madhype.simulate_run(solvers, solver_options, **general_options)
 
 # Print out results
 for solver, result in zip(solvers, results):
-  print "{} Results:".format(solver)
-  print "  Total # Cells:", result['total']
-  print "  Chain pairs identified:", result['positives']
-  print "  Chain pairs not identified:", result['negatives']
+
+    print "{} Results:".format(solver)
+
+    print "  Total # Cells:", result['total']
+    print "  Chain pairs identified:", result['positives']
+    print "  Chain pairs not identified:", result['negatives']
 
