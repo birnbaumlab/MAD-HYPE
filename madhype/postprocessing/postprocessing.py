@@ -305,7 +305,7 @@ def get_results_from_cell_reference(results,data,options):
 
         print 'Positives:',results['positives']
         print 'Negatives:',results['negatives']
-        print 'Fraction of repertoire:',round(results['frac_repertoire'],1)
+        print 'Fraction of repertoire: {}%'.format(round(100*results['frac_repertoire'],1))
         print 'Total clones:',results['total']
 
     return results

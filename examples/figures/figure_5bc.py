@@ -7,6 +7,7 @@ Makes the set of preliminary figures
 
 # nonstandard libraries
 import numpy as np
+import copy
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
@@ -32,11 +33,12 @@ def main():
 
     """ Match probability as a function of w_a,w_b """
 
-    fig1,ax1 = plt.subplot(3,1,figsize=(12,10))
-    fig2,ax2 = plt.subplot(3,1,figsize=(12,5))
+    fig1,ax1 = plt.subplots(3,1,figsize=(8,12))
+    fig2,ax2 = plt.subplots(1,3,figsize=(15,4))
 
     fig = plt.gcf()
-    plt.subplots_adjust(wspace=0.45, hspace=0.3)
+    plt.subplots_adjust(wspace=0.45,bottom=0.2)
+    #plt.subplots_adjust(left=0.1,right=0.9,wspace=0.25, hspace=0.2)
 
     # some default settings
     solvers = ['madhype']
@@ -51,6 +53,8 @@ def main():
             'ax':ax2,
             'fig':fig2,
             },
+        'num_cells':1000,
+        'cell_freq_max':0.05, # 0.01
         'visual':                True,
         'silent':               False,
         }
@@ -74,9 +78,15 @@ def main():
 
     for i,sub_settings in enumerate(settings_list):
 
-         
+        specific_options = copy.copy(base_settings)
 
-        _,results = madhype.simulate_run(solvers, solver_options, **settings)
+        specific_options.update(sub_settings)
+        specific_options['plot_repertoire']['ax'] = ax1[i]
+        specific_options['plot_frequency_estimation']['ax'] = ax2[i]
+
+        _,results = madhype.simulate_run(solvers, solver_options, **specific_options)
+
+    plt.savefig('Figure 5BC.png', format='png', dpi=300)
 
     plt.show(block=False)
     raw_input('Press enter to close...')
@@ -86,4 +96,8 @@ def main():
 if __name__ == '__main__':
     main()
     
+    
+
+
+
 

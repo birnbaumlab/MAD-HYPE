@@ -37,8 +37,8 @@ def main():
             #'Experiment 2': dirnameDATA + '/experiment2',
             }
 
-    #files = subjectXYdata(dirnameX,dirnameY)
-    #repertoire = catalog_repertoire(*files,overwrite = False)
+    files = subjectXYdata(dirnameX,dirnameY)
+    repertoire = catalog_repertoire(*files,overwrite = False)
 
 
     data = {
