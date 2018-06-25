@@ -9,8 +9,10 @@ solver_options = [{}, {}] # don't change default parameters
 
 # Set up parameters that apply to all solvers/simulations
 general_options = {
-        'cpw':(10,),
+        'cpw':(50,),
         'num_wells':(96,),
+        'alpha_sharing_probs': None,
+        'beta_sharing_probs': None,
         }
 
 # Run MAD-HYPE with default parameters
