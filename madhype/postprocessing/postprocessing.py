@@ -281,6 +281,7 @@ def get_results_from_cell_reference(results,data,options):
                 non_matched_freqs.append((true_freq,true_freq))
                 #print '{} did not show up!'.format(cell)
 
+
     positive_confidence = [(p - min(positive_confidence))/
             (max(positive_confidence) - min(positive_confidence)) 
             for p in positive_confidence]
