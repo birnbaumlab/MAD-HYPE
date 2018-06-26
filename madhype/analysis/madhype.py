@@ -7,6 +7,8 @@ Solver for MAD-HYPE method
 
 # standard libraries
 import time
+import os
+import pickle
 from collections import Counter
 from operator import mul
 from sys import argv
@@ -17,6 +19,7 @@ from multiprocessing import cpu_count, Process, Pipe
 from scipy.misc import comb
 import matplotlib.pyplot as plt
 from matplotlib import cm
+import numpy as np
 
 # homegrown libraries
 from methods import match_probability
@@ -97,7 +100,7 @@ def solve(data,**kwargs):
     print 'Finished!'
 
     # flatten list
-    results = [entry for subresults in results for entry in subresults]
+    #results = [entry for subresults in results for entry in subresults]
 
     # return results
     return results
@@ -124,25 +127,48 @@ def _data_intersect(d1,d2,num_wells):
             }
 
 
-def spawn(f,index):
+def spawn(f,index,barcode):
     """ Attaches arbitrary function to pipe """
     def fun(pipe,x):
-        pipe.send(f(x,index))
+        pipe.send(f(x,index,barcode))
         pipe.close()
     return fun
 
 def parmap(f,X):
+    barcode = np.random.randint(99999) # random barcode to hold temporary files
     pipe=[Pipe() for x in X]
-    proc=[Process(target=spawn(f,index+1),args=(c,x)) 
+    proc=[Process(target=spawn(f,index+1,barcode),args=(c,x)) 
             for index,(x,(p,c)) in enumerate(zip(X,pipe))]
+    print 'Starting pipes...'
     [p.start() for p in proc]
+    print 'Joining pipes...'
     [p.join() for p in proc]
-    return [p.recv() for (p,c) in pipe]
+    print 'Processing pipes...'
+    #recv = [p.recv() for (p,c) in pipe]
+    recv = get_results(barcode,len(X))
+    print 'Returning results...'
+    return recv
+
+def get_results(barcode,index_range):
+
+    results = []
+
+    for index in xrange(index_range):
+        try:
+            fname = ".{}_{}.p".format(barcode,index+1)
+            results += pickle.load(open(fname, "rb" ))
+            print 'Loaded:',fname
+            os.remove(fname)
+        except IOError:
+            pass
+
+    return results
+
 
 def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
     """ Creates a multiprocessing worker with preset information """
 
-    def worker(alphas,index,count=0):
+    def worker(alphas,index,barcode):
         """ Worker function, using betas and num_wells """
 
         total_alphas = len(alphas)
@@ -187,10 +213,15 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
                     if filt.check_tuple(pair_data['w_ij']): continue
                     results.append((((a,),(b,)),p,f[0]))
 
+        print '\nCore {} finished!'.format(index)
+
         if index == 1:
             print '\nWaiting on other cores to finish...!'
 
-        return results
+        pickle.dump(results, open( ".{}_{}.p".format(barcode,index), "wb" ))
+        print 'Pickled to: .{}_{}.p'.format(barcode,index)
+
+        #return []#results
 
     # returns worker function
     return worker 
