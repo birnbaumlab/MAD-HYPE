@@ -1,7 +1,7 @@
 
 # standard libraries
 import os
-from math import ceil,log10
+from math import ceil,floor,log10
 
 # nonstandard libraries
 import matplotlib.pyplot as plt
@@ -160,17 +160,27 @@ def plot_frequency_estimation(cresults,**kwargs):
 
     ax.set_xscale('log')
     ax.set_yscale('log')
-    #ax.set_ylim((7e-5,1.5e-2))
     ax.tick_params(width = 3,length=8,labelsize=18)
 
+    xv = [c[0] for c in cresults['positive_matched_freqs']]
+    yv = [c[1] for c in cresults['positive_matched_freqs']]
+    
     plt.rcParams['image.cmap'] = 'pink'
 
-    # plot available species
-    sc = plt.scatter(*zip(*cresults['positive_matched_freqs']),
-            c=cresults['positive_confidence'],linewidth=0.0,edgecolor='black') 
+    if len(cresults['positive_matched_freqs']) != 0:
+
+        ax.set_xlim((10**floor(log10(min(xv))),10**ceil(log10(max(xv)))))
+        ax.set_ylim((10**floor(log10(min(yv))),10**ceil(log10(max(yv)))))
+
+        # plot available species
+        sc = plt.scatter(*zip(*cresults['positive_matched_freqs']),
+                c=cresults['positive_confidence'],linewidth=0.0,edgecolor='black') 
 
     if cresults['negative_matched_freqs']: 
         plt.scatter(*zip(*cresults['negative_matched_freqs']),c='r', marker='x')
+
+    else:
+        print 'No matches made, nothing plotted in frequency esimation!'
 
     # label axes
     plt.xlabel('Clonal Frequency',fontsize=fs,fontweight='bold')

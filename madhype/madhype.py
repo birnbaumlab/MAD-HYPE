@@ -3,6 +3,8 @@
 Tests out the new and improved variable solver
 """
 
+import heapq
+
 # intrapackage libraries
 import simulation
 from analysis.madhype import solve as madhype
@@ -44,14 +46,14 @@ def run(data, solvers, solver_options, **kwargs):
     for mode,mode_options in zip(solvers,solver_options):
         results = solve[mode](data,**mode_options)
 
-        print 'Starting results sorting by p-value...'
-        results.sort(key=lambda x: -x[1])
-        print 'Finished!'
-
         if len(results) > options['max_pairs']:
-            print 'Reducing called pairs from {}->{} (declared limit)...'.format(
-                    len(results),options['max_pairs'])
-            results = results[:options['max_pairs']]
+            print 'Reducing number of returned pairs from {}->{} (declared limit)...'.format(
+                    len(results), options['max_pairs'])
+            results = heapq.nlargest(options['max_pairs'], results, key = lambda x: x[1]) 
+        else:
+            print 'Starting results sorting by p-value...'
+            results.sort(key=lambda x: -x[1])
+            print 'Finished!'
 
         # gather results
         compiled_results.append(analyze_results(results,data,**options))

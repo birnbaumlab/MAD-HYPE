@@ -68,11 +68,6 @@ def solve(seq_data,**kwargs):
 
     pairs = [(all_alphas[a], all_betas[b]) for a,b in overall_good_pairs]
 
-    print 'Pairs:',
-    for p in pairs:
-            if p[0] == 9:
-                    print '!!',p
-
     # Turns pairs of associated alpha- and beta- chains into cells that may have dual alpha chains
     cells, cell_freqs, cell_freqs_CI = pairs_to_cells(seq_data, pairs) 
 
