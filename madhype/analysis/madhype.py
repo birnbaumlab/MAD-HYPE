@@ -95,8 +95,8 @@ def solve(data,**kwargs):
     alpha_dicts = chunkify_dict(well_distribution['A'],num_cores)
 
     # multithread solver 
+    print 'Starting {} processes...'.format(num_cores)
     results = parmap(create_worker(*args),alpha_dicts)
-
     print 'Finished!'
 
     # flatten list
@@ -184,8 +184,8 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
         for i,(a,a_dist) in enumerate(alphas.items()):
 
             # give heads up on progress
-            if i % step_size == 0 and index == 1: 
-                print '{}% complete...\r'.format(round(100*float(i)/total_alphas,1)),
+            if i % step_size == 0:# and index == 1: 
+                print 'Process {} - {}% complete...'.format(index,round(100*float(i)/total_alphas,1))
 
             # apply filter (before itersection,A)
             if filt.check_dist(a_dist) and not bypass_filter: continue
