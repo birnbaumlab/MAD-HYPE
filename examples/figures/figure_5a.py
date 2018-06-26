@@ -55,7 +55,7 @@ if __name__ == "__main__":
             }
 
     T = 96000
-    W = 48
+    W = 96
     #w_range = [24,36,48]
     w_range = [0,6,12,18,24,30,36,42,48] # real well range
     c_range = np.logspace(0,3,16,dtype=int) # 16 segments
