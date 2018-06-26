@@ -49,8 +49,7 @@ def run(data, solvers, solver_options, **kwargs):
         if len(results) > options['max_pairs']:
             print 'Reducing number of returned pairs from {}->{} (declared limit)...'.format(
                     len(results), options['max_pairs'])
-            heapq.heapify(results)
-            results = heapq.nlargest(results, key = lambda x: x[1]) 
+            results = heapq.nlargest(options['max_pairs'], results, key = lambda x: x[1]) 
         else:
             print 'Starting results sorting by p-value...'
             results.sort(key=lambda x: -x[1])
