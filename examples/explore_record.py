@@ -44,7 +44,7 @@ def main():
     data = {
             'options':
             {
-                'cpw':     (2000,),
+                'cpw':     (80000,),
                 'num_wells': (96,),
             }
            }
@@ -72,7 +72,7 @@ def main():
             'visual':        False,
             'max_pairs':    400000,
             'num_wells':     (96,),
-            'cpw':         (2000,),
+            'cpw':         (80000,),
             }
 
     options.update(processing_options)
@@ -83,7 +83,7 @@ def main():
         data['well_data'] = data_assignment(label,dirname,reference,**processing_options)
 
         solvers = ['madhype'] # only run MAD-HYPE
-        solver_options =   [{'num_cores':4}] # use default parameters
+        solver_options =   [{'num_cores':0}] # use default parameters
 
         # results
         startTime = datetime.now()
@@ -494,10 +494,10 @@ def data_assignment(label,dirname,reference,**kwargs):
                   'B':set(k for k,v in Counter(flatten(well_data['B'])).items() if v >= threshold and v <= cap)}
 
     print 'Starting well A adjustment...'
-    well_data['A'] = [compare_lists(j,chain_keys['A']) for j in well_data['A']]
+    well_data['A'] = [set(compare_lists(j,chain_keys['A'])) for j in well_data['A']]
     print 'Finished well A adjustment!'
     print 'Starting well B adjustment...'
-    well_data['B'] = [compare_lists(j,chain_keys['B']) for i,j in well_data['B']]
+    well_data['B'] = [set(compare_lists(j,chain_keys['B'])) for j in well_data['B']]
     print 'Finished well B adjustment!'
 
     print 'Key size:'
