@@ -103,7 +103,7 @@ def get_results_from_subject_reference(results,data,options):
     for index,c in enumerate(cells_with_scores):
 
         if index < 1000:
-            print index,' : ',c 
+            pass#print index,' : ',c 
 
         a,b = '',''
 
@@ -188,6 +188,7 @@ def _write_dict_to_wb(wb,settings,sheet_name):
     ws = wb.create_sheet(title=sheet_name)
 
     for k,v in settings.items():
+	if k == 'raw_results': continue # skip a listing of matches
         if isinstance(v,dict):
             ws.append((k,'dict->'))
             for k2,v2 in v.items():

@@ -45,7 +45,7 @@ def main():
             'options':
             {
                 'cpw':     (2000,),
-                'num_wells': (24,),
+                'num_wells': (48,),
             }
            }
 
@@ -61,6 +61,7 @@ def main():
 
     # create a subject reference
     reference = make_reference(repertoire,**processing_options)
+    #reference = None
 
     #results = load_howie_data(**dirnameEXP)
     #analyze_results(results['Experiment 1'],data,reference=reference)
@@ -70,7 +71,6 @@ def main():
             'reference': reference,
             'visual':        False,
             'max_pairs':    400000,
-            'threshold':      100.,
             }
 
     options.update(processing_options)
@@ -80,8 +80,13 @@ def main():
         
         data['well_data'] = data_assignment(dirname,reference,**processing_options)
 
+	print 'Headsup:'
+	print data['well_data'].keys()
+	print len(data['well_data']['A'])
+
+
         solvers = ['madhype'] # only run MAD-HYPE
-        solver_options =   [{}] # use default parameters
+        solver_options =   [{'num_cores':6}] # use default parameters
 
         # results
         startTime = datetime.now()
