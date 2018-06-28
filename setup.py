@@ -22,9 +22,12 @@ setup(
     license=license,
     classifiers=['Programming Language :: Python :: 2'],
     install_requires=[ ## TODO add version numbers for dependencies
-        'scipy',
-        'numpy',
-        'matplotlib'
+        'numpy>=1.13.3',
+        'scipy>=0.19.0',
+        'matplotlib>=2.0.0',
+        'plotly>=2.7.0',
+        'openpyxl>=2.5.4',
+        'tqdm>=4.23.4'
     ],
     packages=[ ## TODO replace with find_packages() call when madhype/ is cleaned up
         'madhype',
