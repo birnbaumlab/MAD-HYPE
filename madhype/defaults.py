@@ -7,8 +7,7 @@ general_options = {
     'num_cells':1000,
 #    'seed':1,
     'cell_freq_distro': 'power-law',
-    'cell_freq_constant':       1.0,
-    'cell_freq_max':            0.01,
+    'cell_freq_constant':       2.0,
     'chain_misplacement_prob':  0.0, # TODO: add functionality
     'chain_deletion_prob':      0.1,
     'alpha_dual_prob':          0.0,
@@ -26,7 +25,7 @@ general_options = {
     'title':            True, # whether title  is displayed
     'legend':           True, # whether legend is displayed
     'save':            False, # whether plots are saved
-    'savename': 'img_{}.png', # whether plots are saved
+    'savename': 'img_{}.png', # where plots are saved
     'display':         False, # whether plots are displayed
     'hold':             True, # if plots are displayed, pause for user input
     'ax':               None, # an axis to plot on
