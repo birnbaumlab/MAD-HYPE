@@ -33,8 +33,8 @@ def main():
     dirnameY    = dirnameDATA + '/subjectY' 
 
     dirnameEXP = {
-            'Experiment 1': dirnameDATA + '/experiment1',
-            #'Experiment 2': dirnameDATA + '/experiment2',
+            #'Experiment 1': dirnameDATA + '/experiment1',
+            'Experiment 2': dirnameDATA + '/experiment2',
             }
 
     files = subjectXYdata(dirnameX,dirnameY)
@@ -45,7 +45,7 @@ def main():
             'options':
             {
                 'cpw':     (2000,),
-                'num_wells': (48,),
+                'num_wells': (96,),
             }
            }
 
@@ -71,6 +71,8 @@ def main():
             'reference': reference,
             'visual':        False,
             'max_pairs':    400000,
+            'num_wells':     (96,),
+            'cpw':         (2000,),
             }
 
     options.update(processing_options)
@@ -78,15 +80,10 @@ def main():
     # run madhype on datasets
     for label,dirname in dirnameEXP.items():
         
-        data['well_data'] = data_assignment(dirname,reference,**processing_options)
-
-	print 'Headsup:'
-	print data['well_data'].keys()
-	print len(data['well_data']['A'])
-
+        data['well_data'] = data_assignment(label,dirname,reference,**processing_options)
 
         solvers = ['madhype'] # only run MAD-HYPE
-        solver_options =   [{'num_cores':6}] # use default parameters
+        solver_options =   [{'num_cores':4}] # use default parameters
 
         # results
         startTime = datetime.now()
@@ -401,16 +398,17 @@ def pickle_save(my_data,fname):
 
 """ Great """
 
-def data_assignment(dirname,reference,**kwargs):
+def data_assignment(label,dirname,reference,**kwargs):
     """ Pulls out data from experiment directory and assigns TCR wells """
     """ Only valid for two subject testing """
     """ Note: threshold mimicked from Howie """
 
     options = {
             'silent':False,
-            'data_well_threshold':    4,
-            'data_well_cap':         96,
-            'appears_in_reference':True,
+            'data_well_threshold':     4,
+            'data_well_cap':          96,
+            'appears_in_reference': True,
+            'dirname':           dirname,
             }
 
     options.update(kwargs) # update dictionary
@@ -491,12 +489,15 @@ def data_assignment(dirname,reference,**kwargs):
                    
     # remove chains that occur less than threshold 
     print 'Adjusting well data for well occurance threshold...'
-    chain_keys = {'A':[k for k,v in Counter(flatten(well_data['A'])).items() if v >= threshold and v <= cap],
-                  'B':[k for k,v in Counter(flatten(well_data['B'])).items() if v >= threshold and v <= cap]}
 
-    well_data['A'] = [compare_lists(j,chain_keys['A']) for i,j in enumerate(well_data['A'])]
+    chain_keys = {'A':set(k for k,v in Counter(flatten(well_data['A'])).items() if v >= threshold and v <= cap),
+                  'B':set(k for k,v in Counter(flatten(well_data['B'])).items() if v >= threshold and v <= cap)}
+
+    print 'Starting well A adjustment...'
+    well_data['A'] = [compare_lists(j,chain_keys['A']) for j in well_data['A']]
     print 'Finished well A adjustment!'
-    well_data['B'] = [compare_lists(j,chain_keys['B']) for i,j in enumerate(well_data['B'])]
+    print 'Starting well B adjustment...'
+    well_data['B'] = [compare_lists(j,chain_keys['B']) for i,j in well_data['B']]
     print 'Finished well B adjustment!'
 
     print 'Key size:'
@@ -536,22 +537,9 @@ def flatten(l):
     """ Flatten a list into a 1D list """
     return [item for sublist in l for item in sublist]
 
-def compare_lists(l1,l2):
+def compare_lists(my_list,my_set):
     """ compares two lists of numerals looking for a match """
-    l1.sort()
-    l2.sort()
-    matches = []
-    i1,i2 = 0,0
-    while not (i1 == len(l1) or i2 == len(l2)):
-        if l1[i1] == l2[i2]:
-            matches.append(l1[i1])
-            i1 += 1
-            i2 += 1
-        elif l1[i1] > l2[i2]:
-            i2 += 1
-        else:
-            i1 += 1
-    return matches
+    return [l for l in my_list if l in my_set]
 
 
 
