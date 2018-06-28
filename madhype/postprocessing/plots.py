@@ -169,12 +169,20 @@ def plot_frequency_estimation(cresults,**kwargs):
 
     if len(cresults['positive_matched_freqs']) != 0:
 
+        min_conf = min(positive_confidence)
+        max_conf = max(positive_confidence)
+        
+        if min_conf == max_conf:
+            colors = 'black'
+        else:
+            colors = [(p - min_conf)/(max_conf - min_conf) for p in positive_confidence]
+
         ax.set_xlim((10**floor(log10(min(xv))),10**ceil(log10(max(xv)))))
         ax.set_ylim((10**floor(log10(min(yv))),10**ceil(log10(max(yv)))))
 
         # plot available species
         sc = plt.scatter(*zip(*cresults['positive_matched_freqs']),
-                c=cresults['positive_confidence'],linewidth=0.0,edgecolor='black') 
+                c=colors,linewidth=0.0,edgecolor='black') 
 
     if cresults['negative_matched_freqs']: 
         plt.scatter(*zip(*cresults['negative_matched_freqs']),c='r', marker='x')

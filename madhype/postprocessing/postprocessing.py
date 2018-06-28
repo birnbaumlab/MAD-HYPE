@@ -5,6 +5,7 @@ Attempt to test variable cells per well
 
 # standard libraries
 from math import log10,ceil,floor
+import random
 import os
 
 # nonstandard libraries
@@ -85,6 +86,10 @@ def analyze_results(results,data,**kwargs):
 def get_results_from_subject_reference(results,data,options):
 
     reference = options['reference']
+
+    # Randomize order of results so subsequent calculations are
+    # not dependent on the order of the results list
+    random.shuffle(results)
 
     cells_with_scores = sorted(results,key=lambda x: -x[1])
     cells_without_scores = [i[0] for i in cells_with_scores]
@@ -220,6 +225,9 @@ def _unique_wb_save(wb,name,directory):
 
 def get_results_from_cell_reference(results,data,options):
 
+    # not dependent on the order of the results list
+    random.shuffle(results)
+
     # these are guessed cells
     cells_with_scores = sorted(results,key=lambda x: -x[1])
     cells_without_scores = [i[0] for i in cells_with_scores]
@@ -281,11 +289,6 @@ def get_results_from_cell_reference(results,data,options):
             except KeyError:
                 non_matched_freqs.append((true_freq,true_freq))
                 #print '{} did not show up!'.format(cell)
-
-
-    positive_confidence = [(p - min(positive_confidence))/
-            (max(positive_confidence) - min(positive_confidence)) 
-            for p in positive_confidence]
 
     results = {
               'positive_matched_freqs':positive_matched_freqs,

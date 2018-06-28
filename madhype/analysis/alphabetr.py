@@ -69,8 +69,12 @@ def solve(seq_data,**kwargs):
     pairs = [(all_alphas[a], all_betas[b]) for a,b in overall_good_pairs]
 
     # Turns pairs of associated alpha- and beta- chains into cells that may have dual alpha chains
-    cells, cell_freqs, cell_freqs_CI = pairs_to_cells(seq_data, pairs) 
+    # NOTE: We skip this step for better comparison against MADHYPE, which doesn't currently do this
+    # cells, cell_freqs, cell_freqs_CI = pairs_to_cells(seq_data, pairs) 
 
+    # Assume no dual clones
+    cells = [((a,),(b,)) for a,b in pairs]
+    cell_freqs, cell_freqs_CI = estimate_cell_frequencies(seq_data, cells)
     thresholds = [overall_pairing_counts[p]/float(iters) for p in overall_good_pairs]
 
     # NOTE: not using confidence intervals atm
@@ -226,6 +230,7 @@ def estimate_cell_frequencies(seq_data, cells):
 
         if (100 * len(cell_freqs)) % len(cells) < 100: # update status whenever percent complete changes
             print "Computing chain pair frequencies... {0}%\r".format(int(100.*len(cell_freqs)/len(cells))),
+            sys.stdout.flush()
     print '' 
     return cell_freqs, cell_freq_CIs
 
@@ -398,22 +403,22 @@ def pairs_to_cells(seq_data, pairs):
     freqs_dict = {c: f for c,f in zip(candidate_non_duals+candidate_duals, freqs_list)}
     freqs_CI_dict = {c: f for c,f in zip(candidate_non_duals+candidate_duals, freqs_CI_list)}
     
-#    # Find duals using likelihood method, which is computationally infeasible with wells with >50 cells
-#    likelihood_duals = find_duals_likelihood(candidate_duals, freqs_dict)
-#    #print "Likelihood duals", likelihood_duals
-#
-#    # Find duals using clustering method, which works better lower-frequency cells
-#    clustering_duals = find_duals_clustering(candidate_duals, freqs_dict)
-#    #print "Clustering duals", clustering_duals
-#
-#    # Remove non-dual counterparts for each dual cell found and add in corresponding dual cell
-#    duals = list(set(likelihood_duals + clustering_duals))
-#    for alist,blist in duals:
-#        if ((alist[0],), blist) in cells:
-#            cells.remove(((alist[0],), blist))
-#        if ((alist[1],), blist) in cells:
-#            cells.remove(((alist[1],), blist))
-#        cells.append((alist, blist))
+    # Find duals using likelihood method, which is computationally infeasible with wells with >50 cells
+    likelihood_duals = find_duals_likelihood(candidate_duals, freqs_dict)
+    #print "Likelihood duals", likelihood_duals
+
+    # Find duals using clustering method, which works better lower-frequency cells
+    clustering_duals = find_duals_clustering(candidate_duals, freqs_dict)
+    #print "Clustering duals", clustering_duals
+
+    # Remove non-dual counterparts for each dual cell found and add in corresponding dual cell
+    duals = list(set(likelihood_duals + clustering_duals))
+    for alist,blist in duals:
+        if ((alist[0],), blist) in cells:
+            cells.remove(((alist[0],), blist))
+        if ((alist[1],), blist) in cells:
+            cells.remove(((alist[1],), blist))
+        cells.append((alist, blist))
     
     cell_freqs = [freqs_dict[c] for c in cells]
     cell_freqs_CI = [freqs_CI_dict[c] for c in cells]

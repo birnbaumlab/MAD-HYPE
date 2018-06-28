@@ -83,9 +83,8 @@ class CellGenerator(object):
         if cell_freq_distro == 'constant':
             freqs = [1./num_cells for _ in xrange(num_cells)]
         elif cell_freq_distro == 'power-law':
-            freq_max = self.options['cell_freq_max']
             alpha = self.options['cell_freq_constant']
-            freqs = _power_law_distribution(num_cells,freq_max, alpha)
+            freqs = _power_law_distribution(num_cells,alpha)
 
         return cells, freqs
 
@@ -99,36 +98,10 @@ def generate_cells(seed = None, **kwargs):
 """ Internal Methods """
 #------------------------------------------------------------------------------# 
 
-def _power_law_distribution(num_cells,max_freq,alpha):
+def _power_law_distribution(num_cells,alpha):
     """ Returns power law distribution using given parameters """ 
-    # Lower bound
-    if max_freq <= 1./num_cells:
-        print 'Max. freq too low! Returning uniform distribution...'
-        return [1./num_cells for _ in xrange(num_cells)]
-    
-    # Upper bound
-    if max_freq >= 1.:
-        print 'Max. freq too high! Returning delta distribution...'
-        return [1] + [0 for _ in xrange(num_cells-1)]
- 
-    # Find a shift
-    shift = scipy.optimize.root(_get_max_freq_diff, 1.0, args=(num_cells,max_freq,alpha)).x
-    
-    # Find best
-    return _get_freq_distribution(shift,num_cells,max_freq,alpha)
 
-#------------------------------------------------------------------------------# 
+    freqs = (1 - np.arange(0, num_cells, 1.0) / num_cells) ** (1./(1-alpha))
+    f_max = 1./freqs.sum()
+    return freqs * f_max
 
-def _get_max_freq_diff(shift,num_cells,max_freq,alpha):
-    """ Function for finding diff. b/w max_freq and current distribution """
-    freqs = _get_freq_distribution(shift,num_cells,max_freq,alpha)
-    return max_freq - freqs[0]
-
-#------------------------------------------------------------------------------# 
-
-def _get_freq_distribution(shift,num_cells,max_freq,alpha):
-    """ Generate a normalized power-law distribution """
-    freqs = np.arange(shift,num_cells+shift) ** -alpha
-    return freqs/sum(freqs)
-
-#
