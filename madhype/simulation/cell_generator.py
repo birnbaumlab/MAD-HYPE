@@ -83,8 +83,9 @@ class CellGenerator(object):
         if cell_freq_distro == 'constant':
             freqs = [1./num_cells for _ in xrange(num_cells)]
         elif cell_freq_distro == 'power-law':
+            freq_max = self.options['cell_freq_max']
             alpha = self.options['cell_freq_constant']
-            freqs = _power_law_distribution(num_cells,alpha)
+            freqs = _power_law_distribution(num_cells,alpha, freq_max)
 
         return cells, freqs
 
@@ -98,10 +99,30 @@ def generate_cells(seed = None, **kwargs):
 """ Internal Methods """
 #------------------------------------------------------------------------------# 
 
-def _power_law_distribution(num_cells,alpha):
+def _power_law_distribution(num_cells, alpha, freq_max):
     """ Returns power law distribution using given parameters """ 
 
-    freqs = (1 - np.arange(0, num_cells, 1.0) / num_cells) ** (1./(1-alpha))
-    f_max = 1./freqs.sum()
-    return freqs * f_max
+    # Choose freq_min so that sum(freqs)=1 (valid probability distribution)
+    func = lambda x: (_power_law_constrained(num_cells, alpha, x, freq_max).sum() - 1)**2
+    freq_min = scipy.optimize.minimize_scalar(func, bounds = (0.0, freq_max), method='bounded', options={'xatol':1e-100}).x
+    freqs = _power_law_constrained(num_cells, alpha, freq_min, freq_max)
 
+    if np.fabs(1 - freqs.sum()) / freqs[-1] > 1e-2:
+        if freq_max > 1.0:
+            print "Unable to generate power law probability distribution with freq_max={} > 0. Assuming delta distribution.".format(freq_max)
+            freqs = [1.0] + [0.0]*(num_cells-1)
+        elif freq_max < 1.0/num_cells:
+            print "Unable to generate power law probability distribution with freq_max*num_cells < 1.0. Using a uniform distribution."
+            freqs = [1.0/num_cells] * num_cells
+        else:
+            print "Unable to generate a power law probability distribution with alpha={} and freq_max={}. Try using default values alpha={}, freq_max={}.".format(alpha, freq_max, default_options['cell_freq_constant'], default_options['cell_freq_max'])
+            freqs = [float('nan')] * num_cells
+
+    return freqs
+
+def _power_law_constrained(num_points, alpha, vmin, vmax):
+    """ Returns values following a power law constrained between vmin and vmax with exponent alpha """
+    vmax_adj = vmax ** (1-alpha)
+    vmin_adj = vmin ** (1-alpha)
+    data = (vmax_adj - (vmax_adj - vmin_adj) * np.arange(0, num_points, 1.0) / num_points) ** (1. / (1-alpha))
+    return data

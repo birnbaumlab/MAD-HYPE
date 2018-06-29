@@ -8,6 +8,7 @@ general_options = {
 #    'seed':1,
     'cell_freq_distro': 'power-law',
     'cell_freq_constant':       2.0,
+    'cell_freq_max':            0.01,
     'chain_misplacement_prob':  0.0, # TODO: add functionality
     'chain_deletion_prob':      0.1,
     'alpha_dual_prob':          0.0,
