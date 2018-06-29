@@ -99,6 +99,8 @@ def solve(data,**kwargs):
     results = parmap(create_worker(*args),alpha_dicts)
     print 'Finished!'
 
+
+    print 'Total potential matches: {}'.format(len(results))
     # flatten list
     #results = [entry for subresults in results for entry in subresults]
 
@@ -184,8 +186,9 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
         for i,(a,a_dist) in enumerate(alphas.items()):
 
             # give heads up on progress
-            if i % step_size == 0:# and index == 1: 
-                print 'Process {} - {}% complete...'.format(index,round(100*float(i)/total_alphas,1))
+            if i % step_size == 0 and index == 1: 
+                #print 'Process {} - {}% complete...'.format(index,round(100*float(i)/total_alphas,1))
+                print '{}% complete...'.format(round(100*float(i)/total_alphas,1))
 
             # apply filter (before itersection,A)
             if filt.check_dist(a_dist) and not bypass_filter: continue

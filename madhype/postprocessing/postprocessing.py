@@ -134,7 +134,7 @@ def get_results_from_subject_reference(results,data,options):
             n += 1
             continue 
 
-        if x1[-1] > 2*options['fdr']*y1[-1]:
+        if 2*x1[-1] > options['fdr']*y1[-1]:
             print 'FDR met!'
             break
 
