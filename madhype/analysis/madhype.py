@@ -141,14 +141,14 @@ def parmap(f,X):
     pipe=[Pipe() for x in X]
     proc=[Process(target=spawn(f,index+1,barcode),args=(c,x)) 
             for index,(x,(p,c)) in enumerate(zip(X,pipe))]
-    print 'Starting pipes...'
+#    print 'Starting pipes...'
     [p.start() for p in proc]
-    print 'Joining pipes...'
+#    print 'Joining pipes...'
     [p.join() for p in proc]
-    print 'Processing pipes...'
+#    print 'Processing pipes...'
     #recv = [p.recv() for (p,c) in pipe]
     recv = get_results(barcode,len(X))
-    print 'Returning results...'
+#    print 'Returning results...'
     return recv
 
 def get_results(barcode,index_range):
@@ -159,7 +159,7 @@ def get_results(barcode,index_range):
         try:
             fname = ".{}_{}.p".format(barcode,index+1)
             results += pickle.load(open(fname, "rb" ))
-            print 'Loaded:',fname
+#            print 'Loaded:',fname
             os.remove(fname)
         except IOError:
             pass
@@ -216,13 +216,13 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
                     if filt.check_tuple(pair_data['w_ij']): continue
                     results.append((((a,),(b,)),p,f[0]))
 
-        print '\nCore {} finished!'.format(index)
+#        print '\nCore {} finished!'.format(index)
 
-        if index == 1:
-            print '\nWaiting on other cores to finish...!'
+#        if index == 1:
+#            print '\nWaiting on other cores to finish...!'
 
         pickle.dump(results, open( ".{}_{}.p".format(barcode,index), "wb" ))
-        print 'Pickled to: .{}_{}.p'.format(barcode,index)
+#        print 'Pickled to: .{}_{}.p'.format(barcode,index)
 
         #return []#results
 
