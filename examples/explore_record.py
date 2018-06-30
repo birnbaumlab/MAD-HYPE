@@ -44,7 +44,7 @@ def main():
     data = {
             'options':
             {
-                'cpw':     (80000,),
+                'cpw':     (160000,),
                 'num_wells': (96,),
             }
            }
@@ -72,7 +72,7 @@ def main():
             'visual':        False,
             'max_pairs':    400000,
             'num_wells':     (96,),
-            'cpw':         (80000,),
+            'cpw':         (160000,),
             }
 
     options.update(processing_options)
