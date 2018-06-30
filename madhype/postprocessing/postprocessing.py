@@ -225,7 +225,6 @@ def _unique_wb_save(wb,name,directory):
 
 def get_results_from_cell_reference(results,data,options):
 
-    # not dependent on the order of the results list
     random.shuffle(results)
 
     # these are guessed cells
@@ -241,19 +240,41 @@ def get_results_from_cell_reference(results,data,options):
 
     # look at error rate (stratified by confidence)
     x1,y1 = [0],[0]
+    dx,dy = 0,0
     warning=True # warning if you didn't pass enough points
 
-    for c in cells_with_scores:
-        try:
-            data['cells'][c[0]]
-            x1.append(x1[-1])
-            y1.append(y1[-1]+1)
-        except KeyError:
-            x1.append(x1[-1]+1)
-            y1.append(y1[-1])
-        if x1[-1] > options['fdr']*y1[-1]:
-            warning=False
-            break
+    for i in range(len(cells_with_scores)):
+        c, score, _ = cells_with_scores[i]
+
+        if c in data['cells']:
+            dy += 1
+        else:
+            dx += 1
+
+        if i == len(cells_with_scores)-1 or score != cells_with_scores[i+1][1]:
+            if x1[-1]+dx > options['fdr'] * (y1[-1]+dy):
+                # Determine where the ROC curve passes the FDR cutoff line
+                t = - float(options['fdr']*y1[-1] - x1[-1]) / (options['fdr']*dy - dx)
+                x1.append(x1[-1] + int(dx*t))
+                y1.append(y1[-1] + int(dy*t))
+                warning = False
+                break
+            else:
+                x1.append(x1[-1]+dx)
+                y1.append(y1[-1]+dy)
+                dx,dy = 0,0
+#           
+#    for c in cells_with_scores:
+#        try:
+#            data['cells'][c[0]]
+#            x1.append(x1[-1])
+#            y1.append(y1[-1]+1)
+#        except KeyError:
+#            x1.append(x1[-1]+1)
+#            y1.append(y1[-1])
+#        if x1[-1] > options['fdr']*y1[-1]:
+#            warning=False
+#            break
 
     if warning:
         print 'WARNING: Number of passed guesses did not meet FDR!'

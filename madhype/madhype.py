@@ -21,7 +21,7 @@ solve = {
 #------------------------------------------------------------------------------# 
 
 
-def simulate_run(solvers, solver_options, **kwargs):
+def simulate_run(solvers, solver_options = None, **kwargs):
     options = default_options.copy()
 
     # Update options
@@ -33,11 +33,14 @@ def simulate_run(solvers, solver_options, **kwargs):
 
     return data, run(data, solvers, solver_options, **options)
 
-def run(data, solvers, solver_options, **kwargs):
+def run(data, solvers, solver_options = None, **kwargs):
     options = default_options.copy()
 
     # Update options
     options.update(kwargs)
+
+    # Interpret solver_options to use defaults if None
+    if solver_options is None:  solver_options = [{}]*len(solvers)
 
     # prepare for storage
     compiled_results = []
