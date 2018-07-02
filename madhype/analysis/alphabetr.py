@@ -121,10 +121,6 @@ def _solve_multiprocessing(well_data, all_alphas, all_betas, **kwargs):
 
     if num_cores == 0:
         num_cores = cpu_count()
-    elif num_cores > cpu_count():
-        print 'Number of cores exceeds CPU count, reducing core usage {}->{}...'.format(
-                num_cores,cpu_count())
-        num_cores = cpu_count
 
     pool = mp.Pool(num_cores)
     pool_args = [(well_data, len(all_alphas), len(all_betas), kwargs, random.random()) for _ in range(iters)]
