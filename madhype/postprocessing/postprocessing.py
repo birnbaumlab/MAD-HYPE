@@ -115,7 +115,10 @@ def get_results_from_subject_reference(results,data,options):
         if j in reference['B']['X']: b += 'X'
         if j in reference['B']['Y']: b += 'Y'
 
-        reported_matches.append((i,j,c[1],a,b,c[2]['i'],c[2]['j'],c[2]['ij']))
+        try:
+            reported_matches.append((i,j,c[1],a,b,c[2]['i'],c[2]['j'],c[2]['ij']))
+        except KeyError:
+            reported_matches.append((i,j,c[1],a,b))
 
         total += 1
 
@@ -165,6 +168,8 @@ def write_results_to_xslx(results):
     # pull options and matches from results
     options = results.pop('options',{})
     matches = results.pop('matches',{})
+    if matches == {}:
+	 matches = results.pop('raw_results',{})
     options.pop('reference',{})
     results.pop('reference',{})
 
@@ -178,7 +183,7 @@ def write_results_to_xslx(results):
     # data sheet
     ws = wb.create_sheet(title='MATCHES')
     for match in matches:
-        ws.append(match)
+        ws.append((str(m) for m in match))
 
     # save file to unique name
     _unique_wb_save(wb,'results','./results')
@@ -189,15 +194,16 @@ def _write_dict_to_wb(wb,settings,sheet_name):
 
     for k,v in settings.items():
 	if k == 'raw_results': continue # skip a listing of matches
+	if k == 'matches': continue # skip a listing of matches
         if isinstance(v,dict):
             ws.append((k,'dict->'))
             for k2,v2 in v.items():
                 if isinstance(v2,(tuple,list)):
-                    ws.append(('->',k2)+tuple(v2))
+                    ws.append(('->',k2)+(str(v2),))
                 else:
                     ws.append(('->',k2,v2))
         elif isinstance(v,(tuple,list)):
-            ws.append([k] + list(v))
+            ws.append([k] + [str(v)])
         else:
             ws.append((k,str(v)))
 
@@ -325,6 +331,8 @@ def get_results_from_cell_reference(results,data,options):
               'xy':[x1,y1],
               'raw_results': cells_with_scores
               }
+
+    write_results_to_xslx(results)
 
     if True:#not options['silent']:
 

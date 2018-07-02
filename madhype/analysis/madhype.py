@@ -159,8 +159,8 @@ def get_results(barcode,index_range):
         try:
             fname = ".{}_{}.p".format(barcode,index+1)
             results += pickle.load(open(fname, "rb" ))
-#            print 'Loaded:',fname
-            os.remove(fname)
+            print 'Loaded:',fname
+            #os.remove(fname)
         except IOError:
             pass
 

@@ -33,7 +33,7 @@ def main():
     dirnameY    = dirnameDATA + '/subjectY' 
 
     dirnameEXP = {
-            #'Experiment 1': dirnameDATA + '/experiment1',
+            'Experiment 1': dirnameDATA + '/experiment1',
             'Experiment 2': dirnameDATA + '/experiment2',
             }
 
@@ -54,7 +54,7 @@ def main():
             'data_well_cap':           96,  # maximum number of wells for a chain to appear to be added to dataset
             'overwrite':            False,  # surpresses some inte
             'silent':               False,  # supresses some intermediate input/output
-            'subject_well_threshold':   5,  # minimum number of wells for a chain to appear to be added to subject reference 
+            'subject_well_threshold':   3,  # minimum number of wells for a chain to appear to be added to subject reference 
             'subject_well_cap':        96,  # maximum number of wells for a chain to appear to be added to subject reference 
             'appears_in_reference': False,  # only add a sequence from data if it appears in a reference
             }
@@ -63,20 +63,22 @@ def main():
     reference = make_reference(repertoire,**processing_options)
     #reference = None
 
-    #results = load_howie_data(**dirnameEXP)
-    #analyze_results(results['Experiment 1'],data,reference=reference)
+    results = load_howie_data(**dirnameEXP)
+    analyze_results(results['Experiment 1'],data,reference=reference)
+    analyze_results(results['Experiment 2'],data,reference=reference)
     #raw_input('Waiting..')
     
     options = {
             'reference': reference,
             'visual':        False,
-            'max_pairs':    400000,
+            'max_pairs':    500000,
             'num_wells':     (96,),
             'cpw':         (160000,),
             }
 
     options.update(processing_options)
 
+    '''
     # run madhype on datasets
     for label,dirname in dirnameEXP.items():
         
@@ -95,6 +97,7 @@ def main():
                 )
 
         print 'MAD-HYPE took {} seconds.\n'.format(datetime.now()-startTime)
+    '''
 
     #combine(results,reference)
 
