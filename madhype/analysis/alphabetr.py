@@ -46,6 +46,9 @@ def solve(seq_data,**kwargs):
     pair_threshold = options['pair_threshold']
     silent = options['silent']
 
+    # set seed, if specified
+    if 'seed' in options:
+        random.seed(options['seed'])
    
     # Extract all distinct alpha- and beta-chains observed
     # TODO: might be better to extract the chains directly from the cells in the system
@@ -68,14 +71,18 @@ def solve(seq_data,**kwargs):
 
     pairs = [(all_alphas[a], all_betas[b]) for a,b in overall_good_pairs]
 
-    # Turns pairs of associated alpha- and beta- chains into cells that may have dual alpha chains
-    # NOTE: We skip this step for better comparison against MADHYPE, which doesn't currently do this
-    # cells, cell_freqs, cell_freqs_CI = pairs_to_cells(seq_data, pairs) 
-
-    # Assume no dual clones
-    cells = [((a,),(b,)) for a,b in pairs]
-    cell_freqs, cell_freqs_CI = estimate_cell_frequencies(seq_data, cells)
-    thresholds = [overall_pairing_counts[p]/float(iters) for p in overall_good_pairs]
+    if options['dual_clones']:
+        # Turns pairs of associated alpha- and beta- chains into cells that may have dual alpha chains
+        cells, cell_freqs, cell_freqs_CI = pairs_to_cells(seq_data, pairs) 
+        thresholds = [overall_pairing_counts[p]/float(iters) if len(p[0])==1 and len(p[1])==1 else None for p in cells]
+    else:
+        # Assume no dual clones
+        cells = [((a,),(b,)) for a,b in pairs]
+        thresholds = [overall_pairing_counts[p]/float(iters) for p in overall_good_pairs]
+        if options['estimate_frequencies']:
+            cell_freqs, cell_freqs_CI = estimate_cell_frequencies(seq_data, cells)
+        else:
+            cell_freqs, cell_freqs_CI = [0.0]*len(cells), [0.0]*len(cells)
 
     # NOTE: not using confidence intervals atm
     results = [(c,t,{'i':0.,'j':0.,'ij':f}) for c,t,f in zip(cells,thresholds,cell_freqs)]
