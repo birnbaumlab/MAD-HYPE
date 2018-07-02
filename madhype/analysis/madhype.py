@@ -7,7 +7,7 @@ Solver for MAD-HYPE method
 
 # standard libraries
 import time
-import os
+import sys, os
 import pickle
 from collections import Counter
 from operator import mul
@@ -90,7 +90,7 @@ def solve(data,**kwargs):
     elif num_cores > cpu_count():
         print 'Number of cores exceeds CPU count, reducing core usage {}->{}...'.format(
                 num_cores,cpu_count())
-        num_cores = cpu_count
+        num_cores = cpu_count()
 
     alpha_dicts = chunkify_dict(well_distribution['A'],num_cores)
 
@@ -188,7 +188,8 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
             # give heads up on progress
             if i % step_size == 0 and index == 1: 
                 #print 'Process {} - {}% complete...'.format(index,round(100*float(i)/total_alphas,1))
-                print '{}% complete...'.format(round(100*float(i)/total_alphas,1))
+                print '{}% complete...\r'.format(round(100*float(i)/total_alphas,1)),
+                sys.stdout.flush()
 
             # apply filter (before itersection,A)
             if filt.check_dist(a_dist) and not bypass_filter: continue
