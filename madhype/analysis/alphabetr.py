@@ -46,6 +46,9 @@ def solve(seq_data,**kwargs):
     pair_threshold = options['pair_threshold']
     silent = options['silent']
 
+    # set seed, if specified
+    if 'seed' in options:
+        random.seed(options['seed'])
    
     # Extract all distinct alpha- and beta-chains observed
     # TODO: might be better to extract the chains directly from the cells in the system
@@ -68,14 +71,18 @@ def solve(seq_data,**kwargs):
 
     pairs = [(all_alphas[a], all_betas[b]) for a,b in overall_good_pairs]
 
-    # Turns pairs of associated alpha- and beta- chains into cells that may have dual alpha chains
-    # NOTE: We skip this step for better comparison against MADHYPE, which doesn't currently do this
-    # cells, cell_freqs, cell_freqs_CI = pairs_to_cells(seq_data, pairs) 
-
-    # Assume no dual clones
-    cells = [((a,),(b,)) for a,b in pairs]
-    cell_freqs, cell_freqs_CI = estimate_cell_frequencies(seq_data, cells)
-    thresholds = [overall_pairing_counts[p]/float(iters) for p in overall_good_pairs]
+    if options['dual_clones']:
+        # Turns pairs of associated alpha- and beta- chains into cells that may have dual alpha chains
+        cells, cell_freqs, cell_freqs_CI = pairs_to_cells(seq_data, pairs) 
+        thresholds = [overall_pairing_counts[p]/float(iters) if len(p[0])==1 and len(p[1])==1 else None for p in cells]
+    else:
+        # Assume no dual clones
+        cells = [((a,),(b,)) for a,b in pairs]
+        thresholds = [overall_pairing_counts[p]/float(iters) for p in overall_good_pairs]
+        if options['estimate_frequencies']:
+            cell_freqs, cell_freqs_CI = estimate_cell_frequencies(seq_data, cells)
+        else:
+            cell_freqs, cell_freqs_CI = [0.0]*len(cells), [0.0]*len(cells)
 
     # NOTE: not using confidence intervals atm
     results = [(c,t,{'i':0.,'j':0.,'ij':f}) for c,t,f in zip(cells,thresholds,cell_freqs)]
@@ -99,17 +106,16 @@ def solve(seq_data,**kwargs):
 
 ## Auxiliary solve functions
 def _solve_singleprocessing(well_data, all_alphas, all_betas, **kwargs):
-    solve_args = (well_data, all_alphas, all_betas, kwargs)
+    solve_args = (well_data, len(all_alphas), len(all_betas), kwargs)
     iters = kwargs['iters']
 
     overall_pairing_counts = {}
-    for iter in tqdm(range(iters)):
-        pairs = _solve_iter(solve_args)
+    for iter in tqdm(range(iters), desc="Chain pairs", bar_format="{desc}: |{bar}| {percentage:3.0f}% [{elapsed}<{remaining}, {rate_fmt}{postfix}]"):
+        pairs = _solve_iter(solve_args + (random.random(),))
         for p in pairs:
             overall_pairing_counts[p] = overall_pairing_counts.get(p, 0) + 1
     return overall_pairing_counts
 def _solve_multiprocessing(well_data, all_alphas, all_betas, **kwargs):
-    solve_args = (well_data, all_alphas, all_betas, kwargs)
     iters = kwargs['iters']
     num_cores = kwargs['num_cores']
 
@@ -121,23 +127,25 @@ def _solve_multiprocessing(well_data, all_alphas, all_betas, **kwargs):
         num_cores = cpu_count
 
     pool = mp.Pool(num_cores)
-    results_iter = pool.imap_unordered(_solve_iter, [solve_args] * iters)
+    pool_args = [(well_data, len(all_alphas), len(all_betas), kwargs, random.random()) for _ in range(iters)]
+    results_iter = pool.imap_unordered(_solve_iter, pool_args)
     pool.close()
     
     overall_pairing_counts = {}
-    for pairs in tqdm(results_iter):
+    for pairs in tqdm(results_iter, total=iters, desc="Chain pairs", bar_format="{desc}: |{bar}| {percentage:3.0f}% [{elapsed}<{remaining}, {rate_fmt}{postfix}]"):
         for p in pairs:
             overall_pairing_counts[p] = overall_pairing_counts.get(p, 0) + 1
     return overall_pairing_counts
 def _solve_iter(args):
-    well_data, all_alphas, all_betas, options = args
+    well_data, num_alphas, num_betas, options, subprocess_seed = args
 
     # Choose random subset of wells for this iter
     # Each random subset is constant fraction (0.75) of all wells
-    wells_idx = np.random.choice(range(len(well_data)), int(0.75*len(well_data)), replace=False)
+    random.seed(subprocess_seed)
+    wells_idx = random.sample(range(len(well_data)), int(0.75*len(well_data)))
     
     # Calculate association scores
-    S = [[0 for j in range(len(all_betas))] for i in range(len(all_alphas))]
+    S = [[0 for j in range(num_betas)] for i in range(num_alphas)]
     for well_idx in wells_idx:
         well_alpha_idx, well_beta_idx = well_data[well_idx]
         for a_idx in well_alpha_idx:
@@ -214,24 +222,23 @@ def estimate_cell_frequencies(seq_data, cells):
     cell_freqs = []
     cell_freq_CIs = []
 
-    for (alist, blist), k in zip(cells, K):
-        L_func = lambda f: log_likelihood_func(f, N, W, k, is_dual=len(alist)>1)
+    with tqdm(total = len(cells), desc="Frequencies", bar_format="{desc}: |{bar}| {percentage:3.0f}% [{elapsed}<{remaining}, {rate_fmt}{postfix}]", unit='cell') as pbar:
+        for (alist, blist), k in zip(cells, K):
+            L_func = lambda f: log_likelihood_func(f, N, W, k, is_dual=len(alist)>1)
+    
+            # Find maximal likelihood
+            f_opt = scipy.optimize.minimize_scalar(lambda f: -L_func(f), method='Bounded', bounds=(0,1)).x
+            L_max = L_func(f_opt)
+    
+            # Find confidence interval, as specified in the paper
+            f_min = scipy.optimize.minimize_scalar(lambda f: (L_max-1.96-L_func(f))**2, method='Bounded', bounds=(0,f_opt)).x
+            f_max = scipy.optimize.minimize_scalar(lambda f: (L_max-1.96-L_func(f))**2, method='Bounded', bounds=(f_opt,1)).x
+    
+            cell_freqs.append(f_opt)
+            cell_freq_CIs.append((f_min, f_max))
+    
+            pbar.update()
 
-        # Find maximal likelihood
-        f_opt = scipy.optimize.minimize_scalar(lambda f: -L_func(f), method='Bounded', bounds=(0,1)).x
-        L_max = L_func(f_opt)
-
-        # Find confidence interval, as specified in the paper
-        f_min = scipy.optimize.minimize_scalar(lambda f: (L_max-1.96-L_func(f))**2, method='Bounded', bounds=(0,f_opt)).x
-        f_max = scipy.optimize.minimize_scalar(lambda f: (L_max-1.96-L_func(f))**2, method='Bounded', bounds=(f_opt,1)).x
-
-        cell_freqs.append(f_opt)
-        cell_freq_CIs.append((f_min, f_max))
-
-        if (100 * len(cell_freqs)) % len(cells) < 100: # update status whenever percent complete changes
-            print "Computing chain pair frequencies... {0}%\r".format(int(100.*len(cell_freqs)/len(cells))),
-            sys.stdout.flush()
-    print '' 
     return cell_freqs, cell_freq_CIs
 
 def pairs_to_cells(seq_data, pairs):
