@@ -88,22 +88,24 @@ def main(*args,**kwargs):
                     'fig':fig,
                     },
                 'visual':                True,
+                'display':              False,
                 'silent':               False,
                 }
 
         # update settings with sample specific hyperparameters
         settings.update(specific_settings[sample])
 
-        solvers = ['alphabetr']
+        solvers = ['madhype']
         solver_options = [{}]
 
         data,results = madhype.simulate_run(solvers, solver_options, **settings)
         
     plt.subplots_adjust(left=0.125,right=0.9,top=0.9,bottom=0.1,hspace=0.4,wspace=0.4)
 
-    plt.show(block=False)
-    raw_input('Press enter to close...')
-    plt.close()
+    #plt.show(block=False)
+    plt.savefig('figure_rc1.png',dpi=300)
+    #raw_input('Press enter to close...')
+    #plt.close()
 
 def _error(alpha,data): 
     simulation = _power_law_distribution(len(data),max(data),alpha)
