@@ -95,7 +95,7 @@ def main(*args,**kwargs):
         # update settings with sample specific hyperparameters
         settings.update(specific_settings[sample])
 
-        solvers = ['madhype']
+        solvers = ['alphabetr']
         solver_options = [{}]
 
         data,results = madhype.simulate_run(solvers, solver_options, **settings)
