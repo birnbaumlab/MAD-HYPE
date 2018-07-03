@@ -1,3 +1,4 @@
+
 # standard libraries
 import copy
 
@@ -14,11 +15,10 @@ plt.rcParams["font.family"] = "serif"
 def main(*args,**kwargs):
 
     modifications = {
-            'dual_prob':[.0,.1,.2,.3,.4,.5],
-            #'dual_prob':[.0,.1],
+            'cell_freq_constant':[1.5,2.0,2.5,3.0],
             }
 
-    labels = ['0%','10%','20%','30%','40%','50%']
+    labels = modifications['cell_freq_constant']
     #labels = ['0%','10%']
 
     repeats = 10
@@ -31,6 +31,11 @@ def main(*args,**kwargs):
     settings['num_wells'] = (48,48)
     settings['chain_deletion_prob'] = 0.1
     settings['chain_misplacement_prob'] = 0.0
+
+    settings['alpha_dual_prob'] = 0.0
+    settings['beta_dual_prob'] = 0.0
+
+    settings['cell_freq_distro'] = 'power-law'
 
     all_coverage = {}
     all_matches = {}
@@ -77,7 +82,7 @@ def main(*args,**kwargs):
                     all_results += results
 
                 all_coverage[mod].append([results['frac_repertoire'] for results in all_results])
-                all_matches[mod].append([float(results['positives'])/(settings['num_cells']*(1 + 2*v + v**2)) for results in all_results])
+                all_matches[mod].append([float(results['positives']) for results in all_results])
 
 
     # plot/display settings
@@ -106,7 +111,7 @@ def main(*args,**kwargs):
             )
 
     axes[0][0].set_title('No chain sharing',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][0],'Dual Clone Probability (%)','Clonal Matches (%)',fs=fs)
+    label_figure(axes[0][0],'Dual Clone Probability (%)','Clonal Matches (#)',fs=fs)
 
     bp = axes[1][0].boxplot(
             all_coverage['No chain sharing'], 
@@ -131,7 +136,7 @@ def main(*args,**kwargs):
             )
 
     axes[0][1].set_title('Chain sharing',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][1],'Dual Clone Probability (%)','Clonal Matches (%)',fs=fs)
+    label_figure(axes[0][1],'Dual Clone Probability (%)','Clonal Matches (#)',fs=fs)
 
     bp = axes[1][1].boxplot(
             all_coverage['Chain sharing'], 
@@ -147,7 +152,7 @@ def main(*args,**kwargs):
 
     plt.show(block=False)
     raw_input('Press enter to close...')
-    plt.savefig('fig_S5.png', format='png', dpi=300)
+    plt.savefig('fig_S6.png', format='png', dpi=300)
     plt.close()
 
 

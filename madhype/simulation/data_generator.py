@@ -121,6 +121,7 @@ class DataGenerator(object):
                 'well_data':self.well_data,
                 'cells':dict([(((a,),(b,)),f) for c,f in zip(cells,cell_frequencies)
                     for a in c[0] for b in c[1]]),
+                'complete_cells':dict([(c,f) for c,f in zip(cells,cell_frequencies)]),
                 'options':self.options
                }
 

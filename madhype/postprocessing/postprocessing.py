@@ -281,16 +281,57 @@ def get_results_from_cell_reference(results,data,options):
 #        if x1[-1] > options['fdr']*y1[-1]:
 #            warning=False
 #            break
-
+    
     if warning:
         print 'WARNING: Number of passed guesses did not meet FDR!'
         print 'Lower the match threshold and you will see better results!'
 
     total_matches_at_fdr = x1[-1] + y1[-1]
 
-    freqs = [cells_freqs[i] for i,c in enumerate(cells_label) \
-             if c in cells_without_scores[:total_matches_at_fdr]]
+    # NEW METHOD OF CALCULATING REPERTOIRE FRACTION, W/ COVERAGE FOR DUAL CLONES
+    cells_without_scores_at_fdr = set(cells_without_scores[:total_matches_at_fdr])
+
+    # create dict with complete cells and the number of matches required to "finish" identifying cell
+    complete_cell_match_counter = dict([(k,len(k[0])*len(k[1])) for k in data['complete_cells'].keys()])
+    map_matches_to_complete_cells = {}
+
+    # create a mapping from match pairs to full clones
+    for k in complete_cell_match_counter.keys():
+        for a in k[0]:
+            for b in k[1]:
+                try:
+                    map_matches_to_complete_cells[((a,),(b,))].append(k)
+                except KeyError:
+                    map_matches_to_complete_cells[((a,),(b,))] = [k]
+
+    # count the number of matches that fit each complete cell
+    for guessed_cell_match in cells_without_scores_at_fdr:
+        try:
+            for complete_cell_match in map_matches_to_complete_cells[guessed_cell_match]:
+                complete_cell_match_counter[complete_cell_match] += -1
+        except KeyError:
+            pass
+
+    freqs = []
+
+    for k,v in complete_cell_match_counter.items():
+        if v == 0:
+            freqs.append(data['complete_cells'][k])
+        if v < 0:
+            print 'We have a problem... {}:{}'.format(k,v)
+
     frac_repertoire = sum(freqs)
+
+    #print 'New frac repertoire:',frac_repertoire
+
+    # This method wasn't compatible with dual clones (since you need multiple matches for one cell)
+    '''
+    freqs = [cells_freqs[i] for i,c in enumerate(cells_label) \
+             if c in cells_without_scores_at_fdr]
+    frac_repertoire = sum(freqs)
+    print 'Old frac repertoire:',frac_repertoire
+    '''
+
     pattern = [1 if c in cells_without_scores[:total_matches_at_fdr] else 0 \
                for i,c in enumerate(cells_label)]
 
