@@ -164,6 +164,8 @@ def plot_frequency_estimation(cresults,**kwargs):
 
     xv = [c[0] for c in cresults['positive_matched_freqs']]
     yv = [c[1] for c in cresults['positive_matched_freqs']]
+
+    positive_confidence = cresults['positive_confidence']
     
     plt.rcParams['image.cmap'] = 'pink'
 

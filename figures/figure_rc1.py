@@ -58,7 +58,10 @@ def main(*args,**kwargs):
 
         options = {'maxiters':10000}
         alpha = minimize(_error,1.0,data,method = 'Nelder-Mead',tol=1e-12,options=options)
-        print 'Sample: {} / Alpha: {}'.format(sample,alpha.x)
+
+        alpha = 1. + 1./alpha.x
+
+        print 'Sample: {} / Alpha: {}'.format(sample,alpha)
 
         [i.set_linewidth(3) for i in axes[ind][0].spines.itervalues()]
 
@@ -72,13 +75,13 @@ def main(*args,**kwargs):
         ax.scatter(xrange(1,len(data)+1),
                 data,c='blue',s=55,marker='s')
         ax.scatter(xrange(1,len(data)+1),
-                _power_law_distribution(len(data),max(data),alpha.x),c='red',s=30,marker='D')
+                _power_law_distribution(len(data),max(data),alpha),c='red',s=30,marker='D')
 
         plt.yticks(rotation='vertical')
 
         # default settings
         settings = {
-                'cell_freq_constant': alpha.x,
+                'cell_freq_constant': alpha,
                 'cell_freq_max':    max(data),
                 'plot_frequency_estimation': {
                     'ax':axes[ind][1],
@@ -91,7 +94,7 @@ def main(*args,**kwargs):
         # update settings with sample specific hyperparameters
         settings.update(specific_settings[sample])
 
-        solvers = ['madhype']
+        solvers = ['alphabetr']
         solver_options = [{}]
 
         data,results = madhype.simulate_run(solvers, solver_options, **settings)
