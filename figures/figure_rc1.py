@@ -39,6 +39,8 @@ def main(*args,**kwargs):
             }
     
     # figure specific properties
+
+    plt.switch_backend('agg')
     fig,axes = plt.subplots(nrows=2, ncols=len(fnames), figsize=(12,12), sharey=False)
     plt.tight_layout()
     #plt.subplots_adjust(left=0.15,right=0.9,top=0.85,bottom=0.3,hspace=0.5,wspace=0.5)

@@ -39,16 +39,16 @@ def main(*args,**kwargs):
             }
     
     # figure specific properties
-    fig,axes = plt.subplots(nrows=2, ncols=len(fnames), figsize=(12,12), sharey=False)
-    plt.tight_layout()
+    #fig,axes = plt.subplots(nrows=2, ncols=len(fnames), figsize=(12,12), sharey=False)
+    #plt.tight_layout()
     #plt.subplots_adjust(left=0.15,right=0.9,top=0.85,bottom=0.3,hspace=0.5,wspace=0.5)
     fs = 18
 
     # iterate across sample/data sets
     for ind,(sample,fname) in enumerate(fnames.items()):
         
-        ax = axes[ind][0]
-        plt.sca(ax)
+        #ax = axes[ind][0]
+        #plt.sca(ax)
 
         with open('./figures/'+fname) as f:
             data = f.readlines()
@@ -63,8 +63,9 @@ def main(*args,**kwargs):
 
         print 'Sample: {} / Alpha: {}'.format(sample,alpha)
 
-        [i.set_linewidth(3) for i in axes[ind][0].spines.itervalues()]
+        #[i.set_linewidth(3) for i in axes[ind][0].spines.itervalues()]
 
+        '''
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('Clonal Index',fontsize=fs,fontweight='bold')
@@ -76,34 +77,43 @@ def main(*args,**kwargs):
                 data,c='blue',s=55,marker='s')
         ax.scatter(xrange(1,len(data)+1),
                 _power_law_distribution(len(data),max(data),alpha),c='red',s=30,marker='D')
+        '''
 
-        plt.yticks(rotation='vertical')
+        #plt.yticks(rotation='vertical')
 
         # default settings
         settings = {
                 'cell_freq_constant': alpha,
                 'cell_freq_max':    max(data),
-                'plot_frequency_estimation': {
-                    'ax':axes[ind][1],
-                    'fig':fig,
+                '''
+                'plot_repertoire': {
+                    'save': True,
                     },
-                'visual':                True,
+                'plot_frequency_estimation': {
+                    #'ax':axes[ind][1],
+                    #'fig':fig,
+                    'save': True,
+                    },
+                '''	
+                'visual':                False,
+                'display': False,
                 'silent':               False,
                 }
 
         # update settings with sample specific hyperparameters
         settings.update(specific_settings[sample])
 
-        solvers = ['madhype']
+        solvers = ['alphabetr']
         solver_options = [{}]
 
         data,results = madhype.simulate_run(solvers, solver_options, **settings)
         
     plt.subplots_adjust(left=0.125,right=0.9,top=0.9,bottom=0.1,hspace=0.4,wspace=0.4)
 
-    plt.show(block=False)
-    raw_input('Press enter to close...')
-    plt.close()
+    plt.savefig('figure_S1cd.png',dpi=300) 
+    #plt.show(block=False)
+    #raw_input('Press enter to close...')
+    #plt.close()
 
 def _error(alpha,data): 
     simulation = _power_law_distribution(len(data),max(data),alpha)

@@ -297,7 +297,10 @@ def _get_axis(options):
     """ Get axes, prioritizing user inputs """
     if not options['fig'] and not options['ax']:
         fig,ax = plt.subplots(figsize = options['figsize'])
-        options['fig'],options['ax'] = plt.gcf(),plt.gca()
+        try:
+            options['fig'],options['ax'] = plt.gcf(),plt.gca()
+        except: # if running on AWS
+            pass
     elif not options['ax']:
         fig,ax = options['fig'],plt.gca()
         options['ax'] = plt.gca()
