@@ -5,6 +5,7 @@ Attempt to test variable cells per well
 
 # standard libraries
 from math import log10,ceil,floor
+import copy
 import random
 import os
 
