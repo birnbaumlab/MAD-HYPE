@@ -163,9 +163,11 @@ def get_results_from_subject_reference(results,data,options):
 
     return results
 
-def write_results_to_xslx(results):
+def write_results_to_xslx(original_results):
 
     # pull options and matches from results
+    results = copy.copy(original_results)
+
     options = results.pop('options',{})
     matches = results.pop('matches',{})
     if matches == {}:
