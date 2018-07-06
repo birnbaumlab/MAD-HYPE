@@ -21,19 +21,19 @@ def main(*args,**kwargs):
     labels = modifications['cell_freq_constant']
     #labels = ['0%','10%']
 
-    repeats = 10
+    repeats = 2
 
     settings = default_settings()
 
-    settings['cell_freq_max'] = 0.05
-    settings['num_cells'] = 1000
+    settings['cell_freq_max'] = 0.01
+    settings['num_cells'] = 100
     settings['cpw'] = (50,1000)
     settings['num_wells'] = (48,48)
     settings['chain_deletion_prob'] = 0.1
     settings['chain_misplacement_prob'] = 0.0
 
-    settings['alpha_dual_prob'] = 0.0
-    settings['beta_dual_prob'] = 0.0
+    settings['alpha_dual_prob'] = 0.33
+    settings['beta_dual_prob'] = 0.33
 
     settings['cell_freq_distro'] = 'power-law'
 
@@ -111,7 +111,7 @@ def main(*args,**kwargs):
             )
 
     axes[0][0].set_title('No chain sharing',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][0],'Dual Clone Probability (%)','Clonal Matches (#)',fs=fs)
+    label_figure(axes[0][0],r'Repertoire Skew ($\alpha$),'Clonal Matches (#)',fs=fs)
 
     bp = axes[1][0].boxplot(
             all_coverage['No chain sharing'], 
@@ -123,7 +123,7 @@ def main(*args,**kwargs):
             showmeans=True
             )
 
-    label_figure(axes[1][0],'Dual Clone Probability (%)','Repertoire Coverage',fs=fs)
+    label_figure(axes[1][0],r'Repertoire Skew ($\alpha$)','Repertoire Coverage',fs=fs)
 
     bp = axes[0][1].boxplot(
             all_matches['Chain sharing'], 
@@ -136,7 +136,7 @@ def main(*args,**kwargs):
             )
 
     axes[0][1].set_title('Chain sharing',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][1],'Dual Clone Probability (%)','Clonal Matches (#)',fs=fs)
+    label_figure(axes[0][1],r'Repertoire Skew ($\alpha$)','Clonal Matches (#)',fs=fs)
 
     bp = axes[1][1].boxplot(
             all_coverage['Chain sharing'], 
@@ -148,7 +148,7 @@ def main(*args,**kwargs):
             showmeans=True
             )
 
-    label_figure(axes[1][1],'Dual Clone Probability (%)','Repertoire Coverage',fs=fs)
+    label_figure(axes[1][1],r'Repertoire Skew ($\alpha$)','Repertoire Coverage',fs=fs)
 
     plt.show(block=False)
     raw_input('Press enter to close...')
