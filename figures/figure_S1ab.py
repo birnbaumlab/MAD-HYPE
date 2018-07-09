@@ -28,7 +28,7 @@ def main(*args,**kwargs):
             # ranges 0.1% to 3%
             'Peripheral Blood (9-25 y)':{
                 'cell_freq_max':0.0025,
-                'cell_freq_constant':1.2,
+                'cell_freq_constant':1 + 1./1.2,
                 'num_cells':10000,
                 'threshold':2.0,
                 'block':False,
@@ -37,7 +37,7 @@ def main(*args,**kwargs):
                 },
             'Peripheral Blood (61-66 y)':{
                 'cell_freq_max':0.086,
-                'cell_freq_constant':1.2,
+                'cell_freq_constant':1 + 1./1.2,
                 'num_cells':10000,
                 'threshold':2.0,
                 'block':True,

@@ -52,9 +52,13 @@ def main():
         'plot_frequency_estimation': {
             'ax':ax2,
             'fig':fig2,
+            'figsize':  (12,9),
+            'xlim':((2.)*(10.**-4),(6./5)*(10.**-2)),
+            'ylim':((2.)*(10.**-4),(6./5)*(10.**-2)),
             },
         'num_cells':1000,
-        'cell_freq_max':0.05, # 0.01
+        'cell_freq_max':         0.01, # 0.01
+        'cell_freq_constant':       2,
         'visual':                True,
         'silent':               False,
         }
@@ -66,8 +70,8 @@ def main():
                 'cpw':(25,1758),
             },
             {
-                'num_wells':(48,48),
-                'cpw':(250,1750),
+                'num_wells':(60,36),
+                'cpw':(159,2402),
             },
             {
                 'num_wells':(96,),
@@ -86,7 +90,8 @@ def main():
 
         _,results = madhype.simulate_run(solvers, solver_options, **specific_options)
 
-    plt.savefig('Figure 5BC.png', format='png', dpi=300)
+    fig1.savefig('Figure 5B.png', format='png', dpi=300)
+    fig2.savefig('Figure 5C.png', format='png', dpi=300)
 
     plt.show(block=False)
     raw_input('Press enter to close...')
