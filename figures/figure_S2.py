@@ -22,7 +22,7 @@ def main(*args,**kwargs):
     repeats = 1000
 
     settings = default_settings()
-    settings['cell_freq_max'] = 0.05
+    settings['cell_freq_max'] = 0.01
     settings['num_cells'] = 1000
     settings['cpw'] = (100,)
     settings['chain_deletion_prob'] = 0.0
