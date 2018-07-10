@@ -1,4 +1,6 @@
 ## MAD-HYPE/examples/example1.py
+import matplotlib
+matplotlib.use('Agg')
 
 # Import MAD-HYPE package
 import madhype
@@ -12,10 +14,14 @@ general_options = {
         'cpw':(250,),
         'num_wells':(96,),
         'alpha_sharing_probs': 0.0,
-        'num_cells': 1000,
+        'num_cells': 100,
         'beta_sharing_probs': 0.0,
         'alpha_dual_prob': 0.5,
         'beta_dual_prob': 0.5,
+        'visual':                     True,
+        'plot_repertoire':            True,
+        'save':                       True,
+        #'display':                       True,
         }
 
 # Run MAD-HYPE with default parameters

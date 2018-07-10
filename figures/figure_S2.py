@@ -1,4 +1,8 @@
 
+# make sure a backend is ok on AWS
+import matplotlib
+matplotlib.use('Agg')
+
 # standard libraries
 import copy
 
@@ -19,10 +23,10 @@ def main(*args,**kwargs):
             'chain_misplacement_prob':[.0,.1,.2,.3,.4,.5,.75]
             }
 
-    repeats = 1000
+    repeats = 100
 
     settings = default_settings()
-    settings['cell_freq_max'] = 0.05
+    settings['cell_freq_max'] = 0.01
     settings['num_cells'] = 1000
     settings['cpw'] = (100,)
     settings['chain_deletion_prob'] = 0.0
