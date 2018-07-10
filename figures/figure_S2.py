@@ -23,7 +23,7 @@ def main(*args,**kwargs):
             'chain_misplacement_prob':[.0,.1,.2,.3,.4,.5,.75]
             }
 
-    repeats = 100
+    repeats = 10
 
     settings = default_settings()
     settings['cell_freq_max'] = 0.01
@@ -132,7 +132,7 @@ def main(*args,**kwargs):
 
     plt.show(block=False)
     raw_input('Press enter to close...')
-    plt.savefig('fig2S.png', format='png', dpi=300)
+    plt.savefig('figS2.png', format='png', dpi=300)
     plt.close()
 
 
