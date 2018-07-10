@@ -21,12 +21,12 @@ def main(*args,**kwargs):
     labels = modifications['cell_freq_constant']
     #labels = ['0%','10%']
 
-    repeats = 2
+    repeats = 10
 
     settings = default_settings()
 
     settings['cell_freq_max'] = 0.01
-    settings['num_cells'] = 100
+    settings['num_cells'] = 3000
     settings['cpw'] = (50,1000)
     settings['num_wells'] = (48,48)
     settings['chain_deletion_prob'] = 0.1
@@ -41,7 +41,7 @@ def main(*args,**kwargs):
     all_matches = {}
 
     solvers = ['madhype']
-    solver_options = [{}]
+    solver_options = [{'num_cores':6}]
 
     for first_mod,values in modifications.items():
 
@@ -82,7 +82,10 @@ def main(*args,**kwargs):
                     all_results += results
 
                 all_coverage[mod].append([results['frac_repertoire'] for results in all_results])
-                all_matches[mod].append([float(results['positives']) for results in all_results])
+                #all_matches[mod].append([float(results['positives']) for results in all_results])
+                aa = settings['alpha_dual_prob']
+                bb = settings['beta_dual_prob']
+                all_matches[mod].append([float(results['positives'])/(settings['num_cells']*(1 + aa + bb + aa*bb)) for results in all_results])
 
 
     # plot/display settings
@@ -110,8 +113,8 @@ def main(*args,**kwargs):
             showmeans=True
             )
 
-    axes[0][0].set_title('No chain sharing',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][0],r'Repertoire Skew ($\alpha$),'Clonal Matches (#)',fs=fs)
+    #axes[0][0].set_title('No chain sharing',fontweight='bold',fontsize=fs)
+    label_figure(axes[0][0],r'Repertoire Skew ($\alpha$)','Clonal Matches (%)',fs=fs)
 
     bp = axes[1][0].boxplot(
             all_coverage['No chain sharing'], 
@@ -135,8 +138,8 @@ def main(*args,**kwargs):
             showmeans=True
             )
 
-    axes[0][1].set_title('Chain sharing',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][1],r'Repertoire Skew ($\alpha$)','Clonal Matches (#)',fs=fs)
+    #axes[0][1].set_title('Chain sharing',fontweight='bold',fontsize=fs)
+    label_figure(axes[0][1],r'Repertoire Skew ($\alpha$)','Clonal Matches (%)',fs=fs,y_on=False)
 
     bp = axes[1][1].boxplot(
             all_coverage['Chain sharing'], 
@@ -148,7 +151,7 @@ def main(*args,**kwargs):
             showmeans=True
             )
 
-    label_figure(axes[1][1],r'Repertoire Skew ($\alpha$)','Repertoire Coverage',fs=fs)
+    label_figure(axes[1][1],r'Repertoire Skew ($\alpha$)','Repertoire Coverage',fs=fs,y_on=False)
 
     plt.show(block=False)
     raw_input('Press enter to close...')
@@ -158,10 +161,10 @@ def main(*args,**kwargs):
 
 # --- Internal Methods --- #
 
-def label_figure(ax,xlabel,ylabel,fs=18):
+def label_figure(ax,xlabel,ylabel,fs=18,y_on=True):
 
     ax.set_xlabel(xlabel,fontsize=fs)
-    ax.set_ylabel(ylabel,fontsize=fs)
+    if y_on: ax.set_ylabel(ylabel,fontsize=fs)
 
     if ylabel == 'Repertoire Coverage':
         ax.set_ylim((0,1))

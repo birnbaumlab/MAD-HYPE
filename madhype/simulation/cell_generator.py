@@ -3,6 +3,9 @@ import scipy.optimize
 
 from ..defaults import general_options as default_options
 
+# This flag should *almost* always be true, only used rarely when making frequency repertoire plots
+shuffle_chains = True 
+
 class CellGenerator(object):
     """ Convenience class to store options for cell generation
     so that multiple cell populations can be generated easily with
@@ -62,8 +65,9 @@ class CellGenerator(object):
         betas = [(i,) for i,n in enumerate(bdegs) for _ in range(n)][:sum(bdual)]
 
         # Randomly assign alpha- and beta-chains to each other
-        np.random.shuffle(alphas)
-        np.random.shuffle(betas)
+        if shuffle_chains:
+            np.random.shuffle(alphas)
+            np.random.shuffle(betas)
 
         for i in range(num_cells):
             # it's technically possible for alphas[i]==alphas[i+1] in which case

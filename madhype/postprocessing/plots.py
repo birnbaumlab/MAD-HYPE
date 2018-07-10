@@ -141,6 +141,8 @@ def plot_frequency_estimation(cresults,**kwargs):
             'linewidth':    3,
             'figsize':  (9,6),
             'colorbar': False,
+            'xlim': False,
+            'ylim': False,
                   }
 
     # update options
@@ -179,8 +181,11 @@ def plot_frequency_estimation(cresults,**kwargs):
         else:
             colors = [(p - min_conf)/(max_conf - min_conf) for p in positive_confidence]
 
-        ax.set_xlim((10**floor(log10(min(xv))),10**ceil(log10(max(xv)))))
-        ax.set_ylim((10**floor(log10(min(yv))),10**ceil(log10(max(yv)))))
+        if options['xlim']: ax.set_xlim(*options['xlim'])
+        else: ax.set_xlim((10**floor(log10(min(xv))),10**ceil(log10(max(xv)))))
+
+        if options['ylim']: ax.set_ylim(*options['ylim'])
+        else: ax.set_ylim((10**floor(log10(min(yv))),10**ceil(log10(max(yv)))))
 
         # plot available species
         sc = plt.scatter(*zip(*cresults['positive_matched_freqs']),

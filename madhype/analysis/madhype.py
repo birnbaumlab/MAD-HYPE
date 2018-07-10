@@ -25,6 +25,9 @@ import numpy as np
 from methods import match_probability
 from ..defaults import madhype_options as default_options
 
+# This flag should *almost* always be false, only used rarely when making frequency repertoire plots
+accept_pairs_below_threshold = False 
+bypass_filter = False 
 
 def solve(data,**kwargs):
 
@@ -179,9 +182,6 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
         # initialize list
         results = [] # initialize list
 
-        # REMOVE THIS
-        bypass_filter = False 
-
         # Iterate through combinations!
         for i,(a,a_dist) in enumerate(alphas.items()):
 
@@ -213,7 +213,9 @@ def create_worker(betas,num_wells,cpw,filt,prior_alpha,prior_match,threshold):
                 # calculate match probability
                 p,f = match_probability(pair_data,prior_match)
 
-                if p > threshold:
+                if accept_pairs_below_threshold and a == b:
+                    results.append((((a,),(b,)),p,f[0]))
+                elif p > threshold:
                     if filt.check_tuple(pair_data['w_ij']): continue
                     results.append((((a,),(b,)),p,f[0]))
 

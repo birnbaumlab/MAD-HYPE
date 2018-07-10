@@ -41,11 +41,13 @@ def main(*args,**kwargs):
     #
     for mod,values in modifications.items():
 
-        all_results = []
+        #all_results = []
         all_coverage[mod] = []
         all_matches[mod] = []
 
         for i,v in enumerate(values): 
+
+            all_results = []
 
             # iterate across system
             for r in xrange(repeats):
