@@ -9,13 +9,15 @@ import heapq
 import simulation
 from analysis.madhype import solve as madhype
 from analysis.alphabetr import solve as alphabetr
+from analysis.alphabetr_R import solve as alphabetr_R
 from postprocessing import visualize_results, analyze_results, compare_results
 from defaults import general_options as default_options
 
 # create a dictionary called to map strings to function handles
 solve = {
         'madhype':madhype,
-        'alphabetr':alphabetr
+        'alphabetr':alphabetr,
+        'alphabetr_R': alphabetr_R
         }
 
 #------------------------------------------------------------------------------# 
