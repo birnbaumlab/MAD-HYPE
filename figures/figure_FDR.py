@@ -1,5 +1,7 @@
 
-
+# make sure a backend is ok on AWS
+import matplotlib
+matplotlib.use('Agg')
 
 # standard libraries
 import os
@@ -41,8 +43,8 @@ def _get_fdr_for_clonal_matches(data,results,clone_match_threshold):
 
 def main(*args,**kwargs):
 
-    mod_range = [.0,.1,.2,.3]
-    #mod_range = [.0,.05,.1,.15,.2,.25,.3]
+    #mod_range = [.0,.1,.2,.3]
+    mod_range = [.0,.05,.1,.15,.2,.25,.3]
     labels = ['{}%'.format(int(100*m)) for m in mod_range]
 
 
@@ -50,12 +52,12 @@ def main(*args,**kwargs):
             'chain_deletion_prob': mod_range,
             }
 
-    repeats = 1 
-    clone_match_threshold = 200
+    repeats = 5 
+    clone_match_threshold = 500
 
     settings = default_settings()
     settings['cell_freq_max'] = 0.01
-    settings['num_cells'] = 400
+    settings['num_cells'] = 1000
     settings['cpw'] = (100,)
     settings['chain_deletion_prob'] = 0.1
     settings['chain_misplacement_prob'] = 0.0
@@ -63,11 +65,17 @@ def main(*args,**kwargs):
 
     all_fdr = {}
 
-    solver_options = [{
-        'threshold':10., # minimum ratio accepted by match_probability
-        }]
         
     for sn in ['madhype','alphabetr']:
+
+        if sn == 'madhype':
+            solver_options = [{
+                'threshold':10., # minimum ratio accepted by match_probability
+                }]
+
+        elif sn == 'alphabetr':
+            solver_options = [{}]
+
 
         solvers = [sn]
         all_fdr[sn] = {}
@@ -143,7 +151,7 @@ def main(*args,**kwargs):
 
     plt.show(block=False)
     raw_input('Press enter to close...')
-    plt.savefig('fig_S5.png', format='png', dpi=300)
+    plt.savefig('fig_S7.png', format='png', dpi=300)
     plt.close()
 
 

@@ -3,6 +3,10 @@
 Supplemnetary Figure 1
 """
 
+# make sure a backend is ok on AWS
+import matplotlib
+matplotlib.use('Agg')
+
 # nonstandard libraries
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize,root
@@ -28,7 +32,7 @@ def main(*args,**kwargs):
             # ranges 0.1% to 3%
             'Peripheral Blood (9-25 y)':{
                 'cell_freq_max':0.0025,
-                'cell_freq_constant':1 + 1./1.2,
+                'cell_freq_constant':1. + 1.21,
                 'num_cells':10000,
                 'threshold':2.0,
                 'block':False,
@@ -37,7 +41,7 @@ def main(*args,**kwargs):
                 },
             'Peripheral Blood (61-66 y)':{
                 'cell_freq_max':0.086,
-                'cell_freq_constant':1 + 1./1.2,
+                'cell_freq_constant':1. + 1.15,
                 'num_cells':10000,
                 'threshold':2.0,
                 'block':True,
@@ -61,9 +65,14 @@ def main(*args,**kwargs):
                 'ax':axes[ind],
                 'fig':fig,
                 },
-            'visual':                True,
-            'silent':               False,
-            'legend':           bool(ind),
+            'visual':                 True,
+            'silent':                False,
+            'legend':            bool(ind),
+            'save':                   True,
+            'savename':   'figS1ab_{}.png', # where plots are saved
+            'alpha_dual_prob':        0.33,
+            'beta_dual_prob':         0.33,
+                     
             }
 
 
