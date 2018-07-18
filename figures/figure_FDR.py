@@ -24,6 +24,7 @@ plt.rcParams['ytick.labelsize'] = 14
 def _get_fdr_for_clonal_matches(data,results,clone_match_threshold):
 
     positives,negatives = 0,0
+    max_fdr = 0.25
 
     for i,r in enumerate(results[0]['raw_results']):
 
@@ -37,14 +38,40 @@ def _get_fdr_for_clonal_matches(data,results,clone_match_threshold):
 
         if i == len(results[0]['raw_results']) - 1:
             print 'DID NOT CAP'
-            return 0.25
+            return max_fdr
 
-    return float(negatives)/(positives + negatives)
+    return min(max_fdr,float(negatives)/(positives + negatives))
+
+def _get_fdr_for_repertoire_coverage(data,results,repertoire_coverage_threshold):
+
+    positives,negatives = 0,0
+    coverage = 0.0
+    max_fdr = 0.25
+
+    for i,r in enumerate(results[0]['raw_results']):
+
+        if r[0] in data['cells']:
+            positives += 1
+            coverage += data['cells'][r[0]]
+        else:
+            negatives += 1
+
+        if coverage >= repertoire_coverage_threshold:
+            break
+
+        if i == len(results[0]['raw_results']) - 1:
+            print 'DID NOT CAP'
+            return max_fdr
+
+    return min(max_fdr,float(negatives)/(positives + negatives))
+
+
 
 def main(*args,**kwargs):
 
-    #mod_range = [.0,.1,.2,.3]
-    mod_range = [.0,.05,.1,.15,.2,.25,.3]
+    #mod_range = [.1,.15,.2,.25,.3,.35,.4]
+    mod_range = [.1,.4]
+    #mod_range = [.0,.05,.1,.15,.2,.25]
     labels = ['{}%'.format(int(100*m)) for m in mod_range]
 
 
@@ -52,18 +79,21 @@ def main(*args,**kwargs):
             'chain_deletion_prob': mod_range,
             }
 
-    repeats = 5 
+    repeats = 1
     clone_match_threshold = 500
 
     settings = default_settings()
     settings['cell_freq_max'] = 0.01
     settings['num_cells'] = 1000
-    settings['cpw'] = (100,)
+    settings['cpw'] = (300,)
     settings['chain_deletion_prob'] = 0.1
     settings['chain_misplacement_prob'] = 0.0
+    settings['alpha_sharing_probs'] = None
+    settings['beta_sharing_probs'] = None
 
 
-    all_fdr = {}
+    all_cm_fdr = {}
+    all_rep_fdr = {}
 
         
     for sn in ['madhype','alphabetr']:
@@ -78,11 +108,13 @@ def main(*args,**kwargs):
 
 
         solvers = [sn]
-        all_fdr[sn] = {}
+        all_cm_fdr[sn] = {}
+        all_rep_fdr[sn] = {}
         
         for mod,values in modifications.items():
 
-            all_fdr[sn][mod] = []
+            all_cm_fdr[sn][mod] = []
+            all_rep_fdr[sn][mod] = []
 
             for i,v in enumerate(values): 
 
@@ -98,13 +130,16 @@ def main(*args,**kwargs):
 
                     data,results = simulate_run(solvers,solver_options,**specific_settings)
 
-                    results[0]['fdr_for_threshold'] = _get_fdr_for_clonal_matches(data,results,clone_match_threshold)
+                    results[0]['fdr_for_cm'] = _get_fdr_for_clonal_matches(data,results,clone_match_threshold)
+                    results[0]['fdr_for_rep'] = _get_fdr_for_repertoire_coverage(data,results,clone_match_threshold)
 
-                    print 'FDR:',results[0]['fdr_for_threshold']
+                    print 'FDR (cm):',results[0]['fdr_for_cm']
+                    print 'FDR (rep):',results[0]['fdr_for_rep']
 
                     all_results += results
 
-                all_fdr[sn][mod].append([results['fdr_for_threshold'] for results in all_results])
+                all_cm_fdr[sn][mod].append([results['fdr_for_cm'] for results in all_results])
+                all_rep_fdr[sn][mod].append([results['fdr_for_rep'] for results in all_results])
         
 
     # plot/display settings
@@ -123,7 +158,7 @@ def main(*args,**kwargs):
             [i.set_linewidth(3) for i in ax.spines.itervalues()]
 
     bp = axes[0][0].boxplot(
-            all_fdr['madhype']['chain_deletion_prob'], 
+            all_cm_fdr['madhype']['chain_deletion_prob'], 
             labels=labels, 
             boxprops=boxprops, 
             meanprops=meanlineprops, 
@@ -132,11 +167,11 @@ def main(*args,**kwargs):
             showmeans=True
             )
 
-    axes[0][0].set_title('MAD-HYPE, 50% Clonal Matches',fontweight='bold',fontsize=fs)
+    axes[0][0].set_title('MAD-HYPE',fontweight='bold',fontsize=fs)
     label_figure(axes[0][0],'Chain Deletion Probability','FDR (%)',fs=fs)
 
     bp = axes[0][1].boxplot(
-            all_fdr['alphabetr']['chain_deletion_prob'], 
+            all_cm_fdr['alphabetr']['chain_deletion_prob'], 
             labels=labels, 
             boxprops=boxprops, 
             meanprops=meanlineprops, 
@@ -145,9 +180,34 @@ def main(*args,**kwargs):
             showmeans=True
             )
 
-    axes[0][1].set_title('MAD-HYPE, 50% Clonal Matches',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][1],'Chain Deletion Probability','FDR (%)',fs=fs)
+    axes[0][1].set_title('ALPHABETR',fontweight='bold',fontsize=fs)
+    label_figure(axes[1][1],'Chain Deletion Probability','FDR (%)',fs=fs)
 
+    bp = axes[1][0].boxplot(
+            all_rep_fdr['madhype']['chain_deletion_prob'], 
+            labels=labels, 
+            boxprops=boxprops, 
+            meanprops=meanlineprops, 
+            widths=0.6, 
+            meanline=True, 
+            showmeans=True
+            )
+
+    axes[1][0].set_title('MAD-HYPE',fontweight='bold',fontsize=fs)
+    label_figure(axes[1][0],'Chain Deletion Probability','FDR (%)',fs=fs)
+
+    bp = axes[1][1].boxplot(
+            all_rep_fdr['alphabetr']['chain_deletion_prob'], 
+            labels=labels, 
+            boxprops=boxprops, 
+            meanprops=meanlineprops, 
+            widths=0.6, 
+            meanline=True, 
+            showmeans=True
+            )
+
+    axes[1][1].set_title('ALPHABETR',fontweight='bold',fontsize=fs)
+    label_figure(axes[1][1],'Chain Deletion Probability','FDR (%)',fs=fs)
 
     plt.show(block=False)
     raw_input('Press enter to close...')
@@ -175,7 +235,8 @@ def label_figure(ax,xlabel,ylabel,fs=18):
         ax.set_yticks((0.,.5,1.))
         ax.set_yticklabels(('0%','50%','100%'),fontsize=fs)
     elif ylabel == 'FDR (%)':
-        ax.set_ylim((0,0.25))
+        dy = 0.02
+        ax.set_ylim((0. - dy,0.25 + dy))
         ax.set_yticks((0.0,0.05,0.1,0.15,0.2,0.25))
         ax.set_yticklabels(('0%','5%','10%','15%','20%','>25%'),fontsize=fs)
 
