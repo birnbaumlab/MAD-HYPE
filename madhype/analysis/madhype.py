@@ -87,21 +87,13 @@ def solve(data,**kwargs):
             options['prior_alpha'],
             options['prior_match'],
             options['threshold']]
+    alpha_well_distribution = well_distribution['A']
 
-    if num_cores == 0:
-        num_cores = cpu_count()
-    elif num_cores > cpu_count():
-        print 'Number of cores exceeds CPU count, reducing core usage {}->{}...'.format(
-                num_cores,cpu_count())
-        num_cores = cpu_count()
-
-    alpha_dicts = chunkify_dict(well_distribution['A'],num_cores)
-
-    # multithread solver 
-    print 'Starting {} processes...'.format(num_cores)
-    results = parmap(create_worker(*args),alpha_dicts)
-    print 'Finished!'
-
+    # choose single- or multi-processing mode
+    if num_cores is None:
+        results = _solve_singleprocessing(args, alpha_well_distribution)
+    else:
+        results = _solve_multiprocessing(args, alpha_well_distribution, num_cores)
 
     print 'Total potential matches: {}'.format(len(results))
     # flatten list
@@ -109,6 +101,35 @@ def solve(data,**kwargs):
 
     # return results
     return results
+
+def _solve_singleprocessing(args, alpha_well_distribution):
+    barcode = np.random.randint(99999) # random barcode to hold temporary files
+
+    worker = create_worker(*args)
+    worker(alpha_well_distribution, index=1, barcode=barcode)
+
+    recv = get_results(barcode,1)
+
+    return recv
+
+
+def _solve_multiprocessing(args, alpha_well_distribution, num_cores):
+    if num_cores == 0:
+        num_cores = cpu_count()
+    elif num_cores > cpu_count():
+        print 'Number of cores exceeds CPU count, reducing core usage {}->{}...'.format(
+                num_cores,cpu_count())
+        num_cores = cpu_count()
+
+    alpha_dicts = chunkify_dict(alpha_well_distribution, num_cores)
+
+    # multithread solver 
+    print 'Starting {} processes...'.format(num_cores)
+    results = parmap(create_worker(*args),alpha_dicts)
+    print 'Finished!'
+
+    return results
+
 
 
 #------------------------------------------------------------------------------# 
