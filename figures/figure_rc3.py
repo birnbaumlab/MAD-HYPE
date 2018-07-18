@@ -19,7 +19,7 @@ def main():
     fs = 18
 
     w_total = 96
-    w_i,w_j = 0,0
+    w_i,w_j = 20,20
     cpw = (100,)
 
     alpha = 1
