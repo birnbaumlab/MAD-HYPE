@@ -21,56 +21,27 @@ plt.rcParams['xtick.labelsize'] = 14
 plt.rcParams['ytick.labelsize'] = 14
 
 
-def _get_fdr_for_clonal_matches(data,results,clone_match_threshold):
+def _get_fdr_for_match_limit(data,results,match_limit):
 
     positives,negatives = 0,0
-    max_fdr = 0.25
 
-    for i,r in enumerate(results[0]['raw_results']):
+    for i,r in enumerate(results[0]['raw_results'][:match_limit]):
 
         if r[0] in data['cells']:
             positives += 1
         else:
             negatives += 1
 
-        if clone_match_threshold <= positives:
-            break
+    negatives += match_limit - (positives + negatives)
 
-        if i == len(results[0]['raw_results']) - 1:
-            print 'DID NOT CAP'
-            return max_fdr
-
-    return min(max_fdr,float(negatives)/(positives + negatives))
-
-def _get_fdr_for_repertoire_coverage(data,results,repertoire_coverage_threshold):
-
-    positives,negatives = 0,0
-    coverage = 0.0
-    max_fdr = 0.25
-
-    for i,r in enumerate(results[0]['raw_results']):
-
-        if r[0] in data['cells']:
-            positives += 1
-            coverage += data['cells'][r[0]]
-        else:
-            negatives += 1
-
-        if coverage >= repertoire_coverage_threshold:
-            break
-
-        if i == len(results[0]['raw_results']) - 1:
-            print 'DID NOT CAP'
-            return max_fdr
-
-    return min(max_fdr,float(negatives)/(positives + negatives))
+    return min(0.25,float(negatives)/(positives + negatives))
 
 
 
 def main(*args,**kwargs):
 
-    #mod_range = [.1,.15,.2,.25,.3,.35,.4]
-    mod_range = [.1,.4]
+    mod_range = [.1,.15,.2,.25,.3,.35,.4]
+    #mod_range = [.1,.4]
     #mod_range = [.0,.05,.1,.15,.2,.25]
     labels = ['{}%'.format(int(100*m)) for m in mod_range]
 
@@ -79,8 +50,8 @@ def main(*args,**kwargs):
             'chain_deletion_prob': mod_range,
             }
 
-    repeats = 1
-    clone_match_threshold = 500
+    repeats = 5
+    match_limit = 500
 
     settings = default_settings()
     settings['cell_freq_max'] = 0.01
@@ -130,16 +101,16 @@ def main(*args,**kwargs):
 
                     data,results = simulate_run(solvers,solver_options,**specific_settings)
 
-                    results[0]['fdr_for_cm'] = _get_fdr_for_clonal_matches(data,results,clone_match_threshold)
-                    results[0]['fdr_for_rep'] = _get_fdr_for_repertoire_coverage(data,results,clone_match_threshold)
+                    results[0]['fdr_for_cm'] = _get_fdr_for_match_limit(data,results,match_limit)
+                    #results[0]['fdr_for_rep'] = _get_fdr_for_repertoire_coverage(data,results,clone_match_threshold)
 
                     print 'FDR (cm):',results[0]['fdr_for_cm']
-                    print 'FDR (rep):',results[0]['fdr_for_rep']
+                    #print 'FDR (rep):',results[0]['fdr_for_rep']
 
                     all_results += results
 
                 all_cm_fdr[sn][mod].append([results['fdr_for_cm'] for results in all_results])
-                all_rep_fdr[sn][mod].append([results['fdr_for_rep'] for results in all_results])
+                #all_rep_fdr[sn][mod].append([results['fdr_for_rep'] for results in all_results])
         
 
     # plot/display settings
@@ -181,8 +152,9 @@ def main(*args,**kwargs):
             )
 
     axes[0][1].set_title('ALPHABETR',fontweight='bold',fontsize=fs)
-    label_figure(axes[1][1],'Chain Deletion Probability','FDR (%)',fs=fs)
+    label_figure(axes[0][1],'Chain Deletion Probability','FDR (%)',fs=fs)
 
+    '''
     bp = axes[1][0].boxplot(
             all_rep_fdr['madhype']['chain_deletion_prob'], 
             labels=labels, 
@@ -208,6 +180,7 @@ def main(*args,**kwargs):
 
     axes[1][1].set_title('ALPHABETR',fontweight='bold',fontsize=fs)
     label_figure(axes[1][1],'Chain Deletion Probability','FDR (%)',fs=fs)
+    '''
 
     plt.show(block=False)
     raw_input('Press enter to close...')
