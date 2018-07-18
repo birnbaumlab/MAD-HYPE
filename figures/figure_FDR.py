@@ -50,7 +50,8 @@ def main(*args,**kwargs):
             'chain_deletion_prob': mod_range,
             }
 
-    repeats = 5
+    repeats = 10
+    match_limit_low = 100
     match_limit = 500
 
     settings = default_settings()
@@ -102,15 +103,15 @@ def main(*args,**kwargs):
                     data,results = simulate_run(solvers,solver_options,**specific_settings)
 
                     results[0]['fdr_for_cm'] = _get_fdr_for_match_limit(data,results,match_limit)
-                    #results[0]['fdr_for_rep'] = _get_fdr_for_repertoire_coverage(data,results,clone_match_threshold)
+                    results[0]['fdr_for_rep'] = _get_fdr_for_match_limit(data,results,match_limit_low)
 
                     print 'FDR (cm):',results[0]['fdr_for_cm']
-                    #print 'FDR (rep):',results[0]['fdr_for_rep']
+                    print 'FDR (low cm):',results[0]['fdr_for_rep']
 
                     all_results += results
 
                 all_cm_fdr[sn][mod].append([results['fdr_for_cm'] for results in all_results])
-                #all_rep_fdr[sn][mod].append([results['fdr_for_rep'] for results in all_results])
+                all_rep_fdr[sn][mod].append([results['fdr_for_rep'] for results in all_results])
         
 
     # plot/display settings
@@ -120,7 +121,7 @@ def main(*args,**kwargs):
     plt.rcParams['xtick.labelsize'] = fs-4
 
     # figure specific properties
-    fig,axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 12), sharey=False)
+    fig,axes = plt.subplots(nrows=2, ncols=2, figsize=(14, 12), sharey=False)
     plt.subplots_adjust(left=0.15,right=0.9,hspace=0.3,wspace=0.5)
 
     # set border for figure
@@ -154,7 +155,6 @@ def main(*args,**kwargs):
     axes[0][1].set_title('ALPHABETR',fontweight='bold',fontsize=fs)
     label_figure(axes[0][1],'Chain Deletion Probability','FDR (%)',fs=fs)
 
-    '''
     bp = axes[1][0].boxplot(
             all_rep_fdr['madhype']['chain_deletion_prob'], 
             labels=labels, 
@@ -180,7 +180,6 @@ def main(*args,**kwargs):
 
     axes[1][1].set_title('ALPHABETR',fontweight='bold',fontsize=fs)
     label_figure(axes[1][1],'Chain Deletion Probability','FDR (%)',fs=fs)
-    '''
 
     plt.show(block=False)
     raw_input('Press enter to close...')
