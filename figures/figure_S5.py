@@ -1,201 +1,87 @@
-# standard libraries
-import copy
+import random
+import itertools as it
 
-# nonstandard libraries
 import numpy as np
 import matplotlib.pyplot as plt
+plt.ion()
 
-# homegrown libraries
-from madhype import simulate_run 
+# Import MAD-HYPE package
+import madhype
 
-# library modifications
-plt.rcParams["font.family"] = "serif"
-
-def main(*args,**kwargs):
-
-    modifications = {
-            'dual_prob':[.0,.1,.2,.3,.4,.5],
-            #'dual_prob':[.0,.1],
-            }
-
-    labels = ['0%','10%','20%','30%','40%','50%']
-    #labels = ['0%','10%']
-
-    repeats = 10
-
-    settings = default_settings()
-
-    settings['cell_freq_max'] = 0.05
-    settings['num_cells'] = 1000
-    settings['cpw'] = (50,1000)
-    settings['num_wells'] = (48,48)
-    settings['chain_deletion_prob'] = 0.1
-    settings['chain_misplacement_prob'] = 0.0
-
-    all_coverage = {}
-    all_matches = {}
-
-    solvers = ['madhype']
-    solver_options = [{}]
-
-    for first_mod,values in modifications.items():
-
-        for chain_sharing in [False,True]:
-
-            if chain_sharing: mod = 'Chain sharing'
-            else: mod = 'No chain sharing'
-
-            all_coverage[mod] = []
-            all_matches[mod] = []
-
-            for i,v in enumerate(values): 
-
-                all_results = []
-
-                # iterate across system
-                for r in xrange(repeats):
-
-                    specific_settings = copy.copy(settings)
-
-                    if first_mod == 'dual_prob':
-                        specific_settings['alpha_dual_prob'] = v
-                        specific_settings['beta_dual_prob'] = v
-                    else:
-                        specific_settings[first_mod] = v
-
-                    if chain_sharing == True:
-                        specific_settings['alpha_sharing_probs'] = None 
-                        specific_settings['beta_sharing_probs'] = None 
-                    else:
-                        specific_settings['alpha_sharing_probs'] = 0.0 
-                        specific_settings['beta_sharing_probs'] = 0.0 
-
-                    specific_settings['seed'] = r
-
-                    _,results = simulate_run(solvers,solver_options,**specific_settings)
-
-                    all_results += results
-
-                all_coverage[mod].append([results['frac_repertoire'] for results in all_results])
-                all_matches[mod].append([float(results['positives'])/(settings['num_cells']*(1 + 2*v + v**2)) for results in all_results])
-
-
-    # plot/display settings
-    fs = 18
-    boxprops = dict(linewidth=3.0,zorder=1)
-    meanlineprops = dict(linestyle='-',linewidth=2, color='black', zorder=0)
-    plt.rcParams['xtick.labelsize'] = fs-4
-
-    # figure specific properties
-    fig,axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 12), sharey=False)
-    plt.subplots_adjust(left=0.15,right=0.9,hspace=0.3,wspace=0.4)
-
-    # set border for figure
-    for axe in axes:
-        for ax in axe:
-            [i.set_linewidth(3) for i in ax.spines.itervalues()]
+def collect_data():
+    # Set up run parameters
+    solvers = ['madhype', 'alphabetr']
+    solver_options = [{'fdr': 0.05},{'estimate_frequencies': False}]
     
-    bp = axes[0][0].boxplot(
-            all_matches['No chain sharing'], 
-            labels=labels, 
-            boxprops=boxprops, 
-            meanprops=meanlineprops, 
-            widths=0.6, 
-            meanline=True, 
-            showmeans=True
-            )
-
-    axes[0][0].set_title('No chain sharing',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][0],'Dual Clone Probability (%)','Clonal Matches (%)',fs=fs)
-
-    bp = axes[1][0].boxplot(
-            all_coverage['No chain sharing'], 
-            labels=labels, 
-            boxprops=boxprops, 
-            meanprops=meanlineprops, 
-            widths=0.6, 
-            meanline=True, 
-            showmeans=True
-            )
-
-    label_figure(axes[1][0],'Dual Clone Probability (%)','Repertoire Coverage',fs=fs)
-
-    bp = axes[0][1].boxplot(
-            all_matches['Chain sharing'], 
-            labels=labels, 
-            boxprops=boxprops, 
-            meanprops=meanlineprops, 
-            widths=0.6, 
-            meanline=True, 
-            showmeans=True
-            )
-
-    axes[0][1].set_title('Chain sharing',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][1],'Dual Clone Probability (%)','Clonal Matches (%)',fs=fs)
-
-    bp = axes[1][1].boxplot(
-            all_coverage['Chain sharing'], 
-            labels=labels, 
-            boxprops=boxprops, 
-            meanprops=meanlineprops, 
-            widths=0.6, 
-            meanline=True, 
-            showmeans=True
-            )
-
-    label_figure(axes[1][1],'Dual Clone Probability (%)','Repertoire Coverage',fs=fs)
-
-    plt.show(block=False)
-    raw_input('Press enter to close...')
-    plt.savefig('fig_S5.png', format='png', dpi=300)
-    plt.close()
-
-
-# --- Internal Methods --- #
-
-def label_figure(ax,xlabel,ylabel,fs=18):
-
-    ax.set_xlabel(xlabel,fontsize=fs)
-    ax.set_ylabel(ylabel,fontsize=fs)
-
-    if ylabel == 'Repertoire Coverage':
-        ax.set_ylim((0,1))
-        ax.set_yticks((0.,.5,1.))
-        ax.set_yticklabels(('0%','50%','100%'),fontsize=fs)
-    elif ylabel == 'Clonal Matches (#)':
-        ax.set_ylim((0,1000))
-        ax.set_yticks((0,500,1000))
-        ax.set_yticklabels((0,500,1000),fontsize=fs)
-    elif ylabel == 'Clonal Matches (%)':
-        ax.set_ylim((0,1))
-        ax.set_yticks((0.,.5,1.))
-        ax.set_yticklabels(('0%','50%','100%'),fontsize=fs)
-
-def default_settings():
-    return {
-            # experimental design
-            'num_cells':100,
-            'num_wells':(96,),
-            'analysis':('madhype',),
-            # madhype parameters
-            'threshold':0.5, # minimum ratio accepted by match_probability
-            # alphabetr parameters
-            'pair_threshold':0.0001,
-            'iters':10,
-            # simulation parameters
-            'cell_freq_max':0.01,
-            'cpw':(100,),
-            'seed':1,
-            # visual cues
-            'silent':False,
-            'visual':False,
-            'visual_block':False,
-            'compare':False
+    # Set up parameters that apply to all solvers/simulations
+    general_options = {
+            'num_cells': 3000,
+    
+            'cell_freq_constant': 2,
+            'cell_freq_max': 0.05,
+            'alpha_sharing_probs': None,
+            'beta_sharing_probs': None,
+    
+            'num_wells': (96,),
+            'cpw': (300,),
+    
+            'visual': False,
+    
+            'fdr': 0.05,
             }
+    
+    repeats = 20
+    
+    madhype_results = []
+    alphabetr_results = []
 
-if __name__ == "__main__":
-    main()
+    for rep in xrange(repeats):
+      seed = random.randint(0,1e6)
+      print "Iteration {}: SEED {}".format(rep, seed)
 
+      solver_options[1]['seed'] = seed
+      _, results = madhype.simulate_run(solvers, solver_options, seed = seed, **ops)
 
+      madhype_results.append(results[0])
+      alphabetr_results.append(results[1])
 
+def plot_data(madhype_results, alphabetr_results):
+    solvers = ['MAD-HYPE', 'ALPHABETR']
+    results = [madhype_results, alphabetr_results]
 
+    colors = [(0.0,0.5,0.18), (1.0,0.85,0.4)]
+
+    min_freq = min(min(res[0]['freqs']) for res in results)
+    max_freq = max(max(res[0]['freqs']) for res in results)
+   
+    plt.figure()
+    plt.xscale('log')
+    for c,m in zip(colors,results):
+      pmean = np.mean(np.array([r['pattern'] for r in m]), axis=0)
+      freqs = m[0]['freqs']
+   
+      w=1.5
+      x = freqs[1:]
+      y = [np.mean([pmean[i] for i in range(len(pmean)) if f_min/w<freqs[i]<f_min*w]) for f_min in x]
+      plt.plot(x, y, color=c, linewidth=4)
+    
+    plt.xlabel('Clone frequency')
+    plt.ylabel('Fraction identified')
+    plt.legend(solvers)
+    
+    plt.savefig('figure_S5.pdf')
+    
+    mpos = [r['positives'] for r in results[0]]
+    mfr = [r['frac_repertoire'] for r in results[0]]
+    apos = [r['positives'] for r in results[1]]
+    afr = [r['frac_repertoire'] for r in results[1]]
+    
+    print "MAD-HYPE:"
+    print "  # clones:", np.mean(mpos), "+/-", np.std(mpos)
+    print "  % rep.:", np.mean(mfr), "+/-", np.std(mfr)
+    print "ALPHABETR:"
+    print "  # clones:", np.mean(apos), "+/-", np.std(apos)
+    print "  % rep.:", np.mean(afr), "+/-", np.std(afr)
+   
+madhype_results, alphabetr_results = collect_data()
+plot_data(madhype_results, alphabetr_results)

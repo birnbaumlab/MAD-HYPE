@@ -1,209 +1,113 @@
+import random
+import itertools as it
+import multiprocessing as mp
 
-# standard libraries
-import copy
-
-# nonstandard libraries
 import numpy as np
 import matplotlib.pyplot as plt
-
-# homegrown libraries
-from madhype import simulate_run 
-
-# library modifications
+plt.ion()
 plt.rcParams["font.family"] = "serif"
 
-def main(*args,**kwargs):
 
-    modifications = {
-            'cell_freq_constant':[1.5,2.0,2.5,3.0],
-            }
+# Import MAD-HYPE package
+import madhype
 
-    labels = modifications['cell_freq_constant']
-    #labels = ['0%','10%']
+def run_iter(args):
+    solvers, solver_options, general_options, seed = args
 
-    repeats = 10
+    for op in solver_options:  op['seed'] = seed
 
-    settings = default_settings()
+    times = []
+    for s,s_ops in zip(solvers, solver_options):
+      tstart = time.time()
+      print "{} START TIME: {}".format(s, tstart)
+      madhype.simulate_run([s], [s_ops], seed = seed, **general_options)
+      tstop = time.time()
+      times.append(tstop - tstart)
 
-    settings['cell_freq_max'] = 0.01
-    settings['num_cells'] = 3000
-    settings['cpw'] = (50,1000)
-    settings['num_wells'] = (48,48)
-    settings['chain_deletion_prob'] = 0.1
-    settings['chain_misplacement_prob'] = 0.0
+    return times
 
-    settings['alpha_dual_prob'] = 0.33
-    settings['beta_dual_prob'] = 0.33
-
-    settings['cell_freq_distro'] = 'power-law'
-
-    all_coverage = {}
-    all_matches = {}
-
-    solvers = ['madhype']
-    solver_options = [{'num_cores':6}]
-
-    for first_mod,values in modifications.items():
-
-        for chain_sharing in [False,True]:
-
-            if chain_sharing: mod = 'Chain sharing'
-            else: mod = 'No chain sharing'
-
-            all_coverage[mod] = []
-            all_matches[mod] = []
-
-            for i,v in enumerate(values): 
-
-                all_results = []
-
-                # iterate across system
-                for r in xrange(repeats):
-
-                    specific_settings = copy.copy(settings)
-
-                    if first_mod == 'dual_prob':
-                        specific_settings['alpha_dual_prob'] = v
-                        specific_settings['beta_dual_prob'] = v
-                    else:
-                        specific_settings[first_mod] = v
-
-                    if chain_sharing == True:
-                        specific_settings['alpha_sharing_probs'] = None 
-                        specific_settings['beta_sharing_probs'] = None 
-                    else:
-                        specific_settings['alpha_sharing_probs'] = 0.0 
-                        specific_settings['beta_sharing_probs'] = 0.0 
-
-                    specific_settings['seed'] = r
-
-                    _,results = simulate_run(solvers,solver_options,**specific_settings)
-
-                    all_results += results
-
-                all_coverage[mod].append([results['frac_repertoire'] for results in all_results])
-                #all_matches[mod].append([float(results['positives']) for results in all_results])
-                aa = settings['alpha_dual_prob']
-                bb = settings['beta_dual_prob']
-                all_matches[mod].append([float(results['positives'])/(settings['num_cells']*(1 + aa + bb + aa*bb)) for results in all_results])
-
-
-    # plot/display settings
-    fs = 18
-    boxprops = dict(linewidth=3.0,zorder=1)
-    meanlineprops = dict(linestyle='-',linewidth=2, color='black', zorder=0)
-    plt.rcParams['xtick.labelsize'] = fs-4
-
-    # figure specific properties
-    fig,axes = plt.subplots(nrows=2, ncols=2, figsize=(10, 12), sharey=False)
-    plt.subplots_adjust(left=0.15,right=0.9,hspace=0.3,wspace=0.4)
-
-    # set border for figure
-    for axe in axes:
-        for ax in axe:
-            [i.set_linewidth(3) for i in ax.spines.itervalues()]
+def collect_data():
+    # Set up parameters that apply to all solvers/simulations
+    general_options = {
+            'num_cells': 1000,
     
-    bp = axes[0][0].boxplot(
-            all_matches['No chain sharing'], 
-            labels=labels, 
-            boxprops=boxprops, 
-            meanprops=meanlineprops, 
-            widths=0.6, 
-            meanline=True, 
-            showmeans=True
-            )
-
-    #axes[0][0].set_title('No chain sharing',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][0],r'Repertoire Skew ($\alpha$)','Clonal Matches (%)',fs=fs)
-
-    bp = axes[1][0].boxplot(
-            all_coverage['No chain sharing'], 
-            labels=labels, 
-            boxprops=boxprops, 
-            meanprops=meanlineprops, 
-            widths=0.6, 
-            meanline=True, 
-            showmeans=True
-            )
-
-    label_figure(axes[1][0],r'Repertoire Skew ($\alpha$)','Repertoire Coverage',fs=fs)
-
-    bp = axes[0][1].boxplot(
-            all_matches['Chain sharing'], 
-            labels=labels, 
-            boxprops=boxprops, 
-            meanprops=meanlineprops, 
-            widths=0.6, 
-            meanline=True, 
-            showmeans=True
-            )
-
-    #axes[0][1].set_title('Chain sharing',fontweight='bold',fontsize=fs)
-    label_figure(axes[0][1],r'Repertoire Skew ($\alpha$)','Clonal Matches (%)',fs=fs,y_on=False)
-
-    bp = axes[1][1].boxplot(
-            all_coverage['Chain sharing'], 
-            labels=labels, 
-            boxprops=boxprops, 
-            meanprops=meanlineprops, 
-            widths=0.6, 
-            meanline=True, 
-            showmeans=True
-            )
-
-    label_figure(axes[1][1],r'Repertoire Skew ($\alpha$)','Repertoire Coverage',fs=fs,y_on=False)
-
-    plt.show(block=False)
-    raw_input('Press enter to close...')
-    plt.savefig('fig_S6.png', format='png', dpi=300)
-    plt.close()
-
-
-# --- Internal Methods --- #
-
-def label_figure(ax,xlabel,ylabel,fs=18,y_on=True):
-
-    ax.set_xlabel(xlabel,fontsize=fs)
-    if y_on: ax.set_ylabel(ylabel,fontsize=fs)
-
-    if ylabel == 'Repertoire Coverage':
-        ax.set_ylim((0,1))
-        ax.set_yticks((0.,.5,1.))
-        ax.set_yticklabels(('0%','50%','100%'),fontsize=fs)
-    elif ylabel == 'Clonal Matches (#)':
-        ax.set_ylim((0,1000))
-        ax.set_yticks((0,500,1000))
-        ax.set_yticklabels((0,500,1000),fontsize=fs)
-    elif ylabel == 'Clonal Matches (%)':
-        ax.set_ylim((0,1))
-        ax.set_yticks((0.,.5,1.))
-        ax.set_yticklabels(('0%','50%','100%'),fontsize=fs)
-
-def default_settings():
-    return {
-            # experimental design
-            'num_cells':100,
-            'num_wells':(96,),
-            'analysis':('madhype',),
-            # madhype parameters
-            'threshold':0.5, # minimum ratio accepted by match_probability
-            # alphabetr parameters
-            'pair_threshold':0.0001,
-            'iters':10,
-            # simulation parameters
-            'cell_freq_max':0.01,
-            'cpw':(100,),
-            'seed':1,
-            # visual cues
-            'silent':False,
-            'visual':False,
-            'visual_block':False,
-            'compare':False
+            'cell_freq_constant': 2,
+            'cell_freq_max': 0.05,
+            'alpha_sharing_probs': None,
+            'beta_sharing_probs': None,
+    
+            'fdr': 0.05,
+    
+            'visual': False,
+    
+            'silent': True,
             }
+    
+    w_range = [96]
+    c_range=[5,10,20,30,50,100, 200, 300, 500, 1000, 2000]
+    repeats = 15
+    
+    madhype_times = {(c,w): [] for c,w in it.product(c_range, w_range)}
+    alphabetr_times = {(c,w): [] for c,w in it.product(c_range, w_range)}
 
-if __name__ == "__main__":
-    main()
+    print "Running simulations with the following settings:"
+    print "  Well partitions:", w_range
+    print "  CPW:", c_range
+    print "  # reps/condition", repeats
+    
+    for c in c_range:
+      for w in w_range:
+        num_wells = (w,)
+        cpw = (c,)
+        print "Number of wells: {}; cells per well: {}".format(num_wells, cpw)
+    
+        ops = general_options.copy()
+        ops['num_wells'] = num_wells
+        ops['cpw'] = cpw
+    
+        seeds = [random.randint(0,1e6) for _ in xrange(repeats)]
+    
+        # Get compute times
+        args_list = [(['madhype', 'alphabetr_R'],[{'silent': True,'num_cores': None}, {'iters': 100}],ops,seed) for seed in seeds]
+        pool = mp.Pool(mp.cpu_count())
+        times = pool.map(run_iter, args_list)
+        madhype_results[(c,w)], alphabetr_results[(c,w)] = zip(*times)
+    
+        times_arr = np.array([madhype_results[(c,w)], alphabetr_results[(c,w)]])
+        print "num_wells = {}, cpw={}:".format(w, c)
+        print "  MH times:", times_arr[0,:], np.mean(times_arr[0,:])
+        print "  AB times:", times_arr[1,:], np.mean(times_arr[1,:])
+    
+    return madhype_results, alphabetr_results
+    
+def plot_data(madhype_results, alphabetr_results):
+    solvers = ['MAD-HYPE', 'ALPHABETR']
+    results = [madhype_results, alphabetr_results]
+    
+    colors = [(.24, .52, .78), (1.0, .7, .4)]
+    
+    plt.figure()
+    for solver,res,c in zip(solvers, results, colors):
+      keys = sorted(res.keys())
+      x = [cpw for cpw,_ in keys]
+    
+      y_raw = np.array([res[k] for k in keys])
+      y = np.mean(y_raw, axis = 1)
+      yerr = np.std(y_raw, axis=1)
+    
+      plt.errorbar(x,y, yerr=yerr, capsize=3, color=c, linewidth=2)
+    
+      print solver, ":"
+      print "  x:", x
+      print "  y:", list(y)
+      print "  yerr:", list(yerr)
+    
+    plt.legend(solvers)
+    plt.xlabel('Cells per Well')
+    plt.ylabel('Computation Time (sec)')
+    plt.yscale('log')
 
+    plt.savefig('figure_S6.pdf')
 
-
-
+madhype_results, alphabetr_results = collect_data()
+plot_data(madhype_results, alphabetr_results)
