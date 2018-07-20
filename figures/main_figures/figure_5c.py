@@ -51,8 +51,8 @@ def main(*args,**kwargs):
             }
 
     repeats = 10
-    match_limit_low = 100
-    match_limit = 500
+    match_limit_low = 750
+    match_limit = 250
 
     settings = default_settings()
     settings['cell_freq_max'] = 0.01
