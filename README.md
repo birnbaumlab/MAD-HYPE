@@ -1,6 +1,6 @@
 # MAD-HYPE
 
-This Python package provides a framework for analyzing multi-well T cell receptor (TCR) sequencing data to extract pairs of co-occurring &alpha; and &beta; chains (i.e. those chain pairs that appear together in a single T cell). Chain pairs are determined through a statistical analysis of the frequency with which each &alpha; and &beta; chain pair appear together in a well, adjusted by the overall frequency of each chain alone. A full description of the methodology used is described in (***CITE***) (in review). Also provided is a Python implementation of an alternative approach, ALPHABETR (***CITE***) for benchmarking purposes.
+This Python package provides a framework for analyzing multi-well T cell receptor (TCR) sequencing data to extract pairs of co-occurring &alpha; and &beta; chains (i.e. those chain pairs that appear together in a single T cell). Chain pairs are determined through a statistical analysis of the frequency with which each &alpha; and &beta; chain pair appear together in a well, adjusted by the overall frequency of each chain alone. A full description of the methodology used is described in the manuscript (in review). Also provided is a Python implementation of an alternative approach, ALPHABETR (http://github.com/edwardslee/alphabetr) for benchmarking purposes.
 
 MAD-HYPE currently works with Python 2.7+ only. Python 3 implementation may occur in a future release.
 
