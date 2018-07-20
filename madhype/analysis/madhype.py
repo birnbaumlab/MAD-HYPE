@@ -43,8 +43,8 @@ def solve(data,**kwargs):
     num_cores = options['num_cores']
     fdr = options['fdr']
     silent = options['silent']
+    prior_match = options['prior_match']
     
-
     # Identify unique a,b sequences
     uniques = {
                'A':frozenset().union(*data['well_data']['A']),
@@ -53,6 +53,12 @@ def solve(data,**kwargs):
 
     # Initialize well distribution
     well_distribution = {'A':{},'B':{}}
+
+    # set prior match to default 1/n
+    if prior_match == None:
+        prior_match = 1.0/((len(uniques['A'])*len(uniques['B']))**0.5)
+
+    print 'PRIOR:',prior_match
 
     # Create range markers for number of wells 
     pts = [0]+[sum(num_wells[:i+1]) for i in xrange(len(num_wells))]
@@ -85,7 +91,7 @@ def solve(data,**kwargs):
             cpw,
             filt,
             options['prior_alpha'],
-            options['prior_match'],
+            prior_match,
             options['threshold']]
 
     if num_cores == 0:
