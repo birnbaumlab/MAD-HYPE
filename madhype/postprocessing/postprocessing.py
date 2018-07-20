@@ -12,18 +12,12 @@ import os
 # nonstandard libraries
 import numpy as np
 import matplotlib.pyplot as plt
-import plotly
-import plotly.plotly as py
-import plotly.graph_objs as go
 import openpyxl
 
 # homegrown libraries
 import plots
 from ..defaults import general_options as default_options
 plt.rcParams["font.family"] = "serif"
-
-# library setup
-plotly.tools.set_credentials_file(username='Pandyr', api_key='AVy42TUJYGQm0TxLEPMl')
 
 '''
 MAIN FUNCTIONS
@@ -156,11 +150,6 @@ def get_results_from_subject_reference(results,data,options):
               }
 
     write_results_to_xslx(results)
-
-    trace0 = go.Scatter(x=x1,y=y1) 
-    py.plot([trace0,],filename='Howie FDR')
-
-    print 'Finished plotly stuff!'
 
     return results
 
