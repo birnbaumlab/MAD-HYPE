@@ -31,6 +31,7 @@ Included:
 import operator
 from operator import mul
 from math import log10
+import itertools as it
 
 # nonstandard libraries
 import numpy as np
@@ -49,13 +50,15 @@ def match_probability(well_data,prior = 1.0,memory={}):
 
     """ Calculates match probability given well_data and a prior ratio """
 
-    key = (well_data['w_i']) + \
-           (well_data['w_j']) + \
-           (well_data['w_ij']) + \
-           (well_data['w_o']) + \
-           (well_data['w_tot']) + \
-           (well_data['cpw']) + \
-           (well_data['alpha'],)
+    key = tuple(it.chain(
+             well_data['w_i'],
+             well_data['w_j'],
+             well_data['w_ij'],
+             well_data['w_o'],
+             well_data['w_tot'],
+             well_data['cpw'],
+             [well_data['alpha']]
+    ))
     try:
         # backdoor check memory for probability
         return memory[key]
@@ -235,10 +238,12 @@ def _prob_distribution(w_i,w_j,w_ij,w_o,freqs,cpw):
 
 def _find_freq(well_data,memory={}):
     """ Estimates single frequency given well data """
-    key = (well_data['w']) + \
-           (well_data['w_tot']) + \
-           (well_data['cpw']) + \
-           (well_data['alpha'],)
+    key = tuple(it.chain(
+        well_data['w'],
+        well_data['w_tot'],
+        well_data['cpw'],
+        [well_data['alpha']]
+    ))
     
     try:
         return memory[key]
