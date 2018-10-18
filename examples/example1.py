@@ -7,7 +7,10 @@ import madhype
 
 # Set up run parameters
 solvers = ['madhype']
-solver_options = [{}, {}] # don't change default parameters
+solver_options = [{}] # don't change default parameters
+# Uncomment these lines if you want to compare MADHYPE to ALPHABETR
+# solvers = ['madhype', 'alphabetr']
+# solver_options = [{}, {}] # don't change default parameters
 
 # Set up parameters that apply to all solvers/simulations
 general_options = {
@@ -24,7 +27,7 @@ general_options = {
         #'display':                       True,
         }
 
-# Run MAD-HYPE with default parameters
+# Run MAD-HYPE
 data,results = madhype.simulate_run(solvers, solver_options, **general_options)
 
 # Print out results
