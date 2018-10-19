@@ -230,7 +230,7 @@ def get_results_from_cell_reference(results,data,options):
     cells_without_scores = [i[0] for i in cells_with_scores]
 
     # these are actual cells
-    cells_temp = sorted([(a,b) for a,b in data['cells'].items()],key=lambda x: -x[1])
+    cells_temp = sorted([((tuple(a),tuple(b)),f) for (a,b),f in data['cells']],key=lambda x: -x[1])
     cells_record = set([c[0] for c in cells_temp])
     cells_label = [c[0] for c in cells_temp]
     cells_freqs = [c[1] for c in cells_temp]
@@ -244,7 +244,7 @@ def get_results_from_cell_reference(results,data,options):
     for i in range(len(cells_with_scores)):
         c, score, _ = cells_with_scores[i]
 
-        if c in data['cells']:
+        if c in cells_record:
             dy += 1
         else:
             dx += 1
@@ -284,11 +284,12 @@ def get_results_from_cell_reference(results,data,options):
     cells_without_scores_at_fdr = set(cells_without_scores[:total_matches_at_fdr])
 
     # create dict with complete cells and the number of matches required to "finish" identifying cell
-    complete_cell_match_counter = dict([(k,len(k[0])*len(k[1])) for k in data['complete_cells'].keys()])
+    complete_cells = {(tuple(a),tuple(b)): f for (a,b),f in data['complete_cells']}
+    complete_cell_match_counter = {k: len(k[0])*len(k[1]) for k in complete_cells}
     map_matches_to_complete_cells = {}
 
     # create a mapping from match pairs to full clones
-    for k in complete_cell_match_counter.keys():
+    for k in complete_cell_match_counter:
         for a in k[0]:
             for b in k[1]:
                 try:
@@ -308,7 +309,7 @@ def get_results_from_cell_reference(results,data,options):
 
     for k,v in complete_cell_match_counter.items():
         if v == 0:
-            freqs.append(data['complete_cells'][k])
+            freqs.append(complete_cells[k])
         if v < 0:
             print 'We have a problem... {}:{}'.format(k,v)
 
