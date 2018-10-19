@@ -117,8 +117,11 @@ results = madhype.run(sequencing_data, solvers, solver_options)
 
 # Print out results
 for solver, result in zip(solvers, results):
-  print "{} Results:".format(solver)
-  print "  Chain pairs identified:", len(result['raw_results'])
+    print "{} Results:".format(solver)
+
+    print "  Total # Cells:", result['total']
+    print "  Chain pairs identified:", result['positives']
+    print "  Chain pairs not identified:", result['negatives']
 ```
 
 ### Using MAD-HYPE to generate simulated cell populations and sequencing data
