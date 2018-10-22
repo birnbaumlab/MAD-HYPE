@@ -63,9 +63,9 @@ Existing sequencing data can be supplied to MAD-HYPE using `run()`, which takes 
   * `'well_data'`: a `dict` with key-value pairs:
     *  `'A'`: a list of `N` lists, where `N` is the number of wells and each inner list contains an ID for each &alpha; chain sequenced in that well
     *  `'B'`: a list of `N` lists, where each inner list contains an ID for each &beta; chain sequenced in that well
-  *  `'options'`: a `dict` with options used to generate the sequencing data. Required key-value pairs are:
-    *  `'num_wells'`: a tuple of the number of wells in each partition; for example, if all wells have the same number of cells (i.e. 1 partition), this should be a 1-tuple with the total number of wells.
-    *  `'cpw'`: a tuple of the number of cells per well in each partition. Its length should match that of `well_data['options']['num_wells']`
+  * `'options'`: a `dict` with options used to generate the sequencing data. Required key-value pairs are:
+    * `'num_wells'`: a tuple of the number of wells in each partition; for example, if all wells have the same number of cells (i.e. 1 partition), this should be a 1-tuple with the total number of wells. If only a single partition is used, an `int` may be given.
+    * `'cpw'`: a tuple of the number of cells per well in each partition. Its length should match that of `data['options']['num_wells']`. If only a single partition is used, an `int` may be given.
 
 Note that the &alpha; and &beta; chain IDs may be any hashable object (e.g. int, string). Overlap is allowed between &alpha; chain IDs and &beta; chain IDs.
 
