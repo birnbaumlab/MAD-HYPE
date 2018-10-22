@@ -119,9 +119,9 @@ class DataGenerator(object):
         # compile useful information
         data = {
                 'well_data':self.well_data,
-                'cells':[(((a,),(b,)),f) for c,f in zip(cells,cell_frequencies)
+                'pairs':[(((a,),(b,)),f) for c,f in zip(cells,cell_frequencies)
                     for a in c[0] for b in c[1]],
-                'complete_cells':[(c,f) for c,f in zip(cells,cell_frequencies)],
+                'cells':[(c,f) for c,f in zip(cells,cell_frequencies)],
                 'options':self.options
                }
 

@@ -230,7 +230,7 @@ def get_results_from_cell_reference(results,data,options):
     cells_without_scores = [i[0] for i in cells_with_scores]
 
     # these are actual cells
-    cells_temp = sorted([((tuple(a),tuple(b)),f) for (a,b),f in data['cells']],key=lambda x: -x[1])
+    cells_temp = sorted([((tuple(a),tuple(b)),f) for (a,b),f in data['pairs']],key=lambda x: -x[1])
     cells_record = set([c[0] for c in cells_temp])
     cells_label = [c[0] for c in cells_temp]
     cells_freqs = [c[1] for c in cells_temp]
@@ -284,7 +284,7 @@ def get_results_from_cell_reference(results,data,options):
     cells_without_scores_at_fdr = set(cells_without_scores[:total_matches_at_fdr])
 
     # create dict with complete cells and the number of matches required to "finish" identifying cell
-    complete_cells = {(tuple(a),tuple(b)): f for (a,b),f in data['complete_cells']}
+    complete_cells = {(tuple(a),tuple(b)): f for (a,b),f in data['cells']}
     complete_cell_match_counter = {k: len(k[0])*len(k[1]) for k in complete_cells}
     map_matches_to_complete_cells = {}
 
