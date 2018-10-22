@@ -63,7 +63,7 @@ def solve(data,**kwargs):
     if prior_match == None:
         prior_match = 1.0/((len(uniques['A'])*len(uniques['B']))**0.5)
 
-    print 'PRIOR:',prior_match
+#    print 'PRIOR:',prior_match
 
     # Create range markers for number of wells 
     pts = [0]+[sum(num_wells[:i+1]) for i in xrange(len(num_wells))]

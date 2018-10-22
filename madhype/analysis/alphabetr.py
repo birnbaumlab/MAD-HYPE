@@ -38,7 +38,7 @@ def solve(seq_data,**kwargs):
 
     """ Solver using ALPHABETR method """
 
-    print 'ALPHABETR solver...'
+    print 'ALPHABETR solver'
 
     # choose options
     options = default_options.copy()
@@ -90,7 +90,7 @@ def solve(seq_data,**kwargs):
     # NOTE: not using confidence intervals atm
     results = [(c,t,{'i':0.,'j':0.,'ij':f}) for c,t,f in zip(cells,thresholds,cell_freqs)]
 
-    print 'HERE:'
+#    print 'HERE:'
     for r in sorted(results,key=lambda x: -x[1]):
             pass#print r
     
