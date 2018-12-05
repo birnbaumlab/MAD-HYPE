@@ -22,9 +22,11 @@ In most cases, MAD-HYPE dependencies will be automatically installed with these 
 If dependencies are not installed correctly, or if importing `madhype` leads to errors, you may need to manually install the following packages:
 * NumPy >= 1.13.3
 * SciPy >= 0.19.0
-* matplotlib >= 2.0.0
+* matplotlib >= 2.0.0, < 3.0
 * openpyxl >= 2.5.4
 * tqdm >= 4.23.4
+
+Note that matplotlib 3.0+ is incompatible with Python 2.7.
 
 These packages can be installed using the file `requirements.txt` included in the repository. In the base repository directory, run:
 
