@@ -17,7 +17,6 @@ from multiprocessing import cpu_count
 # nonstandard libraries
 import numpy as np
 import scipy.optimize, scipy.misc, scipy.cluster
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 # homegrown libraries

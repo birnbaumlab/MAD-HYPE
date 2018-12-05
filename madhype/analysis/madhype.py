@@ -18,8 +18,6 @@ from multiprocessing import cpu_count, Process, Pipe
 
 # nonstandard libraries
 from scipy.misc import comb
-import matplotlib.pyplot as plt
-from matplotlib import cm
 import numpy as np
 
 # homegrown libraries

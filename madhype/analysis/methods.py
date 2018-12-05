@@ -35,7 +35,6 @@ import itertools as it
 
 # nonstandard libraries
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.optimize import fmin
 from scipy.optimize import brentq
 from scipy.misc import comb,factorial
