@@ -23,8 +23,8 @@ setup(
     classifiers=['Programming Language :: Python :: 2'],
     install_requires=[ ## TODO add version numbers for dependencies
         'numpy>=1.13.3',
-        'scipy>=0.19.0',
-        'matplotlib>=2.0.0',
+        'scipy>=0.19.0,<1',
+        'matplotlib>=2.0.0,<3',
         'openpyxl>=2.5.4',
         'tqdm>=4.23.4'
     ],
