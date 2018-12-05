@@ -291,13 +291,6 @@ def _output(options):
             # overwrite
             options['fig'].savefig(options['savename'])
 
-    # display figure (with potential hold)
-    if options['display'] and options['hold']: 
-        plt.show(block=False)
-        raw_input('Press enter to close...')
-        plt.close()
-    elif options['display']:
-        plt.show()
 
 #------------------------------------------------------------------------------#
 
@@ -343,8 +336,6 @@ def _default_plot_options():
             'legend':           True, # whether legend is displayed
             'save':             True, # whether plots are saved
             'savename': 'img_{}.png', # whether plots are saved
-            'display':         False, # whether plots are displayed
-            'hold':             True, # if plots are displayed, pause for user input
             'ax':               None, # an axis to plot on
             'fig':              None, # an axis to plot on
             'figsize':         (6,12), # size of newly generated figure

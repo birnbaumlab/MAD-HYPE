@@ -28,8 +28,6 @@ general_options = {
     'legend':           True, # whether legend is displayed
     'save':            False, # whether plots are saved
     'savename': 'img_{}.png', # where plots are saved
-    'display':         False, # whether plots are displayed
-    'hold':             True, # if plots are displayed, pause for user input
     'ax':               None, # an axis to plot on
     'fig':              None, # an axis to plot on
     'figsize':         (6,12), # size of newly generated figure
@@ -46,7 +44,6 @@ general_options = {
     'pos_color': 'black',
     'neg_color': 'white',
     'legend': True,
-    'visual_block': True,
 
     # misc
     'silent':False
