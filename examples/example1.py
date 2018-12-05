@@ -16,20 +16,10 @@ import madhype
 
 # Set up run parameters
 solvers = ['madhype']
-solver_options = [{
-    'num_cores':0, # 0 -> max_core usage
-    'threshold':1.,
-    }]
-
-def label_diff(x1,x2,y1,y2,text=''):
-    x = (x1+x2)/2
-    y = 0.5*max(y1,y2)
-    dx = abs(x1-x2)
-
-    props = {'connectionstyle':'bar','arrowstyle':'-',\
-                 'shrinkA':40,'shrinkB':40,'linewidth':2}
-    ax.annotate(text, ha='center', xy=(x,10*y), zorder=10,fontsize=18)
-    ax.annotate('', xy=(x1,y), xytext=(x2,y), arrowprops=props)
+solver_options = [{}] # don't change default parameters
+# Uncomment these lines if you want to compare MADHYPE to ALPHABETR
+# solvers = ['madhype', 'alphabetr']
+# solver_options = [{}, {}] # don't change default parameters
 
 # Set up parameters that apply to all solvers/simulations
 general_options = {
@@ -50,7 +40,7 @@ general_options = {
         'save_to_excel':              False,
         }
 
-# Run MAD-HYPE with default parameters
+# Run MAD-HYPE
 data,results = madhype.simulate_run(solvers, solver_options, **general_options)
 
 all_conf = [r[1] for r in results[0]['raw_results']]

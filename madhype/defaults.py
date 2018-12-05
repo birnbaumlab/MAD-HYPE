@@ -54,7 +54,7 @@ general_options = {
 
 madhype_options = {
     # analysis constants
-    'threshold':100., # minimum ratio accepted by match_probability
+    'threshold':0.1, # minimum ratio accepted by match_probability
     'fdr':0.01, # acceptable fdr (cuts off matches, sets filter)
     'prior_alpha':2.0, # prior for clonal frequency
     'prior_match':None, # prior for clonal match ( <= 1.0 )

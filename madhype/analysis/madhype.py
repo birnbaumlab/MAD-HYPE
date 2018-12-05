@@ -45,11 +45,16 @@ def solve(data,**kwargs):
     fdr = options['fdr']
     silent = options['silent']
     prior_match = options['prior_match']
+    well_data = {
+      'A': [set(alist) for alist in data['well_data']['A']],
+      'B': [set(alist) for alist in data['well_data']['B']]
+    }
+                 
     
     # Identify unique a,b sequences
     uniques = {
-               'A':frozenset().union(*data['well_data']['A']),
-               'B':frozenset().union(*data['well_data']['B'])
+               'A':frozenset().union(*well_data['A']),
+               'B':frozenset().union(*well_data['B'])
               }
 
     # Initialize well distribution
@@ -58,6 +63,8 @@ def solve(data,**kwargs):
     # set prior match to default 1/n
     if prior_match == None:
         prior_match = 1.0/((len(uniques['A'])*len(uniques['B']))**0.5)
+
+    #    print 'PRIOR:',prior_match
 
     # Create range markers for number of wells 
     pts = [0]+[sum(num_wells[:i+1]) for i in xrange(len(num_wells))]
@@ -69,7 +76,7 @@ def solve(data,**kwargs):
         if not silent: print 'Starting {} chain identification...'.format(label)
         for index in uniques[label]:
             well_distribution[label][index] = \
-                    [set([w for w in xrange(pts[i],pts[i+1]) if index in data['well_data'][label][w]])
+                    [set([w for w in xrange(pts[i],pts[i+1]) if index in well_data[label][w]])
                         for i in xrange(len(num_wells))]
         if not silent: print 'Finished {} chain identification.'.format(label)
 

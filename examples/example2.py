@@ -8,18 +8,19 @@ import json
 import madhype
 
 # Sample sequencing data is stored in JSON format
-sequencing_data = json.load('sample_seq_data.txt')
+sequencing_data = json.load(open('sample_seq_data.txt'))
 
 # Set up solver options
 solvers = ['madhype'] # only run MAD-HYPE
-solver_optiosn = [{}] # use default parameters
+solver_options = [{}] # use default parameters
 
 # Run solvers
 results = madhype.run(sequencing_data, solvers, solver_options)
 
 # Print out results
 for solver, result in zip(solvers, results):
-  print "{} Results:".format(solver)
-  print "  Total # Cells:", result['total']
-  print "  Chain pairs identified:", result['positives']
-  print "  Chain pairs not identified:", result['negatives']
+    print "{} Results:".format(solver)
+
+    print "  Total # Cells:", result['total']
+    print "  Chain pairs identified:", result['positives']
+    print "  Chain pairs not identified:", result['negatives']

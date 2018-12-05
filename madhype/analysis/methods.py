@@ -31,6 +31,7 @@ Included:
 import operator
 from operator import mul
 from math import log10
+import itertools as it
 
 # nonstandard libraries
 import numpy as np
@@ -60,13 +61,15 @@ def match_probability(well_data,prior = 1.0,memory={}):
 
     """ Calculates match probability given well_data and a prior ratio """
 
-    key = (well_data['w_i']) + \
-           (well_data['w_j']) + \
-           (well_data['w_ij']) + \
-           (well_data['w_o']) + \
-           (well_data['w_tot']) + \
-           (well_data['cpw']) + \
-           (well_data['alpha'],)
+    key = tuple(it.chain(
+             well_data['w_i'],
+             well_data['w_j'],
+             well_data['w_ij'],
+             well_data['w_o'],
+             well_data['w_tot'],
+             well_data['cpw'],
+             [well_data['alpha']]
+    ))
     try:
         # backdoor check memory for probability
         return memory[key]
@@ -93,18 +96,18 @@ def match_probability(well_data,prior = 1.0,memory={}):
 
         #"""#
         #TESTING
-        if False:#well_data['w_ij'] == (19,) and well_data['w_o'] == (36,):
-            print 'W_i:',well_data['w_i']
-            print 'W_j:',well_data['w_j']
-            print 'W_ij:',well_data['w_ij']
-            print 'W_o:',well_data['w_o']
-            print 'Match freqs:'
-            for k,v in freqs_match.items(): print '{}:{}'.format(k,v)
-            print 'Nonmatch freqs:'
-            for k,v in freqs_nonmatch.items(): print '{}:{}'.format(k,v)
-            print 'Nonmatch:',p_nonmatch
-            print 'Match:',p_match
-            raw_input()
+#        if False:#well_data['w_ij'] == (19,) and well_data['w_o'] == (36,):
+#            print 'W_i:',well_data['w_i']
+#            print 'W_j:',well_data['w_j']
+#            print 'W_ij:',well_data['w_ij']
+#            print 'W_o:',well_data['w_o']
+#            print 'Match freqs:'
+#            for k,v in freqs_match.items(): print '{}:{}'.format(k,v)
+#            print 'Nonmatch freqs:'
+#            for k,v in freqs_nonmatch.items(): print '{}:{}'.format(k,v)
+#            print 'Nonmatch:',p_nonmatch
+#            print 'Match:',p_match
+#            raw_input()
         #"""#
 
         if True:# p_nonmatch == 0:
@@ -274,10 +277,12 @@ def _prob_distribution(w_i,w_j,w_ij,w_o,freqs,cpw):
 
 def _find_freq(well_data,memory={}):
     """ Estimates single frequency given well data """
-    key = (well_data['w']) + \
-           (well_data['w_tot']) + \
-           (well_data['cpw']) + \
-           (well_data['alpha'],)
+    key = tuple(it.chain(
+        well_data['w'],
+        well_data['w_tot'],
+        well_data['cpw'],
+        [well_data['alpha']]
+    ))
     
     try:
         return memory[key]

@@ -113,15 +113,15 @@ class DataGenerator(object):
             self.well_data['A'][i] += [a for a,ind in zip(misplaced_a,a_ind) if ind == i] 
             self.well_data['B'][i] += [b for b,ind in zip(misplaced_b,b_ind) if ind == i] 
 
-        self.well_data['A'] = [set(wd[binomial(len(wd),chain_deletion_prob):]) for wd in self.well_data['A']]
-        self.well_data['B'] = [set(wd[binomial(len(wd),chain_deletion_prob):]) for wd in self.well_data['B']]
+        self.well_data['A'] = [list(set(wd[binomial(len(wd),chain_deletion_prob):])) for wd in self.well_data['A']]
+        self.well_data['B'] = [list(set(wd[binomial(len(wd),chain_deletion_prob):])) for wd in self.well_data['B']]
 
         # compile useful information
         data = {
                 'well_data':self.well_data,
-                'cells':dict([(((a,),(b,)),f) for c,f in zip(cells,cell_frequencies)
-                    for a in c[0] for b in c[1]]),
-                'complete_cells':dict([(c,f) for c,f in zip(cells,cell_frequencies)]),
+                'pairs':[(((a,),(b,)),f) for c,f in zip(cells,cell_frequencies)
+                    for a in c[0] for b in c[1]],
+                'cells':[(c,f) for c,f in zip(cells,cell_frequencies)],
                 'options':self.options
                }
 
