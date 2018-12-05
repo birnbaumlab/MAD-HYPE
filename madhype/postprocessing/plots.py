@@ -4,6 +4,8 @@ import os
 from math import ceil,floor,log10
 
 # nonstandard libraries
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 """
