@@ -41,6 +41,17 @@ from scipy.misc import comb,factorial
 
 # homegrown libraries
 
+max_num_wells = 10000
+
+#------------------------------------------------------------------------------# 
+
+# CREATE A PRECALCULATED LOG FACTORIAL LIST
+factorial_log10_memory = [0.0]
+for ind in xrange(1,max_num_wells+1):
+    factorial_log10_memory.append(factorial_log10_memory[-1] + log10(ind))
+
+#------------------------------------------------------------------------------# 
+
 #------------------------------------------------------------------------------# 
 """ Main Callable Methods """
 #------------------------------------------------------------------------------# 
@@ -76,7 +87,6 @@ def match_probability(well_data,prior = 1.0,memory={}):
         # calculate probability for clonal match
         p_match = estimate_probability(well_data,freqs_match)
 
-
         # calculate probability for clonal nonmatch
         p_nonmatch = estimate_probability(well_data,freqs_nonmatch)
 
@@ -97,7 +107,15 @@ def match_probability(well_data,prior = 1.0,memory={}):
             raw_input()
         #"""#
 
-        memory[key] = prior*p_match/p_nonmatch,(freqs_match,freqs_nonmatch)
+        if True:# p_nonmatch == 0:
+            pass#print p_match,p_nonmatch
+        #memory[key] = p_match/p_nonmatch,(freqs_match,freqs_nonmatch)
+        if p_match == float('nan') or p_nonmatch == float('nan'):
+            print 'Results:'
+            print p_match
+            print p_nonmatch
+            print '-----------'
+        memory[key] = p_match - p_nonmatch,(freqs_match,freqs_nonmatch)
         return memory[key]
 
 
@@ -164,14 +182,35 @@ def estimate_probability(data,freqs):
 
     """ Estimate match probability given data,freqs """
 
-    p_total = 1.
+    p_total = 0.
     keys = ['w_i','w_j','w_ij','w_o','w_tot','cpw']
+    #print 'freqs:',freqs
+    #print 'data:',data
     for w_i,w_j,w_ij,w_o,w_tot,cpw in zip(*[data[k] for k in keys]):
         f_i,f_j,f_ij = _well_freq(freqs['i'],cpw),_well_freq(freqs['j'],cpw),_well_freq(freqs['ij'],cpw)
+        '''
+        print 'subfreqs -',f_i,f_j,f_ij
+        print '1:',(f_i**w_i)*(1.-f_i)**(w_o + w_j)
+        print '2:',(f_j**w_j)*(1.-f_j)**(w_o + w_i)
+        print '3:',((1 - (1-f_i*f_j)*(1-f_ij))**w_ij)
+        print '4:',(1.-f_ij)**(w_i + w_j + w_o)
         p_total *= _multinomial(w_i,w_j,w_ij,w_o)* \
                     (f_i**w_i)*(1.-f_i)**(w_o + w_j)* \
                     (f_j**w_j)*(1.-f_j)**(w_o + w_i)* \
                     ((1 - (1-f_i*f_j)*(1-f_ij))**w_ij)*(1.-f_ij)**(w_i + w_j + w_o)
+        print 'Result:',
+        print _multinomial_log10(w_i,w_j,w_ij,w_o)
+        print w_i*log10(f_i) + (w_o + w_j)*log10(1.0-f_i)
+        print w_j*log10(f_j) + (w_o + w_i)*log10(1.0-f_j)
+        print w_ij*log10(1 - ((1-f_i*f_j)*(1-f_ij))) + (w_i + w_j + w_o)*log10(1.-f_ij)
+        print '----'
+        '''
+
+        p_total += _multinomial_log10(w_i,w_j,w_ij,w_o)
+        p_total +=  w_i*log10(f_i) + (w_o + w_j)*log10(1.0-f_i)
+        p_total +=  w_j*log10(f_j) + (w_o + w_i)*log10(1.0-f_j)
+        p_total +=  w_ij*log10(1 - ((1-f_i*f_j)*(1-f_ij))) + (w_i + w_j + w_o)*log10(1.-f_ij)
+
     return p_total
 
 
@@ -307,7 +346,12 @@ def _binomial_pdf(n,k,f):
 
 def _multinomial(*args):
     """ binomial pdf calculator, n choose k at f """
+    print 'multinomial:',factorial(sum(args),exact=False)
     return factorial(sum(args),exact=False)/reduce(mul,[factorial(arg,exact=False) for arg in args],1)
+
+def _multinomial_log10(*args):
+    """ binomial pdf calculator, n choose k at f """
+    return factorial_log10_memory[sum(args)] - sum([factorial_log10_memory[arg] for arg in args])
 
 #------------------------------------------------------------------------------# 
 """ Testing Methods """

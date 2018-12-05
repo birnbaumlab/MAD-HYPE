@@ -18,6 +18,7 @@ general_options = {
 
     # postprocessing
     'visual':                    False,
+    'save_to_excel':             True,
     'plot_auroc':                False,
     'plot_frequency_estimation': False,
     'plot_repertoire':           False,
