@@ -174,7 +174,8 @@ def main(*args,**kwargs):
 
                     specific_settings['num_wells'] = num_wells
                     specific_settings['cpw'] = (cpw,)
-                    specific_settings['cell_freq_max'] = 0.0 # forces uniform
+                    specific_settings['cell_freq_distro'] = 'uniform' # forces uniform
+                    #specific_settings['cell_freq_max'] = 0.0 # forces uniform
                     specific_settings['num_cells'] = int(1./freq) # forces uniform
                     specific_settings['threshold'] = threshold 
                     specific_settings['seed'] = r

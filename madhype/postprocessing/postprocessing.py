@@ -149,7 +149,8 @@ def get_results_from_subject_reference(results,data,options):
               'matches':reported_matches,
               }
 
-    write_results_to_xslx(results)
+    if options['save_to_excel']:
+        write_results_to_xslx(results)
 
     return results
 
@@ -343,7 +344,7 @@ def get_results_from_cell_reference(results,data,options):
     for cell,true_freq in zip(cells_label,cells_freqs):
         try:
             positive_matched_freqs.append((true_freq,pos_freq_dict[cell][1]['ij']))
-            positive_confidence.append(np.log10(pos_freq_dict[cell][0]))
+            positive_confidence.append((pos_freq_dict[cell][0]))
         except KeyError:
             try:
                 negative_matched_freqs.append((true_freq,neg_freq_dict[cell][1]['ij']))
@@ -366,7 +367,8 @@ def get_results_from_cell_reference(results,data,options):
               'raw_results': cells_with_scores
               }
 
-    write_results_to_xslx(results)
+    if options['save_to_excel']:
+        write_results_to_xslx(results)
 
     if True:#not options['silent']:
 

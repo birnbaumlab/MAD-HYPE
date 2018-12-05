@@ -139,7 +139,7 @@ def plot_frequency_estimation(cresults,**kwargs):
     new_options = {
             'fs':          18,
             'linewidth':    3,
-            'figsize':  (9,6),
+            'figsize':  (6,6),
             'colorbar': False,
             'xlim': False,
             'ylim': False,
@@ -189,7 +189,7 @@ def plot_frequency_estimation(cresults,**kwargs):
 
         # plot available species
         sc = plt.scatter(*zip(*cresults['positive_matched_freqs']),
-                c=colors,linewidth=0.0,edgecolor='black') 
+                c=colors,linewidth=0.0,edgecolor='black',s=50) 
 
     if cresults['negative_matched_freqs']: 
         plt.scatter(*zip(*cresults['negative_matched_freqs']),c='r', marker='x')
@@ -215,6 +215,7 @@ def plot_repertoire(cresults,**kwargs):
     label = 'repertoire'
     options = _default_plot_options()
 
+    print 'Here'
     # default options parameters
     new_options = {
             'fs':           18,
