@@ -39,8 +39,6 @@ Once installed, MAD-HYPE can be used by importing the package `madhype`. The fol
 
 ```
 ## MAD-HYPE/examples/example1.py
-import matplotlib
-matplotlib.use('Agg')
 
 # Import MAD-HYPE package
 import madhype
@@ -64,7 +62,6 @@ general_options = {
         'visual':                     True,
         'plot_repertoire':            True,
         'save':                       True,
-        #'display':                       True,
         }
 
 # Run MAD-HYPE
