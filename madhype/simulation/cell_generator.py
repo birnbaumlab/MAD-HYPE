@@ -90,6 +90,8 @@ class CellGenerator(object):
             freq_max = self.options['cell_freq_max']
             alpha = self.options['cell_freq_constant']
             freqs = _power_law_distribution(num_cells,alpha, freq_max)
+        else:
+            print 'WARNING: cell frequency distribution not recognized!'
 
         return cells, freqs
 

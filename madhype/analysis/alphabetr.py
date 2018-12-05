@@ -28,14 +28,17 @@ from ..defaults import alphabetr_options as default_options
 
 def extract_chains(seq_data):
     alphas_per_well, betas_per_well = seq_data['well_data']['A'],seq_data['well_data']['B']
-    return list(set.union(*alphas_per_well)),list(set.union(*betas_per_well))
+    return (
+        list(set.union(*map(set, alphas_per_well))),
+        list(set.union(*map(set, betas_per_well)))
+    )
 
 
 def solve(seq_data,**kwargs):
 
     """ Solver using ALPHABETR method """
 
-    print 'ALPHABETR solver...'
+    print 'ALPHABETR solver'
 
     # choose options
     options = default_options.copy()
@@ -87,7 +90,7 @@ def solve(seq_data,**kwargs):
     # NOTE: not using confidence intervals atm
     results = [(c,t,{'i':0.,'j':0.,'ij':f}) for c,t,f in zip(cells,thresholds,cell_freqs)]
 
-    print 'HERE:'
+#    print 'HERE:'
     for r in sorted(results,key=lambda x: -x[1]):
             pass#print r
     
