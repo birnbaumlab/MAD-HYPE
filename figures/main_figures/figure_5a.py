@@ -11,17 +11,11 @@ from datetime import datetime
 # nonstandard libraries
 import gzip
 import matplotlib.pyplot as plt
-import plotly
-import plotly.plotly as py
-import plotly.graph_objs as go
 
 # homegrown libraries
 import madhype
 from madhype.defaults import madhype_options as default_options
 from madhype.postprocessing.postprocessing import analyze_results
-
-# library setup
-plotly.tools.set_credentials_file(username='Pandyr', api_key='AVy42TUJYGQm0TxLEPMl')
 
 def main():
     """ Runs collection of main function """
@@ -152,12 +146,6 @@ def combine(results,repertoire):
             print '{}: {}'.format(xy,frequency)
         print 'Total pairs called:',sum(xy_frequency.values())
         
-
-        trace0 = go.Scatter(x=x,y=y) 
-        py.plot([trace0,],filename='Howie FDR')
-
-        #raw_input('Press enter to close..')
-
 def find_origin(sequence,repertoire):
     """ Find patient origin of sequenece, returns tuple """
     alpha,beta = '',''

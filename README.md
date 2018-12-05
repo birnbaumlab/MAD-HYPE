@@ -18,11 +18,13 @@ In most cases, MAD-HYPE dependencies will be automatically installed with these 
    
    `$ python setup.py install --user`
    
-### Full Install
-If dependencies are not installed correctly, you will need to manually install the following packages:
+### Manual Install
+If dependencies are not installed correctly, or if importing `madhype` leads to errors, you may need to manually install the following packages:
 * NumPy >= 1.13.3
 * SciPy >= 0.19.0
 * matplotlib >= 2.0.0
+* openpyxl >= 2.5.4
+* tqdm >= 4.23.4
 
 These packages can be installed using the file `requirements.txt` included in the repository. In the base repository directory, run:
 
@@ -37,23 +39,45 @@ Once installed, MAD-HYPE can be used by importing the package `madhype`. The fol
 
 ```
 ## MAD-HYPE/examples/example1.py
+import matplotlib
+matplotlib.use('Agg')
 
 # Import MAD-HYPE package
 import madhype
 
 # Set up run parameters
-solvers = ['madhype', 'alphabetr']
-solver_options = [{}, {}] # don't change default parameters
+solvers = ['madhype']
+solver_options = [{}] # don't change default parameters
+# Uncomment these lines if you want to compare MADHYPE to ALPHABETR
+# solvers = ['madhype', 'alphabetr']
+# solver_options = [{}, {}] # don't change default parameters
 
-# Run MAD-HYPE with default parameters
-results = madhype.simulate_run(solvers, solver_options)
+# Set up parameters that apply to all solvers/simulations
+general_options = {
+        'cpw':(250,),
+        'num_wells':(96,),
+        'alpha_sharing_probs': 0.0,
+        'num_cells': 100,
+        'beta_sharing_probs': 0.0,
+        'alpha_dual_prob': 0.5,
+        'beta_dual_prob': 0.5,
+        'visual':                     True,
+        'plot_repertoire':            True,
+        'save':                       True,
+        #'display':                       True,
+        }
+
+# Run MAD-HYPE
+data,results = madhype.simulate_run(solvers, solver_options, **general_options)
 
 # Print out results
 for solver, result in zip(solvers, results):
-  print "{} Results:".format(solver)
-  print "  Total # Cells:", result['total']
-  print "  Chain pairs identified:", result['positives']
-  print "  Chain pairs not identified:", result['negatives']
+
+    print "{} Results:".format(solver)
+
+    print "  Total # Cells:", result['total']
+    print "  Chain pairs identified:", result['positives']
+    print "  Chain pairs not identified:", result['negatives']
 ```
 
 ### Running MAD-HYPE on existing sequencing data
@@ -93,10 +117,11 @@ results = madhype.run(sequencing_data, solvers, solver_options)
 
 # Print out results
 for solver, result in zip(solvers, results):
-  print "{} Results:".format(solver)
-  print "  Total # Cells:", result['total']
-  print "  Chain pairs identified:", result['positives']
-  print "  Chain pairs not identified:", result['negatives']
+    print "{} Results:".format(solver)
+
+    print "  Total # Cells:", result['total']
+    print "  Chain pairs identified:", result['positives']
+    print "  Chain pairs not identified:", result['negatives']
 ```
 
 ### Using MAD-HYPE to generate simulated cell populations and sequencing data
