@@ -9,6 +9,7 @@ Solver for MAD-HYPE method
 import time
 import sys, os
 import pickle
+from math import log10
 from collections import Counter
 from operator import mul
 from sys import argv
@@ -63,7 +64,7 @@ def solve(data,**kwargs):
     if prior_match == None:
         prior_match = 1.0/((len(uniques['A'])*len(uniques['B']))**0.5)
 
-#    print 'PRIOR:',prior_match
+    #    print 'PRIOR:',prior_match
 
     # Create range markers for number of wells 
     pts = [0]+[sum(num_wells[:i+1]) for i in xrange(len(num_wells))]
@@ -97,7 +98,7 @@ def solve(data,**kwargs):
             filt,
             options['prior_alpha'],
             prior_match,
-            options['threshold']]
+            log10(options['threshold'])]
 
     if num_cores == 0:
         num_cores = cpu_count()
