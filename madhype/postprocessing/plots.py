@@ -329,17 +329,17 @@ def _set_legend(options):
 
 #------------------------------------------------------------------------------#
 
-def _default_plot_options():
-    """ Options common to all plots """
-    return {
-            'title':            True, # whether title  is displayed
-            'legend':           True, # whether legend is displayed
-            'save':             True, # whether plots are saved
-            'savename': 'img_{}.png', # whether plots are saved
-            'ax':               None, # an axis to plot on
-            'fig':              None, # an axis to plot on
-            'figsize':         (6,12), # size of newly generated figure
-            }
-
-#------------------------------------------------------------------------------#
-
+#def _default_plot_options():
+#    """ Options common to all plots """
+#    return {
+#            'title':            True, # whether title  is displayed
+#            'legend':           True, # whether legend is displayed
+#            'save':             True, # whether plots are saved
+#            'savename': 'img_{}.png', # whether plots are saved
+#            'ax':               None, # an axis to plot on
+#            'fig':              None, # an axis to plot on
+#            'figsize':         (6,12), # size of newly generated figure
+#            }
+#
+##------------------------------------------------------------------------------#
+#
