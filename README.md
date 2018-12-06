@@ -90,7 +90,7 @@ Existing sequencing data can be supplied to MAD-HYPE using `run()`, which takes 
 
 Note that the &alpha; and &beta; chain IDs may be any hashable object (e.g. int, string). Overlap is allowed between &alpha; chain IDs and &beta; chain IDs.
 
-Additionally, the order of num_wells and cpw are not community; that is, if num_wells = (36,60) and cpw = (100,1000), the first 36 elements of well_data['A'] and well_data['B'] will be analyzed as though there are 100 cells/well, and the subsequent 60 elements will be analyzed under 1000 cells/well.
+Additionally, the order of num_wells and cpw are not commutative; that is, if num_wells = (36,60) and cpw = (100,1000), the first 36 elements of well_data['A'] and well_data['B'] will be analyzed as though there are 100 cells/well, and the subsequent 60 elements will be analyzed under 1000 cells/well.
 
 The following example script loads sample sequencing data and runs MAD-HYPE on it, using the `run()` function.
 
