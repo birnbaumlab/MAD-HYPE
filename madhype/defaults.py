@@ -20,8 +20,9 @@ general_options = {
     'visual':                    False,
     'save_to_excel':             True,
     'plot_auroc':                False,
-    'plot_frequency_estimation': False,
+    'plot_comparison':            False,
     'plot_repertoire':           False,
+    'plot_frequency_estimation': False,
 
     # visual settings 
     'title':            True, # whether title  is displayed
@@ -33,9 +34,8 @@ general_options = {
     'figsize':         (6,12), # size of newly generated figure
 
     # plot comparing results
-    'compare':                   False,
-    'plot_comparison':            True,
-    'max_pairs':               1000000,
+    #'compare':                   False,
+    #'max_pairs':               1000000,
     'fdr':                        0.01,
     'reference':                  None,
 

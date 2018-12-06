@@ -23,19 +23,24 @@ Functions:
 def plot_auroc(cresults,**kwargs):
 
     label = 'auroc'
-    options = _default_plot_options()
 
     # default options parameters
     new_options = {
             'fs':         18,
             'linewidth':   5,
             'figsize': (8,7),
+            'fdr_plot':0.01,
                   }
 
     # update options
-    options.update(new_options)
-    options.update(kwargs)
-    _update_options(options,label)
+    if 'plot_{}' in options:
+        options.update(kwargs)
+        options.update(new_options)
+        _update_options(options,label)
+    else:
+        options = _default_plot_options()
+        options.update(new_options)
+        options.update(kwargs)
 
     # get references for fig,ax
     fig,ax = _get_axis(options)
@@ -80,9 +85,14 @@ def plot_comparison(cresults,**kwargs):
                   }
 
     # update options
-    options.update(new_options)
-    options.update(kwargs)
-    _update_options(options,label)
+    if 'plot_{}' in options:
+        options.update(kwargs)
+        options.update(new_options)
+        _update_options(options,label)
+    else:
+        options = _default_plot_options()
+        options.update(new_options)
+        options.update(kwargs)
 
     # get references for fig,ax
     fig,ax = _get_axis(options)
@@ -105,7 +115,7 @@ def plot_comparison(cresults,**kwargs):
             ((0,0),(1,0),(0,1),(1,1)),
             (options['neg_color'],options['mixed1_color'],
                 options['mixed2_color'],options['pos_color']),
-                ('Neither Correct','MAD-HYPE Correct','ALPHABETR Correct','Both Correct')):
+                ('Neither Correct',options['analysis'][0] + ' Correct',options['analysis'][1] + ' Correct','Both Correct')):
         xs = [i for i,p1,p2 in zip(xrange(total),cresults[0]['pattern'],cresults[1]['pattern']) 
                 if p1 == val[0] and p2 == val[1]]
         ys = [f for f,p1,p2 in zip(cresults[0]['freqs'],cresults[0]['pattern'],cresults[1]['pattern'])
@@ -148,9 +158,14 @@ def plot_frequency_estimation(cresults,**kwargs):
                   }
 
     # update options
-    options.update(new_options)
-    options.update(kwargs)
-    _update_options(options,label)
+    if 'plot_{}' in options:
+        options.update(kwargs)
+        options.update(new_options)
+        _update_options(options,label)
+    else:
+        options = _default_plot_options()
+        options.update(new_options)
+        options.update(kwargs)
 
     # get references for fig,ax
     fig,ax = _get_axis(options)
@@ -217,19 +232,24 @@ def plot_repertoire(cresults,**kwargs):
     label = 'repertoire'
     options = _default_plot_options()
 
-    print 'Here'
     # default options parameters
     new_options = {
             'fs':           18,
             'linewidth':     5,
             'figsize':  (10,5),
-            'legend':     True,
+            'pos_color': 'black',
+            'neg_color': 'white',
                   }
 
     # update options
-    options.update(new_options)
-    options.update(kwargs)
-    _update_options(options,label)
+    if 'plot_{}' in options:
+        options.update(kwargs)
+        options.update(new_options)
+        _update_options(options,label)
+    else:
+        options = _default_plot_options()
+        options.update(new_options)
+        options.update(kwargs)
 
     # get references for fig,ax
     fig,ax = _get_axis(options)
@@ -329,17 +349,21 @@ def _set_legend(options):
 
 #------------------------------------------------------------------------------#
 
-#def _default_plot_options():
-#    """ Options common to all plots """
-#    return {
-#            'title':            True, # whether title  is displayed
-#            'legend':           True, # whether legend is displayed
-#            'save':             True, # whether plots are saved
-#            'savename': 'img_{}.png', # whether plots are saved
-#            'ax':               None, # an axis to plot on
-#            'fig':              None, # an axis to plot on
-#            'figsize':         (6,12), # size of newly generated figure
-#            }
-#
+def _default_plot_options():
+    """ Options common to all plots """
+    return {
+            'title':            True, # whether title  is displayed
+            'legend':           True, # whether legend is displayed
+            'save':             True, # whether plots are saved
+            'savename': 'img_{}.png', # whether plots are saved
+            'ax':               None, # an axis to plot on
+            'fig':              None, # an axis to plot on
+            'figsize':         (6,12), # size of newly generated figure
+            'fs':           18,
+            'linewidth':     5,
+            'fdr_plot': 0.01,
+            }
+
 ##------------------------------------------------------------------------------#
-#
+
+
