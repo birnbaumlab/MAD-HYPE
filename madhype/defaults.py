@@ -31,19 +31,26 @@ general_options = {
     'savename': 'img_{}.png', # where plots are saved
     'ax':               None, # an axis to plot on
     'fig':              None, # an axis to plot on
-    'figsize':         (6,12), # size of newly generated figure
+    'figsize':         (8,6), # size of newly generated figure
+
+    # plot-specific visual settings
+    'fs':18,
+    'linewidth':5,
+    'fdr_plot': 0.01,
+    'pos_color': 'black',
+    'neg_color': 'white',
+    'mixed1_color': 'green',
+    'mixed2_color': '#FFD870',
+    'analysis': ('MAD-HYPE','ALPHABETR'),
+    'colorbar': True,
+    'xlim': False,
+    'ylim': False,
 
     # plot comparing results
     #'compare':                   False,
     #'max_pairs':               1000000,
     'fdr':                        0.01,
     'reference':                  None,
-
-    # visualization
-    'fdr_plot': 0.01,
-    'pos_color': 'black',
-    'neg_color': 'white',
-    'legend': True,
 
     # misc
     'silent':False
