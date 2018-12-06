@@ -8,6 +8,7 @@ Makes the set of preliminary figures
 # nonstandard libraries
 import numpy as np
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 
@@ -115,9 +116,11 @@ def main():
 
     data,results = madhype.simulate_run(solvers, solver_options, **settings)
 
-    plt.show(block=False)
-    raw_input('Press enter to close...')
-    plt.close()
+    plt.savefig('figure_3.png')
+
+#    plt.show(block=False)
+#    raw_input('Press enter to close...')
+#    plt.close()
     
 
 if __name__ == '__main__':

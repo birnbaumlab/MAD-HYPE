@@ -12,6 +12,8 @@ from sys import argv
 
 # nonstandard libraries
 from scipy.misc import comb
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
@@ -48,7 +50,7 @@ if __name__ == "__main__":
     options = {
             'num_cells':1000,
             'cell_freq_max':0.01,
-            'cell_freq_constant':1,
+            'cell_freq_constant':2.,
             # visual cues
             'silent':True,
             'visual':False
@@ -104,11 +106,11 @@ if __name__ == "__main__":
     cbar = plt.colorbar(cax,ax=ax,ticks=[0,1])
     cbar.ax.set_yticklabels(['0%','100%'])  # vertically oriented colorbar
 
-    plt.savefig('Figure 5A.png', format='png', dpi=300)
+    plt.savefig('figure_4a.png', format='png', dpi=300)
 
-    # show, allow user to exit
-    plt.show(block=False)
-    raw_input('Press enter to close...')
-    plt.close()
+#    # show, allow user to exit
+#    plt.show(block=False)
+#    raw_input('Press enter to close...')
+#    plt.close()
 
 

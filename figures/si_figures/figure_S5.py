@@ -2,8 +2,9 @@ import random
 import itertools as it
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-plt.ion()
 
 # Import MAD-HYPE package
 import madhype

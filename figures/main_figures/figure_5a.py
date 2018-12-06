@@ -10,6 +10,8 @@ from datetime import datetime
 
 # nonstandard libraries
 import gzip
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # homegrown libraries

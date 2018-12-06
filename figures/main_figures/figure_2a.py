@@ -3,6 +3,8 @@
 This program is to make diagrams that are too frustrating to do by hand
 """
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import math
 import numpy as np
