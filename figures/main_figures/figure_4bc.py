@@ -9,6 +9,7 @@ Makes the set of preliminary figures
 import numpy as np
 import copy
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 
@@ -93,9 +94,9 @@ def main():
     fig1.savefig('Figure 5B.png', format='png', dpi=300)
     fig2.savefig('Figure 5C.png', format='png', dpi=300)
 
-    plt.show(block=False)
-    raw_input('Press enter to close...')
-    plt.close()
+#    plt.show(block=False)
+#    raw_input('Press enter to close...')
+#    plt.close()
     
 
 if __name__ == '__main__':

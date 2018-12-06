@@ -12,6 +12,8 @@ from sys import argv
 
 # nonstandard libraries
 from scipy.misc import comb
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np

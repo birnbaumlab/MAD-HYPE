@@ -4,6 +4,8 @@ Supplemnetary Figure 1
 """
 
 # nonstandard libraries
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize,root
 import numpy as np

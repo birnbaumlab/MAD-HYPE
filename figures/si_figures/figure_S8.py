@@ -3,8 +3,9 @@ import itertools as it
 import multiprocessing as mp
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-plt.ion()
 plt.rcParams["font.family"] = "serif"
 
 
