@@ -33,9 +33,8 @@ general_options = {
     'fig':              None, # an axis to plot on
     'figsize':         (6,12), # size of newly generated figure
 
-    # plot comparing results
-    #'compare':                   False,
-    #'max_pairs':               1000000,
+    # other postprocessing options
+    'max_pairs':               1000000,
     'fdr':                        0.01,
     'reference':                  None,
 
