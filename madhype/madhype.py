@@ -62,7 +62,7 @@ def run(data, solvers, solver_options = None, **kwargs):
         compiled_results.append(analyze_results(results,data,**options))
 
     # comparison if two methods are selected
-    if options['compare']:
+    if options['plot_comparison'] != False:
         compare_results(compiled_results,**options)
 
     # return compiled results
