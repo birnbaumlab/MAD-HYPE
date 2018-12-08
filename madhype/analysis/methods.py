@@ -190,28 +190,32 @@ def estimate_probability(data,freqs):
     #print 'data:',data
     for w_i,w_j,w_ij,w_o,w_tot,cpw in zip(*[data[k] for k in keys]):
         f_i,f_j,f_ij = _well_freq(freqs['i'],cpw),_well_freq(freqs['j'],cpw),_well_freq(freqs['ij'],cpw)
-        '''
-        print 'subfreqs -',f_i,f_j,f_ij
-        print '1:',(f_i**w_i)*(1.-f_i)**(w_o + w_j)
-        print '2:',(f_j**w_j)*(1.-f_j)**(w_o + w_i)
-        print '3:',((1 - (1-f_i*f_j)*(1-f_ij))**w_ij)
-        print '4:',(1.-f_ij)**(w_i + w_j + w_o)
-        p_total *= _multinomial(w_i,w_j,w_ij,w_o)* \
-                    (f_i**w_i)*(1.-f_i)**(w_o + w_j)* \
-                    (f_j**w_j)*(1.-f_j)**(w_o + w_i)* \
-                    ((1 - (1-f_i*f_j)*(1-f_ij))**w_ij)*(1.-f_ij)**(w_i + w_j + w_o)
-        print 'Result:',
-        print _multinomial_log10(w_i,w_j,w_ij,w_o)
-        print w_i*log10(f_i) + (w_o + w_j)*log10(1.0-f_i)
-        print w_j*log10(f_j) + (w_o + w_i)*log10(1.0-f_j)
-        print w_ij*log10(1 - ((1-f_i*f_j)*(1-f_ij))) + (w_i + w_j + w_o)*log10(1.-f_ij)
-        print '----'
-        '''
+        p_o = (1-f_i)*(1-f_j)*(1-f_ij)
+        p_i = f_i*(1-f_j)*(1-f_ij)
+        p_j = f_j*(1-f_i)*(1-f_ij)
+        p_ij = 1 - p_o - p_i - p_j
+#        if not 0<f_i<1.0:
+#          print 'well counts:', w_i, w_j, w_ij, w_o
+#          print 'subfreqs -',f_i,f_j,f_ij
+#          print '1:',(f_i**w_i)*(1.-f_i)**(w_o + w_j)
+#          print '2:',(f_j**w_j)*(1.-f_j)**(w_o + w_i)
+#          print '3:',((1 - (1-f_i*f_j)*(1-f_ij))**w_ij)
+#          print '4:',(1.-f_ij)**(w_i + w_j + w_o)
+#          p_total *= _multinomial_coef(w_i,w_j,w_ij,w_o)* \
+#                      (f_i**w_i)*(1.-f_i)**(w_o + w_j)* \
+#                      (f_j**w_j)*(1.-f_j)**(w_o + w_i)* \
+#                      ((1 - (1-f_i*f_j)*(1-f_ij))**w_ij)*(1.-f_ij)**(w_i + w_j + w_o)
+#          print 'Result:',
+#          print _multinomial_log10((w_i,w_j,w_ij,w_o), (p_o, p_i, p_j, p_ij))
+##          print w_i*log10(f_i) + (w_o + w_j)*log10(1.0-f_i)
+##          print w_j*log10(f_j) + (w_o + w_i)*log10(1.0-f_j)
+##          print w_ij*log10(1 - ((1-f_i*f_j)*(1-f_ij))) + (w_i + w_j + w_o)*log10(1.-f_ij)
+#          print '----'
 
-        p_total += _multinomial_log10(w_i,w_j,w_ij,w_o)
-        p_total +=  w_i*log10(f_i) + (w_o + w_j)*log10(1.0-f_i)
-        p_total +=  w_j*log10(f_j) + (w_o + w_i)*log10(1.0-f_j)
-        p_total +=  w_ij*log10(1 - ((1-f_i*f_j)*(1-f_ij))) + (w_i + w_j + w_o)*log10(1.-f_ij)
+        p_total += _multinomial_log10((w_i,w_j,w_ij,w_o), (p_i, p_j, p_ij, p_o))
+#        p_total +=  w_i*log10(f_i) + (w_o + w_j)*log10(1.0-f_i)
+#        p_total +=  w_j*log10(f_j) + (w_o + w_i)*log10(1.0-f_j)
+#        p_total +=  w_ij*log10(1 - ((1-f_i*f_j)*(1-f_ij))) + (w_i + w_j + w_o)*log10(1.-f_ij)
 
     return p_total
 
@@ -348,14 +352,24 @@ def _binomial_pdf(n,k,f):
     """ binomial pdf calculator, n choose k at f """
     return comb(n,k,exact=False)*(f**k)*((1.-f)**(n-k))
 
-def _multinomial(*args):
-    """ binomial pdf calculator, n choose k at f """
-    print 'multinomial:',factorial(sum(args),exact=False)
+def _multinomial_coef(*args):
+    """ multinomial pdf calculator, SUM(K) choose K at F """
+    print 'multinomial coef:',factorial(sum(args),exact=False)
     return factorial(sum(args),exact=False)/reduce(mul,[factorial(arg,exact=False) for arg in args],1)
 
 def _multinomial_log10(*args):
-    """ binomial pdf calculator, n choose k at f """
-    return factorial_log10_memory[sum(args)] - sum([factorial_log10_memory[arg] for arg in args])
+    """ multinomial pdf calculator, SUM(K) choose K at F """
+    K, F = args
+    coef = factorial_log10_memory[sum(K)] - sum([factorial_log10_memory[k] for k in K])
+    def comp_term(k,f):
+      if f > 0:
+        return k*log10(f)
+      elif k == 0:
+        return 0.0
+      else:
+        return float('-inf')
+    terms = [comp_term(k,f) for k,f in zip(K,F)]
+    return coef + sum(terms)
 
 #------------------------------------------------------------------------------# 
 """ Testing Methods """
