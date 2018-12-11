@@ -26,29 +26,16 @@ general_options = {
 
     # general plotting settings 
     'title':            True, # whether title  is displayed
-    'legend':           True, # whether legend is displayed
     'save':            False, # whether plots are saved
     'savename': 'img_{}.png', # where plots are saved
     'ax':               None, # an axis to plot on
     'fig':              None, # an axis to plot on
-    'figsize':         (8,6), # size of newly generated figure
-    'fs':19,
-    'linewidth':5,
-    'fdr_plot': 0.01,
-    'pos_color': 'black',
-    'neg_color': 'white',
-    'mixed1_color': 'green',
-    'mixed2_color': '#FFD870',
-    'analysis': ('MAD-HYPE','ALPHABETR'),
-    'colorbar': True,
-    'xlim': False,
-    'ylim': False,
+    'fs':                 18,
     # plot-specific settings (overrides general settings above)
     'plot_auroc_options': {
-        'fs': 18,
         'linewidth': 5,
         'figsize': (8,7),
-        'fdr_plot': 0.01
+        'fdr_plot': 0.01,
     },
     'plot_comparison_options': {
         'pos_color': 'black',
@@ -59,19 +46,17 @@ general_options = {
         'legend': True,
     },
     'plot_frequency_estimation_options': {
-        'fs': 18,
         'linewidth': 3,
         'figsize': (6,6),
         'colorbar': False,
         'xlim': False,
-        'ylim': False
+        'ylim': False,
     },
     'plot_repertoire_options': {
-        'fs': 18,
-        'linewidth': 5,
         'figsize': (10,5),
         'pos_color': 'black',
-        'neg_color': 'white'
+        'neg_color': 'white',
+        'legend': True,
     },
 
     # other postprocessing options
