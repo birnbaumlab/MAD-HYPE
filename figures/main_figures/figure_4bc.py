@@ -4,6 +4,7 @@ Makes the set of preliminary figures
 """
 
 # standard libraries
+import sys
 
 # nonstandard libraries
 import numpy as np
@@ -24,14 +25,6 @@ plt.rcParams['xtick.labelsize'] = 16
 
 def main():
 
-    settings = {
-            
-               }
-
-    # update settings
-    #for arg in args: settings.update(arg)
-    #settings.update(kwargs)
-
     """ Match probability as a function of w_a,w_b """
 
     fig1,ax1 = plt.subplots(3,1,figsize=(8,12))
@@ -46,11 +39,14 @@ def main():
     solver_options = [{}]
 
     base_settings = {
-        'plot_repertoire': {
+        'save_to_excel': False,
+        'plot_repertoire': True,
+        'plot_repertoire_options': {
             'ax':ax1,
             'fig':fig1,
             },
-        'plot_frequency_estimation': {
+        'plot_frequency_estimation': True,
+        'plot_frequency_estimation_options': {
             'ax':ax2,
             'fig':fig2,
             'figsize':  (12,9),
@@ -59,7 +55,7 @@ def main():
             },
         'num_cells':1000,
         'cell_freq_max':         0.01, # 0.01
-        'cell_freq_constant':       2,
+        'cell_freq_constant':       2.0,
         'visual':                True,
         'silent':               False,
         }
@@ -86,13 +82,13 @@ def main():
         specific_options = copy.copy(base_settings)
 
         specific_options.update(sub_settings)
-        specific_options['plot_repertoire']['ax'] = ax1[i]
-        specific_options['plot_frequency_estimation']['ax'] = ax2[i]
+        specific_options['plot_repertoire_options']['ax'] = ax1[i]
+        specific_options['plot_frequency_estimation_options']['ax'] = ax2[i]
 
         _,results = madhype.simulate_run(solvers, solver_options, **specific_options)
 
-    fig1.savefig('Figure 5B.png', format='png', dpi=300)
-    fig2.savefig('Figure 5C.png', format='png', dpi=300)
+    fig1.savefig('Figure 4B.png', format='png', dpi=300)
+    fig2.savefig('Figure 4C.png', format='png', dpi=300)
 
 #    plt.show(block=False)
 #    raw_input('Press enter to close...')
@@ -100,7 +96,7 @@ def main():
     
 
 if __name__ == '__main__':
-    main()
+    res = main()
     
     
 

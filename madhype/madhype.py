@@ -22,48 +22,42 @@ solve = {
 
 
 def simulate_run(solvers, solver_options = None, **kwargs):
-    options = default_options.copy()
-
-    # Update options
-    options.update(kwargs)
-
     # Generate datasets
-    cells, cell_frequencies = simulation.generate_cells(**options)
-    data = simulation.generate_data(cells, cell_frequencies, **options)
+    cells, cell_frequencies = simulation.generate_cells(**kwargs)
+    data = simulation.generate_data(cells, cell_frequencies, **kwargs)
 
-    return data, run(data, solvers, solver_options, **options)
+    return data, run(data, solvers, solver_options, **kwargs)
 
 def run(data, solvers, solver_options = None, **kwargs):
-    options = default_options.copy()
-
-    # Update options
-    options.update(kwargs)
-
     # Interpret solver_options to use defaults if None
     if solver_options is None:  solver_options = [{}]*len(solvers)
 
     # prepare for storage
     compiled_results = []
 
+    # determine settings
+    max_pairs = kwargs.get('max_pairs', default_options['max_pairs'])
+    plot_comparison = kwargs.get('plot_comparison', default_options['plot_comparison'])
+
     # Solve using MAD-HYPE method
     for mode,mode_options in zip(solvers,solver_options):
         results = solve[mode](data,**mode_options)
 
-        if len(results) > options['max_pairs']:
+        if len(results) > max_pairs:
             print 'Reducing number of returned pairs from {}->{} (declared limit)...'.format(
-                    len(results), options['max_pairs'])
-            results = heapq.nlargest(options['max_pairs'], results, key = lambda x: x[1]) 
+                    len(results), max_pairs)
+            results = heapq.nlargest(max_pairs, results, key = lambda x: x[1]) 
         else:
             print 'Starting results sorting by p-value...'
             results.sort(key=lambda x: -x[1])
             print 'Finished!'
 
         # gather results
-        compiled_results.append(analyze_results(results,data,**options))
+        compiled_results.append(analyze_results(results,data,**kwargs))
 
     # comparison if two methods are selected
-    if options['plot_comparison'] != False:
-        compare_results(compiled_results,**options)
+    if plot_comparison != False:
+        compare_results(compiled_results,**kwargs)
 
     # return compiled results
     return compiled_results

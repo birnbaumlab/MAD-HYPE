@@ -24,7 +24,7 @@ general_options = {
     'plot_repertoire':           False,
     'plot_frequency_estimation': False,
 
-    # visual settings 
+    # general plotting settings 
     'title':            True, # whether title  is displayed
     'legend':           True, # whether legend is displayed
     'save':            False, # whether plots are saved
@@ -32,9 +32,7 @@ general_options = {
     'ax':               None, # an axis to plot on
     'fig':              None, # an axis to plot on
     'figsize':         (8,6), # size of newly generated figure
-
-    # plot-specific visual settings
-    'fs':18,
+    'fs':19,
     'linewidth':5,
     'fdr_plot': 0.01,
     'pos_color': 'black',
@@ -45,6 +43,36 @@ general_options = {
     'colorbar': True,
     'xlim': False,
     'ylim': False,
+    # plot-specific settings (overrides general settings above)
+    'plot_auroc_options': {
+        'fs': 18,
+        'linewidth': 5,
+        'figsize': (8,7),
+        'fdr_plot': 0.01
+    },
+    'plot_comparison_options': {
+        'pos_color': 'black',
+        'mixed1_color': 'green',
+        'mixed2_color': '#FFD870',
+        'neg_color': 'white',
+        'analysis': ('MAD-HYPE', 'ALPHABETR'),
+        'legend': True,
+    },
+    'plot_frequency_estimation_options': {
+        'fs': 18,
+        'linewidth': 3,
+        'figsize': (6,6),
+        'colorbar': False,
+        'xlim': False,
+        'ylim': False
+    },
+    'plot_repertoire_options': {
+        'fs': 18,
+        'linewidth': 5,
+        'figsize': (10,5),
+        'pos_color': 'black',
+        'neg_color': 'white'
+    },
 
     # other postprocessing options
     'max_pairs':               1000000,

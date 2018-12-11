@@ -8,6 +8,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+# intrapackage imports
+from ..defaults import general_options as default_options
+
 """
 
 Functions:
@@ -22,25 +25,8 @@ Functions:
 
 def plot_auroc(cresults,**kwargs):
 
-    label = 'auroc'
-
-    # default options parameters
-    new_options = {
-            'fs':         18,
-            'linewidth':   5,
-            'figsize': (8,7),
-            'fdr_plot':0.01,
-                  }
-
-    # update options
-    if 'plot_{}' in options:
-        options.update(kwargs)
-        options.update(new_options)
-        _update_options(options,label)
-    else:
-        options = _default_plot_options()
-        options.update(new_options)
-        options.update(kwargs)
+    # determine plotting options
+    options = _get_options(kwargs, 'plot_auroc_options')
 
     # get references for fig,ax
     fig,ax = _get_axis(options)
@@ -71,28 +57,8 @@ def plot_auroc(cresults,**kwargs):
 
 def plot_comparison(cresults,**kwargs):
 
-    label = 'comparison'
-    options = _default_plot_options()
-
-    # default options parameters
-    new_options = {
-                  'pos_color':'black',
-                  'mixed1_color':'green',
-                  'mixed2_color':'#FFD870',
-                  'neg_color':'white',
-                  'analysis':('MAD-HYPE','ALPHABETR'),
-                  'legend':True,
-                  }
-
-    # update options
-    if 'plot_{}' in options:
-        options.update(kwargs)
-        options.update(new_options)
-        _update_options(options,label)
-    else:
-        options = _default_plot_options()
-        options.update(new_options)
-        options.update(kwargs)
+    # determine plotting options
+    options = _get_options(kwargs, 'plot_comparison_options')
 
     # get references for fig,ax
     fig,ax = _get_axis(options)
@@ -144,28 +110,8 @@ def plot_comparison(cresults,**kwargs):
 
 def plot_frequency_estimation(cresults,**kwargs):
 
-    label = 'frequency_estimation'
-    options = _default_plot_options()
-
-    # default options parameters
-    new_options = {
-            'fs':          18,
-            'linewidth':    3,
-            'figsize':  (6,6),
-            'colorbar': False,
-            'xlim': False,
-            'ylim': False,
-                  }
-
-    # update options
-    if 'plot_{}' in options:
-        options.update(kwargs)
-        options.update(new_options)
-        _update_options(options,label)
-    else:
-        options = _default_plot_options()
-        options.update(new_options)
-        options.update(kwargs)
+    # determine plotting options
+    options = _get_options(kwargs, 'plot_frequency_estimation_options')
 
     # get references for fig,ax
     fig,ax = _get_axis(options)
@@ -229,27 +175,8 @@ def plot_frequency_estimation(cresults,**kwargs):
 
 def plot_repertoire(cresults,**kwargs):
 
-    label = 'repertoire'
-    options = _default_plot_options()
-
-    # default options parameters
-    new_options = {
-            'fs':           18,
-            'linewidth':     5,
-            'figsize':  (10,5),
-            'pos_color': 'black',
-            'neg_color': 'white',
-                  }
-
-    # update options
-    if 'plot_{}' in options:
-        options.update(kwargs)
-        options.update(new_options)
-        _update_options(options,label)
-    else:
-        options = _default_plot_options()
-        options.update(new_options)
-        options.update(kwargs)
+    # determine plotting options
+    options = _get_options(kwargs, 'plot_repertoire_options')
 
     # get references for fig,ax
     fig,ax = _get_axis(options)
@@ -258,7 +185,6 @@ def plot_repertoire(cresults,**kwargs):
     fs = options['fs']
 
     ### START FIGURE ###
-
     plt.yscale('log')
 
     for val,color,l in zip(
@@ -290,9 +216,13 @@ def plot_repertoire(cresults,**kwargs):
 
 #------------------------------------------------------------------------------#
 
-def _update_options(options,label):
-    if isinstance(options['plot_{}'.format(label)],dict):
-        options.update(options['plot_{}'.format(label)])
+def _get_options(user_options, key):
+    options = default_options.copy()
+    options.update(options[key])
+    options.update(user_options)
+    options.update(user_options.get(key, {}))
+
+    return options
 
 #------------------------------------------------------------------------------#
 
@@ -316,16 +246,16 @@ def _output(options):
 
 def _get_axis(options):
     """ Get axes, prioritizing user inputs """
-    if not options['fig'] and not options['ax']:
+    if options['fig'] is None and options['ax'] is None:
         fig,ax = plt.subplots(figsize = options['figsize'])
         try:
             options['fig'],options['ax'] = plt.gcf(),plt.gca()
         except: # if running on AWS
             pass
-    elif not options['ax']:
+    elif options['ax'] is None:
         fig,ax = options['fig'],plt.gca()
         options['ax'] = plt.gca()
-    elif not options['fig']:
+    elif options['fig'] is None:
         fig,ax = plt.gcf(),options['ax']
         options['fig'] = plt.gcf()
     else:
@@ -348,22 +278,4 @@ def _set_legend(options):
         leg.get_frame().set_edgecolor('k')
 
 #------------------------------------------------------------------------------#
-
-def _default_plot_options():
-    """ Options common to all plots """
-    return {
-            'title':            True, # whether title  is displayed
-            'legend':           True, # whether legend is displayed
-            'save':             True, # whether plots are saved
-            'savename': 'img_{}.png', # whether plots are saved
-            'ax':               None, # an axis to plot on
-            'fig':              None, # an axis to plot on
-            'figsize':         (6,12), # size of newly generated figure
-            'fs':           18,
-            'linewidth':     5,
-            'fdr_plot': 0.01,
-            }
-
-##------------------------------------------------------------------------------#
-
 
