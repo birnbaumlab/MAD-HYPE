@@ -58,8 +58,7 @@ if __name__ == "__main__":
 
     T = 96000
     W = 96
-    #w_range = [24,36,48]
-    w_range = [0,6,12,18,24,30,36,42,48] # real well range
+    w_range = range(6, 96, 6) # real well range
     c_range = np.logspace(0,3,16,dtype=int) # 16 segments
     repeats = 3 # 3 repeats
 
@@ -106,7 +105,7 @@ if __name__ == "__main__":
     cbar = plt.colorbar(cax,ax=ax,ticks=[0,1])
     cbar.ax.set_yticklabels(['0%','100%'])  # vertically oriented colorbar
 
-    plt.savefig('figure_4a.png', format='png', dpi=300)
+    plt.savefig('Figure4A.png', format='png', dpi=300)
 
 #    # show, allow user to exit
 #    plt.show(block=False)

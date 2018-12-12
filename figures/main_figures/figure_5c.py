@@ -41,8 +41,6 @@ def _get_fdr_for_match_limit(data,results,match_limit):
 def main(*args,**kwargs):
 
     mod_range = [.1,.15,.2,.25,.3,.35,.4]
-    #mod_range = [.1,.4]
-    #mod_range = [.0,.05,.1,.15,.2,.25]
     labels = ['{}%'.format(int(100*m)) for m in mod_range]
 
 
@@ -181,10 +179,7 @@ def main(*args,**kwargs):
     axes[1][1].set_title('ALPHABETR',fontweight='bold',fontsize=fs)
     label_figure(axes[1][1],'Chain Deletion Probability','FDR (%)',fs=fs)
 
-    plt.show(block=False)
-    raw_input('Press enter to close...')
-    plt.savefig('fig_S7.png', format='png', dpi=300)
-    plt.close()
+    plt.savefig('Figure5C.png', format='png', dpi=300)
 
 
 # --- Internal Methods --- #
@@ -230,8 +225,6 @@ def default_settings():
             # visual cues
             'silent':False,
             'visual':False,
-            'visual_block':False,
-            'compare':False
             }
 
 if __name__ == "__main__":

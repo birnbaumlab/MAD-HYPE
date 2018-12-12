@@ -23,14 +23,6 @@ plt.rcParams['xtick.labelsize'] = 16
 
 def main():
 
-    settings = {
-            
-               }
-
-    # update settings
-    #for arg in args: settings.update(arg)
-    #settings.update(kwargs)
-
     """ Match probability as a function of w_a,w_b """
 
     fig = plt.figure(figsize=(12,10))
@@ -102,11 +94,13 @@ def main():
     solvers = ['madhype']
     solver_options = [{}]
     settings = {
-        'plot_auroc': {
+        'plot_auroc': True,
+        'plot_auroc_options': {
             'ax':ax2,
             'fig':fig,
             },
-        'plot_repertoire': {
+        'plot_repertoire': True,
+        'plot_repertoire_options': {
             'ax':ax3,
             'fig':fig,
             },
@@ -116,7 +110,7 @@ def main():
 
     data,results = madhype.simulate_run(solvers, solver_options, **settings)
 
-    plt.savefig('figure_3.png')
+    plt.savefig('Figure3.png')
 
 #    plt.show(block=False)
 #    raw_input('Press enter to close...')

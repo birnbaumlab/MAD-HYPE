@@ -77,9 +77,10 @@ def main(*args,**kwargs):
         fig.patch.set_facecolor([0.9,0.9,0.9])
         plt.subplots_adjust(left=0.02, right=0.98, top=0.98, bottom=0.02)
 
-        plt.savefig('{}.png'.format(mode),facecolor=fig.get_facecolor(), edgecolor='k',edgewidth=5)
+        filename = 'Figure2A_{}.png'.format(mode)
+        plt.savefig(filename,facecolor=fig.get_facecolor(), edgecolor='k',edgewidth=5)
         
-        print 'Saved {}.png!'.format(mode)
+        print 'Saved', filename
 
 
 if __name__ == '__main__':

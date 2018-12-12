@@ -81,7 +81,7 @@ def plot_data(madhype_results, alphabetr_results):
       plt.yticks(range(len(cpw)), cpw)
       plt.ylabel('# cells/well in first partition')
       plt.title('{}, 9600 cells'.format(solver))
-      plt.savefig('figure_5b_{}.pdf'.format(solver))
+      plt.savefig('Figure5B_{}.pdf'.format(solver))
 
 madhype_results, alphabetr_results = collect_data()
 plot_data(madhype_results, alphabetr_results)

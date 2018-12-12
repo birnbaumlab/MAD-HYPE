@@ -87,8 +87,8 @@ def main():
 
         _,results = madhype.simulate_run(solvers, solver_options, **specific_options)
 
-    fig1.savefig('Figure 4B.png', format='png', dpi=300)
-    fig2.savefig('Figure 4C.png', format='png', dpi=300)
+    fig1.savefig('Figure4B.png', format='png', dpi=300)
+    fig2.savefig('Figure4C.png', format='png', dpi=300)
 
 #    plt.show(block=False)
 #    raw_input('Press enter to close...')
