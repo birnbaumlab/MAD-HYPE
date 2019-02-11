@@ -48,9 +48,9 @@ def run(data, solvers, solver_options = None, **kwargs):
                     len(results), max_pairs)
             results = heapq.nlargest(max_pairs, results, key = lambda x: x[1]) 
         else:
-            print 'Starting results sorting by p-value...'
+#            print 'Starting results sorting by p-value...'
             results.sort(key=lambda x: -x[1])
-            print 'Finished!'
+#            print 'Finished!'
 
         # gather results
         compiled_results.append(analyze_results(results,data,**kwargs))

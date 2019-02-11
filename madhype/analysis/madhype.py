@@ -108,12 +108,12 @@ def solve(data,**kwargs):
     alpha_dicts = chunkify_dict(well_distribution['A'],num_cores)
 
     # multithread solver 
-    print 'Starting {} processes...'.format(num_cores)
+#    print 'Starting {} processes...'.format(num_cores)
     results = parmap(create_worker(*args),alpha_dicts)
-    print 'Finished!'
+#    print 'Finished!'
 
 
-    print 'Total potential matches: {}'.format(len(results))
+#    print 'Total potential matches: {}'.format(len(results))
     # flatten list
     #results = [entry for subresults in results for entry in subresults]
 
