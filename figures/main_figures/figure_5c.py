@@ -24,10 +24,12 @@ plt.rcParams['ytick.labelsize'] = 14
 def _get_fdr_for_match_limit(data,results,match_limit):
 
     positives,negatives = 0,0
+    
+    paired_data = set([d[0] for d in data['cells']])
 
     for i,r in enumerate(results[0]['raw_results'][:match_limit]):
 
-        if r[0] in data['cells']:
+        if r[0] in paired_data:
             positives += 1
         else:
             negatives += 1
@@ -48,7 +50,7 @@ def main(*args,**kwargs):
             'chain_deletion_prob': mod_range,
             }
 
-    repeats = 10
+    repeats = 10 
     match_limit_low = 750
     match_limit = 250
 
@@ -56,7 +58,8 @@ def main(*args,**kwargs):
     settings['cell_freq_max'] = 0.01
     settings['num_cells'] = 1000
     settings['cpw'] = (300,)
-    settings['chain_deletion_prob'] = 0.1
+    settings['chain_deletion_prob'] = 0.0
+    settings['chain_freq_constnat'] = 1.0
     settings['chain_misplacement_prob'] = 0.0
     settings['alpha_sharing_probs'] = None
     settings['beta_sharing_probs'] = None
