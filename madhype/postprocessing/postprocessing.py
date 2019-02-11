@@ -373,7 +373,7 @@ def get_results_from_cell_reference(results,data,options):
     if options['save_to_excel']:
         write_results_to_xslx(results)
 
-    if True:#not options['silent']:
+    if not options['silent']:
 
         print 'Positives:',results['positives']
         print 'Negatives:',results['negatives']
