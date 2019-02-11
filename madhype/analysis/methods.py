@@ -117,7 +117,7 @@ def match_probability(well_data,prior = 1.0,memory={}):
             print p_match
             print p_nonmatch
             print '-----------'
-        memory[key] = p_match - p_nonmatch,(freqs_match,freqs_nonmatch)
+        memory[key] = np.log10(prior) + p_match - p_nonmatch,(freqs_match,freqs_nonmatch)
         return memory[key]
 
 

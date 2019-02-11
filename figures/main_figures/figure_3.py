@@ -53,7 +53,7 @@ def main():
                  'w_o':(48,),
                  'w_tot':(96,),
                  'cpw':(10,),
-                 'alpha':1
+                 'alpha':2
                 }
 
     plt.sca(ax1)
@@ -62,8 +62,8 @@ def main():
         for j in xrange(Y.shape[1]):
             well_data['w_i'] = (X[i,j],)
             well_data['w_j'] = (Y[i,j],)
-            val = match_probability(well_data,0.01)[0]
-            Z[i,j] = 1./(1.+prior*val)
+            val = 10**(-match_probability(well_data,prior)[0])
+            Z[i,j] = 1./(1.+val)
 
     matplotlib.rcParams['xtick.labelsize'] = 16
     matplotlib.rcParams['ytick.labelsize'] = 16
