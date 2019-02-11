@@ -177,6 +177,7 @@ def write_results_to_xslx(original_results):
 
     # data sheet
     ws = wb.create_sheet(title='MATCHES')
+    ws.append(('Match Labels (A,B)','Match Confidence Ratio (10^-x)','Clonal Frequencies (i->A,j->B)'))
     for match in matches:
         ws.append((str(m) for m in match))
 
