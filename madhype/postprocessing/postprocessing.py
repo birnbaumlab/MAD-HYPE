@@ -26,6 +26,31 @@ MAIN FUNCTIONS
 '''
 
 #------------------------------------------------------------------------------# 
+def create_raw_results_with_well_counts(results,data):
+   
+    chain_data = {
+            'A':{},
+            'B':{},
+            }
+
+    for chain in 'AB':
+        for well_index,seqs in enumerate(data['well_data'][chain]):
+            for seq in seqs:
+                try:
+                    chain_data[chain][seq] += [well_index]
+                except KeyError:
+                    chain_data[chain][seq]  = [well_index]
+
+    new_results = []
+    for r in results:
+        alpha,beta = r[0][0][0],r[0][1][0]
+        a_wells = set(chain_data['A'][alpha])
+        b_wells = set(chain_data['B'][beta])
+        ab = len(a_wells.intersection(b_wells))
+        a,b = len(a_wells) - ab,len(b_wells) - ab
+        new_results.append(r + (a,b,ab))
+                
+    return new_results
 
 def analyze_results(results,data,**kwargs):
 
@@ -46,12 +71,22 @@ def analyze_results(results,data,**kwargs):
     if not 'cells' in data:
 
         if options['reference'] == None:
-            print 'No cell or subject reference provided, cannot produce meaningful results!'
-            return {'raw_results': results}
+            print 'No cell or subject reference provided, cannot produce standarized positive/negative results!'
+            #print 'Data:',(data['well_data'])
+            #print 'KWARGS:',kwargs
+            #print 'Results:',results
+            new_results = create_raw_results_with_well_counts(results,data)
+            return {
+                    'raw_results': results,
+                    'raw_results_with_well_counts': new_results,
+                    }
 
         if not is_reference_valid(options):
             print 'Reference not valid, cannot perform analysis!'
-            return {'raw_results': results}
+            return {
+                    'raw_results': results,
+                    'raw_results_with_wells': results,
+                    }
         
         print 'Starting analysis using subject reference'
 

@@ -8,8 +8,11 @@ from setuptools import setup, find_packages
 #    readme = f.read()
 readme = ''
 
-with open('LICENSE') as f:
-    license = f.read()
+try:
+    with open('LICENSE') as f:
+        license = f.read()
+except:
+    license = ''
 
 setup(
     name='madhype',

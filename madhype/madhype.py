@@ -30,6 +30,7 @@ def simulate_run(solvers, solver_options = None, **kwargs):
 
 def run(data, solvers, solver_options = None, **kwargs):
     # Interpret solver_options to use defaults if None
+    print('Starting run...')
     if solver_options is None:  solver_options = [{}]*len(solvers)
 
     # prepare for storage

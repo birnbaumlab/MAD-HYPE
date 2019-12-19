@@ -117,7 +117,6 @@ def solve(data,**kwargs):
     # flatten list
     #results = [entry for subresults in results for entry in subresults]
 
-    # return results
     return results
 
 
